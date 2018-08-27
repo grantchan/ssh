@@ -8,21 +8,49 @@
     <artifactId>ssh</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <java.major.version>1</java.major.version>
+        <java.minor.version>8</java.minor.version>
+        <javac.source>${java.major.version}.${java.minor.version}</javac.source>
+        <javac.target>${javac.source}</javac.target>
+        <slf4j.version>1.7.25</slf4j.version>
+        <netty.version>4.1.21.Final</netty.version>
+        <junit.version>4.12</junit.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.5</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.5</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
-            <version>4.1.21.Final</version>
+            <version>${netty.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${javac.source}</source>
+                    <target>${javac.target}</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

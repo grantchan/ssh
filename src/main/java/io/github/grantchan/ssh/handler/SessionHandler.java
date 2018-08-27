@@ -83,7 +83,7 @@ public class SessionHandler extends ChannelInboundHandlerAdapter {
    * Get the remote peer's identification
    * @return the identification if successful, otherwise null.
    */
-  private String getId(final ByteBuf buf) {
+  protected String getId(final ByteBuf buf) {
     int rIdx = buf.readerIndex();
     int wIdx = buf.writerIndex();
     if (wIdx - rIdx <= 0) {
@@ -95,7 +95,7 @@ public class SessionHandler extends ChannelInboundHandlerAdapter {
       return null;
     }
 
-    int    len = i - rIdx + 1;
+    int len = i - rIdx + 1;
     byte[] arr = new byte[len];
     buf.readBytes(arr);
 
