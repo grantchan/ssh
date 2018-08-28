@@ -7,7 +7,7 @@ import io.netty.channel.ChannelPromise;
 
 import java.security.SecureRandom;
 
-import static io.github.grantchan.ssh.handler.SshConstant.SSH_PACKET_HEADER_LENGTH;
+import static io.github.grantchan.ssh.common.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
 public class PacketEncoder extends ChannelOutboundHandlerAdapter {
 

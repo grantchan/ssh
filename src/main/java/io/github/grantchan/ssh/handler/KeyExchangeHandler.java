@@ -5,8 +5,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
-import static io.github.grantchan.ssh.handler.SshConstant.SSH_MSG_KEXINIT;
-import static io.github.grantchan.ssh.handler.SshConstant.SSH_PACKET_LENGTH;
+import static io.github.grantchan.ssh.common.SshConstant.SSH_MSG_KEXINIT;
+import static io.github.grantchan.ssh.common.SshConstant.SSH_PACKET_LENGTH;
 
 public class KeyExchangeHandler extends ChannelInboundHandlerAdapter {
 

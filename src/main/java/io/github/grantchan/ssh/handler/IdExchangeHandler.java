@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 
-import static io.github.grantchan.ssh.handler.SshConstant.MSG_KEX_COOKIE_SIZE;
-import static io.github.grantchan.ssh.handler.SshConstant.SSH_MSG_KEXINIT;
-import static io.github.grantchan.ssh.handler.SshConstant.SSH_PACKET_HEADER_LENGTH;
+import static io.github.grantchan.ssh.common.SshConstant.MSG_KEX_COOKIE_SIZE;
+import static io.github.grantchan.ssh.common.SshConstant.SSH_MSG_KEXINIT;
+import static io.github.grantchan.ssh.common.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
 public class IdExchangeHandler extends ChannelInboundHandlerAdapter {
 
