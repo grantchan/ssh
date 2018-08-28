@@ -9,13 +9,13 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertEquals;
 
-public class SessionHandlerTest {
+public class IdExchangeHandlerTest {
 
-  private MySessionHandler sessionHandler;
+  private MyIdExchangeHandler sessionHandler;
 
   @Before
   public void setUp() {
-    sessionHandler = new MySessionHandler();
+    sessionHandler = new MyIdExchangeHandler();
   }
 
   @Test
@@ -32,8 +32,7 @@ public class SessionHandlerTest {
     assertEquals("SSH-2.0-softwareversion", actual);
   }
 
-
-  private class MySessionHandler extends SessionHandler {
+  private class MyIdExchangeHandler extends IdExchangeHandler {
     @Override
     protected String getId(ByteBuf buf) {
       return super.getId(buf);

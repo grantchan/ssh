@@ -2,7 +2,6 @@ package io.github.grantchan.ssh.handler;
 
 import io.github.grantchan.ssh.util.SshByteBufUtil;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -18,9 +17,9 @@ import static io.github.grantchan.ssh.handler.SshConstant.MSG_KEX_COOKIE_SIZE;
 import static io.github.grantchan.ssh.handler.SshConstant.SSH_MSG_KEXINIT;
 import static io.github.grantchan.ssh.handler.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
-public class SessionHandler extends ChannelInboundHandlerAdapter {
+public class IdExchangeHandler extends ChannelInboundHandlerAdapter {
 
-  private final Logger logger = LoggerFactory.getLogger(SessionHandler.class);
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final SecureRandom rand = new SecureRandom();
 
@@ -85,11 +84,19 @@ public class SessionHandler extends ChannelInboundHandlerAdapter {
       if (clientVer == null) {
         return;
       }
+
+      ByteBuf buf = ctx.alloc().buffer();
+      buf.writeBytes(accuBuf);
+
+      ctx.pipeline().addLast(new KeyExchangeHandler());
+      ctx.pipeline().remove(this);
+
       ctx.pipeline().addLast(new PacketEncoder());
 
       ctx.channel().writeAndFlush(kexInit(ctx));
-    }
 
+      super.channelRead(ctx, buf);
+    }
     ReferenceCountUtil.release(msg);
   }
 
@@ -153,5 +160,4 @@ public class SessionHandler extends ChannelInboundHandlerAdapter {
 
     return buf;
   }
-
 }
