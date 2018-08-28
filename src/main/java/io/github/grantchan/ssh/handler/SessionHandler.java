@@ -1,5 +1,6 @@
 package io.github.grantchan.ssh.handler;
 
+import io.github.grantchan.ssh.util.SshByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
@@ -136,16 +137,16 @@ public class SessionHandler extends ChannelInboundHandlerAdapter {
     rand.nextBytes(cookie);
     buf.writeBytes(cookie);
 
-    writeUtf8(buf, "diffie-hellman-group-exchange-sha1");
-    writeUtf8(buf, "ssh-rsa");
-    writeUtf8(buf, "aes256-cbc" + "," + "aes256-ctr");
-    writeUtf8(buf, "aes256-cbc" + "," + "aes256-ctr");
-    writeUtf8(buf, "hmac-sha1");
-    writeUtf8(buf, "hmac-sha1");
-    writeUtf8(buf, "none");
-    writeUtf8(buf, "none");
-    writeUtf8(buf, "");
-    writeUtf8(buf, "");
+    SshByteBufUtil.writeUtf8(buf, "diffie-hellman-group-exchange-sha1");
+    SshByteBufUtil.writeUtf8(buf, "ssh-rsa");
+    SshByteBufUtil.writeUtf8(buf, "aes256-cbc" + "," + "aes256-ctr");
+    SshByteBufUtil.writeUtf8(buf, "aes256-cbc" + "," + "aes256-ctr");
+    SshByteBufUtil.writeUtf8(buf, "hmac-sha1");
+    SshByteBufUtil.writeUtf8(buf, "hmac-sha1");
+    SshByteBufUtil.writeUtf8(buf, "none");
+    SshByteBufUtil.writeUtf8(buf, "none");
+    SshByteBufUtil.writeUtf8(buf, "");
+    SshByteBufUtil.writeUtf8(buf, "");
 
     buf.writeBoolean(false); // first kex packet follows
     buf.writeInt(0); // reserved (FFU)
@@ -153,12 +154,4 @@ public class SessionHandler extends ChannelInboundHandlerAdapter {
     return buf;
   }
 
-  private static int writeUtf8(ByteBuf buf, String val) {
-    int idx = buf.writerIndex();
-
-    buf.writeInt(val.length());
-    buf.writeBytes(val.getBytes(StandardCharsets.UTF_8));
-
-    return buf.writerIndex() - idx;
-  }
 }
