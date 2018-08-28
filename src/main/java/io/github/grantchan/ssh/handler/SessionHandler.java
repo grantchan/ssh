@@ -1,18 +1,27 @@
 package io.github.grantchan.ssh.handler;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ByteProcessor;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+
+import static io.github.grantchan.ssh.handler.SshConstant.MSG_KEX_COOKIE_SIZE;
+import static io.github.grantchan.ssh.handler.SshConstant.SSH_MSG_KEXINIT;
+import static io.github.grantchan.ssh.handler.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
 public class SessionHandler extends ChannelInboundHandlerAdapter {
 
-  private static Logger logger = LoggerFactory.getLogger(SessionHandler.class);
+  private final Logger logger = LoggerFactory.getLogger(SessionHandler.class);
+
+  private final SecureRandom rand = new SecureRandom();
 
   private String clientVer = null;
 
@@ -75,8 +84,12 @@ public class SessionHandler extends ChannelInboundHandlerAdapter {
       if (clientVer == null) {
         return;
       }
-      logger.info(clientVer);
+      ctx.pipeline().addLast(new PacketEncoder());
+
+      ctx.channel().writeAndFlush(kexInit(ctx));
     }
+
+    ReferenceCountUtil.release(msg);
   }
 
   /*
@@ -107,5 +120,45 @@ public class SessionHandler extends ChannelInboundHandlerAdapter {
     buf.discardReadBytes();
 
     return new String(arr, 0, len, StandardCharsets.UTF_8);
+  }
+
+  /*
+   * Construct the key exchange initialization packet.
+   */
+  private ByteBuf kexInit(ChannelHandlerContext ctx) {
+    ByteBuf buf = ctx.alloc().buffer();
+
+    buf.writerIndex(SSH_PACKET_HEADER_LENGTH);
+    buf.readerIndex(SSH_PACKET_HEADER_LENGTH);
+    buf.writeByte(SSH_MSG_KEXINIT);
+
+    byte[] cookie = new byte[MSG_KEX_COOKIE_SIZE];
+    rand.nextBytes(cookie);
+    buf.writeBytes(cookie);
+
+    writeUtf8(buf, "diffie-hellman-group-exchange-sha1");
+    writeUtf8(buf, "ssh-rsa");
+    writeUtf8(buf, "aes256-cbc" + "," + "aes256-ctr");
+    writeUtf8(buf, "aes256-cbc" + "," + "aes256-ctr");
+    writeUtf8(buf, "hmac-sha1");
+    writeUtf8(buf, "hmac-sha1");
+    writeUtf8(buf, "none");
+    writeUtf8(buf, "none");
+    writeUtf8(buf, "");
+    writeUtf8(buf, "");
+
+    buf.writeBoolean(false); // first kex packet follows
+    buf.writeInt(0); // reserved (FFU)
+
+    return buf;
+  }
+
+  private static int writeUtf8(ByteBuf buf, String val) {
+    int idx = buf.writerIndex();
+
+    buf.writeInt(val.length());
+    buf.writeBytes(val.getBytes(StandardCharsets.UTF_8));
+
+    return buf.writerIndex() - idx;
   }
 }
