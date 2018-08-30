@@ -8,9 +8,9 @@ import io.netty.util.ReferenceCountUtil;
 import static io.github.grantchan.ssh.common.SshConstant.SSH_MSG_KEXINIT;
 import static io.github.grantchan.ssh.common.SshConstant.SSH_PACKET_LENGTH;
 
-public class KeyExchangeHandler extends ChannelInboundHandlerAdapter {
+public class KexHandler extends ChannelInboundHandlerAdapter {
 
-  private ByteBuf accuBuf;
+  protected ByteBuf accuBuf;
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) throws Exception {

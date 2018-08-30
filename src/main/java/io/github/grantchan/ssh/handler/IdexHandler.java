@@ -12,14 +12,22 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.github.grantchan.ssh.common.SshConstant.MSG_KEX_COOKIE_SIZE;
 import static io.github.grantchan.ssh.common.SshConstant.SSH_MSG_KEXINIT;
 import static io.github.grantchan.ssh.common.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
-public class IdExchangeHandler extends ChannelInboundHandlerAdapter {
+public class IdexHandler extends ChannelInboundHandlerAdapter {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
+
+  /*
+   * RFC 4253: The maximum length of the string is 255 characters,
+   * including the Carriage Return and Line Feed.
+   */
+  private final int MAX_IDENTIFICATION_LINE_LENGTH = 255;
 
   private final SecureRandom rand = new SecureRandom();
 
@@ -33,17 +41,11 @@ public class IdExchangeHandler extends ChannelInboundHandlerAdapter {
    */
   private final String serverVer = "SSH-2.0-DEMO";
 
-  private ByteBuf accuBuf;
+  protected ByteBuf accuBuf;
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
     accuBuf = ctx.alloc().buffer();
-  }
-
-  @Override
-  public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-    accuBuf.release();
-    accuBuf = null;
   }
 
   @Override
@@ -80,22 +82,19 @@ public class IdExchangeHandler extends ChannelInboundHandlerAdapter {
     accuBuf.writeBytes((ByteBuf) msg);
 
     if (clientVer == null) {
-      clientVer = getId(accuBuf);
+      clientVer = getClientId();
       if (clientVer == null) {
         return;
       }
 
-      ByteBuf buf = ctx.alloc().buffer();
-      buf.writeBytes(accuBuf);
+      logger.debug("received identification: {}", clientVer);
 
-      ctx.pipeline().addLast(new KeyExchangeHandler());
+      ctx.pipeline().addLast(new KexHandler(), new PacketEncoder());
       ctx.pipeline().remove(this);
-
-      ctx.pipeline().addLast(new PacketEncoder());
 
       ctx.channel().writeAndFlush(kexInit(ctx));
 
-      super.channelRead(ctx, buf);
+      ctx.fireChannelRead(accuBuf);
     }
     ReferenceCountUtil.release(msg);
   }
@@ -104,30 +103,80 @@ public class IdExchangeHandler extends ChannelInboundHandlerAdapter {
    * Get the remote peer's identification
    * @return the identification if successful, otherwise null.
    */
-  protected String getId(final ByteBuf buf) {
-    int rIdx = buf.readerIndex();
-    int wIdx = buf.writerIndex();
-    if (wIdx - rIdx <= 0) {
+  String getClientId() {
+    int rIdx = accuBuf.readerIndex();
+    int wIdx = accuBuf.writerIndex();
+    if (rIdx == wIdx) {
       return null;
     }
 
-    int i = buf.forEachByte(rIdx, wIdx - rIdx, ByteProcessor.FIND_LF);
-    if (i < 0) {
+    final String[] id = {null};
+
+    ByteProcessor findId = new ByteProcessor() {
+      private int line = 1, pos = 0;
+      private boolean needLf = false;
+      private boolean validLine = false;
+
+      private byte[] data = new byte[MAX_IDENTIFICATION_LINE_LENGTH];
+
+      @Override
+      public boolean process(byte b) throws Exception {
+
+        /* RFC 4253: The null character MUST NOT be sent. */
+        if (b == '\0') {
+          throw new IllegalStateException("Illegal identification - null character found at" +
+                                          " line #" + line + " character #" + pos + 1);
+        }
+
+        if (b == '\r') {
+          needLf = true;
+          return true;
+        }
+
+        if (b == '\n') {
+          line++;
+
+          if (validLine) {
+            id[0] = new String(data, 0, pos, StandardCharsets.UTF_8);
+            return false;
+          }
+          pos = 0;
+          needLf = false;
+          return true;
+        }
+
+        if (needLf) {
+          throw new IllegalStateException("Illegal identification - invalid line ending at" +
+                                          " line #" + line + " character #" + pos + 1);
+        }
+
+        if (pos > data.length) {
+          throw new IllegalStateException("Illegal identification - line too long at" +
+                                          " line #" + line + " character #" + pos + 1);
+        }
+
+        if (pos < 4) {
+          data[pos++] = b;
+        } else if (data[0] == 'S' && data[1] == 'S' && data[2] == 'H' && data[3] == '-') {
+          validLine = true;
+          data[pos++] = b;
+        }
+
+        return true;
+      }
+    };
+
+    int i = accuBuf.forEachByte(rIdx, wIdx - rIdx, findId);
+    if (i == -1) {
+      // packet is not fully received, restore reader index and return
+      accuBuf.readerIndex(rIdx);
       return null;
     }
 
-    int len = i - rIdx + 1;
-    byte[] arr = new byte[len];
-    buf.readBytes(arr);
+    accuBuf.readerIndex(i + 1);
+    accuBuf.discardReadBytes();
 
-    len--;
-    if (arr[len - 1] == '\r') {
-      len--;
-    }
-
-    buf.discardReadBytes();
-
-    return new String(arr, 0, len, StandardCharsets.UTF_8);
+    return id[0];
   }
 
   /*
