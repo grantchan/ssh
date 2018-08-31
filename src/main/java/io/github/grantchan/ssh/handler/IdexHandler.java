@@ -89,7 +89,7 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
 
       logger.debug("received identification: {}", clientVer);
 
-      ctx.pipeline().addLast(new KexHandler(), new PacketEncoder());
+      ctx.pipeline().addLast(new PacketDecoder(), new KexHandler(), new PacketEncoder());
       ctx.pipeline().remove(this);
 
       ctx.channel().writeAndFlush(kexInit(ctx));

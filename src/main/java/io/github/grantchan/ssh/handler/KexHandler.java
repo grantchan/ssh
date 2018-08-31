@@ -3,73 +3,75 @@ package io.github.grantchan.ssh.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.ReferenceCountUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static io.github.grantchan.ssh.common.SshConstant.SSH_MSG_KEXINIT;
-import static io.github.grantchan.ssh.common.SshConstant.SSH_PACKET_LENGTH;
+import java.util.List;
+
+import static io.github.grantchan.ssh.common.SshConstant.*;
+import static io.github.grantchan.ssh.util.SshByteBufUtil.readUtf8;
 
 public class KexHandler extends ChannelInboundHandlerAdapter {
 
-  protected ByteBuf accuBuf;
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  @Override
-  public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-    accuBuf = ctx.alloc().buffer();
-  }
-
-  @Override
-  public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-    accuBuf.release();
-    accuBuf = null;
-  }
+  private byte[] clientKexInit = null; // the payload of the client's SSH_MSG_KEXINIT
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    accuBuf.writeBytes((ByteBuf) msg);
+    ByteBuf buf = (ByteBuf) msg;
 
-    while (accuBuf.readableBytes() > 0) {
-      int wIdx = accuBuf.writerIndex();
+    int cmd = buf.readByte() & 0xFF;
+    switch (cmd) {
+      case SSH_MSG_KEXINIT:
+        int startPos = buf.readerIndex();
+        buf.skipBytes(MSG_KEX_COOKIE_SIZE);
 
-      int pkLen = decode();
-      if (pkLen != -1) {
-        int cmd = accuBuf.readByte() & 0xFF;
-        switch (cmd) {
-          case SSH_MSG_KEXINIT:
-            break;
-        }
+        resolveKexInit(buf);
 
-        accuBuf.writerIndex(wIdx); // restore the writer index
-        accuBuf.readerIndex(pkLen + SSH_PACKET_LENGTH);
-        accuBuf.discardReadBytes();
-      } else {
+        buf.readBoolean();
+        buf.readInt();
+
+        int payloadLen = buf.readerIndex() - startPos;
+        clientKexInit = new byte[payloadLen + 1];
+        clientKexInit[0] = SSH_MSG_KEXINIT;
+        buf.getBytes(startPos, clientKexInit, 1, payloadLen);
+
         break;
-      }
     }
-
-    ReferenceCountUtil.release(msg);
   }
 
-  /*
-   * Decode the incoming buffer.
-   *
-   * @return the length of the packet fully contains the message if successful,otherwise -1,
-   * the accumulate buffer remains unchanged.
-   */
-  private int decode() {
-    byte[] packet = new byte[accuBuf.readableBytes()];
-    accuBuf.getBytes(0, packet);
+  private List<String> resolveKexInit(ByteBuf buf) {
+    String kex = readUtf8(buf);
+    logger.info(kex);
 
-    int pkLen  = accuBuf.readInt();
+    String serverHostKey = readUtf8(buf);
+    logger.info(serverHostKey);
 
-    // if the packet has not been fully received, restore the reader pointer
-    if (accuBuf.readableBytes() < pkLen) {
-      accuBuf.readerIndex(0);
-      return -1;
-    }
+    String c2sEncryption = readUtf8(buf);
+    logger.info(c2sEncryption);
 
-    int pad = accuBuf.readByte() & 0xFF;
-    accuBuf.writerIndex(pkLen + SSH_PACKET_LENGTH - pad);
+    String s2cEncryption = readUtf8(buf);
+    logger.info(s2cEncryption);
 
-    return pkLen;
+    String c2sMac = readUtf8(buf);
+    logger.info(c2sMac);
+
+    String s2cMac = readUtf8(buf);
+    logger.info(s2cMac);
+
+    String c2sCompression = readUtf8(buf);
+    logger.info(c2sCompression);
+
+    String s2cCompression = readUtf8(buf);
+    logger.info(s2cCompression);
+
+    String c2sLanguage = readUtf8(buf);
+    logger.info(c2sLanguage);
+
+    String s2cLanguage = readUtf8(buf);
+    logger.info(s2cLanguage);
+
+    return null;
   }
 }
