@@ -36,6 +36,6 @@ public enum SignatureFactory implements NamedObject, Factory<Signature> {
 
   @Override
   public String getName() {
-    return null;
+    return this.name;
   }
 }
