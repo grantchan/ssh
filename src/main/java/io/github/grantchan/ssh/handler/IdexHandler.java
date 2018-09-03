@@ -1,5 +1,9 @@
 package io.github.grantchan.ssh.handler;
 
+import io.github.grantchan.ssh.kex.CipherFactory;
+import io.github.grantchan.ssh.common.NamedObject;
+import io.github.grantchan.ssh.kex.MacFactory;
+import io.github.grantchan.ssh.kex.SignatureFactory;
 import io.github.grantchan.ssh.util.SshByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -12,8 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.List;
 
 import static io.github.grantchan.ssh.common.SshConstant.MSG_KEX_COOKIE_SIZE;
 import static io.github.grantchan.ssh.common.SshConstant.SSH_MSG_KEXINIT;
@@ -194,11 +196,11 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
     buf.writeBytes(cookie);
 
     SshByteBufUtil.writeUtf8(buf, "diffie-hellman-group-exchange-sha1");
-    SshByteBufUtil.writeUtf8(buf, "ssh-rsa");
-    SshByteBufUtil.writeUtf8(buf, "aes256-cbc" + "," + "aes256-ctr");
-    SshByteBufUtil.writeUtf8(buf, "aes256-cbc" + "," + "aes256-ctr");
-    SshByteBufUtil.writeUtf8(buf, "hmac-sha1");
-    SshByteBufUtil.writeUtf8(buf, "hmac-sha1");
+    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(SignatureFactory.values));
+    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(CipherFactory.values));
+    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(CipherFactory.values));
+    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(MacFactory.values));
+    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(MacFactory.values));
     SshByteBufUtil.writeUtf8(buf, "none");
     SshByteBufUtil.writeUtf8(buf, "none");
     SshByteBufUtil.writeUtf8(buf, "");
