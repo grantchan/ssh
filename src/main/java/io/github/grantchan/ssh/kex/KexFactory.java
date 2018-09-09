@@ -12,14 +12,9 @@ public enum KexFactory implements NamedObject, Factory<Kex> {
   dhgexsha1("diffie-hellman-group-exchange-sha1") {
     @Override
     public Kex create() throws Exception {
-      if (instance == null) {
-        instance = new Kex(DigestFactory.sha1.create());
-      }
-      return instance;
+      return new Kex(DigestFactory.sha1.create());
     }
   };
-
-  public static Kex instance = null;
 
   public static final Set<KexFactory> values =
       Collections.unmodifiableSet(EnumSet.allOf(KexFactory.class));

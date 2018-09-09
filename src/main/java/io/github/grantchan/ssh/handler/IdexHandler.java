@@ -1,5 +1,6 @@
 package io.github.grantchan.ssh.handler;
 
+import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.kex.*;
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.util.SshByteBufUtil;
@@ -97,7 +98,6 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
       if (accuBuf.readableBytes() > 0) {
         ctx.fireChannelRead(accuBuf);
       }
-      ReferenceCountUtil.release(accuBuf);
     }
     ReferenceCountUtil.release(msg);
   }

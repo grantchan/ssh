@@ -7,8 +7,12 @@ public final class SshConstant {
   public static final int SSH_PACKET_HEADER_LENGTH = SSH_PACKET_LENGTH + SSH_PADDING_LENGTH;
   public static final int MSG_KEX_COOKIE_SIZE      = 16;
 
+  // SSH op codes
   public static final byte SSH_MSG_KEXINIT                = 20;
+  public static final byte SSH_MSG_NEWKEYS                = 21;
   public static final byte SSH_MSG_KEX_DH_GEX_REQUEST_OLD = 30;
   public static final byte SSH_MSG_KEX_DH_GEX_GROUP       = 31;
+  public static final byte SSH_MSG_KEX_DH_GEX_INIT        = 32;
+  public static final byte SSH_MSG_KEX_DH_GEX_REPLY       = 33;
   public static final byte SSH_MSG_KEX_DH_GEX_REQUEST     = 34;
 }

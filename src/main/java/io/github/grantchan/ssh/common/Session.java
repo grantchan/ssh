@@ -1,4 +1,6 @@
-package io.github.grantchan.ssh.kex;
+package io.github.grantchan.ssh.common;
+
+import java.util.List;
 
 public class Session {
 
@@ -13,6 +15,7 @@ public class Session {
 
   private byte[] clientKexInit = null; // the payload of the client's SSH_MSG_KEXINIT
   private byte[] serverKexInit = null; // the payload of the server's SSH_MSG_KEXINIT
+  private List<String> kexInitResult;
 
   public String getClientVer() {
     return clientVer;
@@ -42,4 +45,11 @@ public class Session {
     this.serverKexInit = serverKexInit;
   }
 
+  public void setKexInitResult(List<String> kexInitResult) {
+    this.kexInitResult = kexInitResult;
+  }
+
+  public List<String> getKexInitResult() {
+    return kexInitResult;
+  }
 }

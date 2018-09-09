@@ -7,6 +7,18 @@ import java.nio.charset.StandardCharsets;
 
 public class SshByteBufUtil {
 
+  public static byte[] readBytes(ByteBuf buf) {
+    byte[] val = new byte[buf.readInt()];
+    buf.readBytes(val);
+
+    return val;
+  }
+
+  public static void writeBytes(ByteBuf buf, byte[] val) {
+    buf.writeInt(val.length);
+    buf.writeBytes(val);
+  }
+
   public static String readUtf8(ByteBuf buf) {
     byte[] val = new byte[buf.readInt()];
     buf.readBytes(val);

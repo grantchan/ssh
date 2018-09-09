@@ -11,7 +11,8 @@ import java.util.Set;
 
 public enum DigestFactory implements NamedObject, Factory<MessageDigest> {
 
-  sha1("sha1");
+  sha1("sha1"),
+  sha256("sha256");
 
   public static MessageDigest instance = null;
 
