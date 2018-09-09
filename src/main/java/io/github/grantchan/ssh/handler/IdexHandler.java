@@ -1,9 +1,7 @@
 package io.github.grantchan.ssh.handler;
 
-import io.github.grantchan.ssh.kex.CipherFactory;
+import io.github.grantchan.ssh.kex.*;
 import io.github.grantchan.ssh.common.NamedObject;
-import io.github.grantchan.ssh.kex.MacFactory;
-import io.github.grantchan.ssh.kex.SignatureFactory;
 import io.github.grantchan.ssh.util.SshByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -33,56 +31,50 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
 
   private final SecureRandom rand = new SecureRandom();
 
-  private String clientVer = null;
-
-  /*
-   * RFC 4253:
-   * Both the 'protoversion' and 'softwareversion' strings MUST consist of
-   * printable US-ASCII characters, with the exception of whitespace
-   * characters and the minus sign (-).
-   */
-  private final String serverVer = "SSH-2.0-DEMO";
-
+  protected Session session;
   protected ByteBuf accuBuf;
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+    session = new Session();
     accuBuf = ctx.alloc().buffer();
   }
 
   @Override
   public void channelActive(ChannelHandlerContext ctx) throws Exception {
-   /*
-    * RFC 4253:
-    * When the connection has been established, both sides MUST send an
-    * identification string.  This identification string MUST be
-    *
-    *   SSH-protoversion-softwareversion SP comments CR LF
-    *
-    * Since the protocol being defined in this set of documents is version
-    * 2.0, the 'protoversion' MUST be "2.0".  The 'comments' string is
-    * OPTIONAL.  If the 'comments' string is included, a 'space' character
-    * (denoted above as SP, ASCII 32) MUST separate the 'softwareversion'
-    * and 'comments' strings.  The identification MUST be terminated by a
-    * single Carriage Return (CR) and a single Line Feed (LF) character
-    * (ASCII 13 and 10, respectively).
-    *
-    * ...
-    *
-    * The part of the identification string preceding the Carriage Return
-    * and Line Feed is used in the Diffie-Hellman key exchange.
-    *
-    * ...
-    *
-    * Key exchange will begin immediately after sending this identifier.
-    */
-    ctx.writeAndFlush(Unpooled.wrappedBuffer((serverVer + "\r\n").getBytes(StandardCharsets.UTF_8)));
+    /*
+     * RFC 4253:
+     * When the connection has been established, both sides MUST send an
+     * identification string.  This identification string MUST be
+     *
+     *   SSH-protoversion-softwareversion SP comments CR LF
+     *
+     * Since the protocol being defined in this set of documents is version
+     * 2.0, the 'protoversion' MUST be "2.0".  The 'comments' string is
+     * OPTIONAL.  If the 'comments' string is included, a 'space' character
+     * (denoted above as SP, ASCII 32) MUST separate the 'softwareversion'
+     * and 'comments' strings.  The identification MUST be terminated by a
+     * single Carriage Return (CR) and a single Line Feed (LF) character
+     * (ASCII 13 and 10, respectively).
+     *
+     * ...
+     *
+     * The part of the identification string preceding the Carriage Return
+     * and Line Feed is used in the Diffie-Hellman key exchange.
+     *
+     * ...
+     *
+     * Key exchange will begin immediately after sending this identifier.
+     */
+    String sid = session.getServerVer();
+    ctx.writeAndFlush(Unpooled.wrappedBuffer((sid + "\r\n").getBytes(StandardCharsets.UTF_8)));
   }
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     accuBuf.writeBytes((ByteBuf) msg);
 
+    String clientVer = session.getClientVer();
     if (clientVer == null) {
       clientVer = getClientId();
       if (clientVer == null) {
@@ -90,13 +82,22 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
       }
 
       logger.debug("received identification: {}", clientVer);
+      session.setClientVer(clientVer);
 
-      ctx.pipeline().addLast(new PacketDecoder(), new KexHandler(), new PacketEncoder());
+      ctx.pipeline().addLast(new PacketDecoder(), new KexHandler(session), new PacketEncoder());
       ctx.pipeline().remove(this);
 
-      ctx.channel().writeAndFlush(kexInit(ctx));
+      ByteBuf serverKexInit = kexInit(ctx);
+      byte[] buf = new byte[serverKexInit.readableBytes()];
+      serverKexInit.getBytes(SSH_PACKET_HEADER_LENGTH, buf);
+      session.setServerKexInit(buf);
 
-      ctx.fireChannelRead(accuBuf);
+      ctx.channel().writeAndFlush(serverKexInit);
+
+      if (accuBuf.readableBytes() > 0) {
+        ctx.fireChannelRead(accuBuf);
+      }
+      ReferenceCountUtil.release(accuBuf);
     }
     ReferenceCountUtil.release(msg);
   }
@@ -195,7 +196,7 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
     rand.nextBytes(cookie);
     buf.writeBytes(cookie);
 
-    SshByteBufUtil.writeUtf8(buf, "diffie-hellman-group-exchange-sha1");
+    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(KexFactory.values));
     SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(SignatureFactory.values));
     SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(CipherFactory.values));
     SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(CipherFactory.values));
