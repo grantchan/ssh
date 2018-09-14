@@ -3,6 +3,7 @@ package io.github.grantchan.ssh.handler;
 import io.github.grantchan.ssh.common.Factory;
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.SshConstant;
 import io.github.grantchan.ssh.kex.*;
 import io.github.grantchan.ssh.util.SshByteBufUtil;
 import io.netty.buffer.ByteBuf;
@@ -13,8 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static io.github.grantchan.ssh.common.SshConstant.*;
 
 public class KexHandler extends ChannelInboundHandlerAdapter {
 
@@ -32,17 +31,18 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     ByteBuf req = (ByteBuf) msg;
 
     int cmd = req.readByte() & 0xFF;
-    logger.debug("Handling message - {} ...", cmd);
+    logger.debug("Handling message - {} ...", SshConstant.messageName(cmd));
+
     switch (cmd) {
-      case SSH_MSG_KEXINIT:
+      case SshConstant.SSH_MSG_KEXINIT:
         handleKexInit(ctx, req);
         break;
 
       default:
-        if (cmd >= 30 && cmd <= 49) {
+        if (cmd >= 21 && cmd <= 49) {
           kex.handleKexMessage(ctx, cmd, req);
         } else {
-          throw new IllegalStateException("Unknown request command - " + cmd);
+          throw new IllegalStateException("Unknown request command - " + SshConstant.messageName(cmd));
         }
     }
   }
@@ -66,7 +66,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
      *   uint32       0 (reserved for future extension)
      */
     int startPos = msg.readerIndex();
-    msg.skipBytes(MSG_KEX_COOKIE_SIZE);
+    msg.skipBytes(SshConstant.MSG_KEX_COOKIE_SIZE);
 
     List<String> kexInit = resolveKexInit(msg);
     session.setKexInitResult(kexInit);
@@ -76,7 +76,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
 
     int payloadLen = msg.readerIndex() - startPos;
     byte[] clientKexInit = new byte[payloadLen + 1];
-    clientKexInit[0] = SSH_MSG_KEXINIT;
+    clientKexInit[0] = SshConstant.SSH_MSG_KEXINIT;
     msg.getBytes(startPos, clientKexInit, 1, payloadLen);
     session.setClientKexInit(clientKexInit);
 

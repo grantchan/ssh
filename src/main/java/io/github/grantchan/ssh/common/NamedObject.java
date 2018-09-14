@@ -8,6 +8,7 @@ public interface NamedObject {
   String getName();
 
   static String getNames(Collection<? extends NamedObject> objs) {
-    return objs.stream().map(NamedObject::getName).collect(Collectors.joining(","));
+    return objs.stream().map(NamedObject::getName)
+                        .collect(Collectors.joining(","));
   }
 }

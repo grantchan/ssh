@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
-public class SshByteBufUtil {
+public final class SshByteBufUtil {
 
   public static byte[] readBytes(ByteBuf buf) {
     byte[] val = new byte[buf.readInt()];
