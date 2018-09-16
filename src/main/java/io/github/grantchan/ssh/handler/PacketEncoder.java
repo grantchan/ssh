@@ -1,9 +1,12 @@
 package io.github.grantchan.ssh.handler;
 
+import io.github.grantchan.ssh.common.Session;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 
@@ -11,7 +14,14 @@ import static io.github.grantchan.ssh.common.SshConstant.SSH_PACKET_HEADER_LENGT
 
 public class PacketEncoder extends ChannelOutboundHandlerAdapter {
 
+  private final Logger logger = LoggerFactory.getLogger(getClass());
+
+  private final Session session;
   private final SecureRandom rand = new SecureRandom();
+
+  public PacketEncoder(Session session) {
+    this.session = session;
+  }
 
   @Override
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise)

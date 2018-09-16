@@ -1,5 +1,6 @@
 package io.github.grantchan.ssh.handler;
 
+import io.github.grantchan.ssh.common.Session;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -13,10 +14,13 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
+  private final Session session;
+
   protected ByteBuf accuBuf;
 
-  private int c2sCipBlkSize = 8, s2cCipBlkSize = 8;
-  private int c2sMacBlkSize = 0, s2cMacBlkSize = 0;
+  public PacketDecoder(Session session) {
+    this.session = session;
+  }
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
@@ -33,7 +37,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     accuBuf.writeBytes((ByteBuf) msg);
 
-    while (accuBuf.readableBytes() > c2sCipBlkSize) {
+    while (accuBuf.readableBytes() > session.getC2sCipherSize()) {
       int wIdx = accuBuf.writerIndex();
 
       int pkLen = decode();
@@ -44,7 +48,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
         accuBuf.writerIndex(wIdx);
 
         // update reader index to the start of next packet
-        accuBuf.readerIndex(pkLen + SSH_PACKET_LENGTH + c2sMacBlkSize);
+        accuBuf.readerIndex(pkLen + SSH_PACKET_LENGTH + session.getC2sMacSize());
 
         accuBuf.discardReadBytes();
       } else {
@@ -65,7 +69,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
 
     int pkLen  = accuBuf.readInt();
 
-    if (accuBuf.readableBytes() < pkLen + c2sMacBlkSize) {
+    if (accuBuf.readableBytes() < pkLen + session.getC2sMacSize()) {
       // packet has not been fully received, restore the reader pointer
       accuBuf.readerIndex(rIdx);
       return -1;

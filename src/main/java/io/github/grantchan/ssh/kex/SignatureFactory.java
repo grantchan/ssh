@@ -13,8 +13,6 @@ public enum SignatureFactory implements NamedObject, Factory<Signature> {
 
   rsa("ssh-rsa", "SHA1withRSA");
 
-  private static Signature instance = null;
-
   public static final Set<SignatureFactory> values =
       Collections.unmodifiableSet(EnumSet.allOf(SignatureFactory.class));
 
@@ -27,11 +25,8 @@ public enum SignatureFactory implements NamedObject, Factory<Signature> {
   }
 
   @Override
-  public Signature create() throws Exception {
-    if (instance == null) {
-      instance = Signature.getInstance(transformation);
-    }
-    return instance;
+  public Signature create(Object... params) throws Exception {
+    return Signature.getInstance(transformation);
   }
 
   @Override

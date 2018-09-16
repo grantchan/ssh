@@ -11,7 +11,7 @@ public enum KexFactory implements NamedObject, Factory<Kex> {
 
   dhgexsha1("diffie-hellman-group-exchange-sha1") {
     @Override
-    public Kex create() throws Exception {
+    public Kex create(Object... params) throws Exception {
       return new Kex(DigestFactory.sha1.create());
     }
   };

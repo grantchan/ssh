@@ -85,7 +85,9 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
       logger.debug("received identification: {}", clientVer);
       session.setClientVer(clientVer);
 
-      ctx.pipeline().addLast(new PacketDecoder(), new KexHandler(session), new PacketEncoder());
+      ctx.pipeline().addLast(new PacketDecoder(session),
+                             new KexHandler(session),
+                             new PacketEncoder(session));
       ctx.pipeline().remove(this);
 
       ByteBuf serverKexInit = kexInit(ctx);

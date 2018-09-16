@@ -8,7 +8,7 @@ import java.math.BigInteger;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 
-public class DHSpec {
+public class DH {
 
   private BigInteger p; // safe prime;
   private BigInteger g; // generator for subgroup
@@ -16,7 +16,7 @@ public class DHSpec {
   private PrivateKey priKey;
   private byte[]     receivedPubKey; // exchange value sent by the server
 
-  public DHSpec(BigInteger p, BigInteger g) {
+  public DH(BigInteger p, BigInteger g) {
     this.p = p;
     this.g = g;
 

@@ -14,8 +14,6 @@ public enum DigestFactory implements NamedObject, Factory<MessageDigest> {
   sha1("sha1"),
   sha256("sha256");
 
-  public static MessageDigest instance = null;
-
   public static final Set<DigestFactory> values =
       Collections.unmodifiableSet(EnumSet.allOf(DigestFactory.class));
 
@@ -26,11 +24,8 @@ public enum DigestFactory implements NamedObject, Factory<MessageDigest> {
   }
 
   @Override
-  public MessageDigest create() throws Exception {
-    if (instance == null) {
-      instance = MessageDigest.getInstance(name);
-    }
-    return instance;
+  public MessageDigest create(Object... params) throws Exception {
+    return MessageDigest.getInstance(name);
   }
 
   @Override

@@ -2,6 +2,7 @@ package io.github.grantchan.ssh.kex;
 
 import io.github.grantchan.ssh.common.Factory;
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.SshConstant;
 import io.github.grantchan.ssh.util.SshByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -9,15 +10,13 @@ import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.crypto.Cipher;
+import javax.crypto.Mac;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
-
-import static io.github.grantchan.ssh.common.SshConstant.*;
-import static io.github.grantchan.ssh.common.SshConstant.SSH_MSG_NEWKEYS;
-import static io.github.grantchan.ssh.common.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
 public class Kex {
 
@@ -29,7 +28,7 @@ public class Kex {
   private int n;   // preferred size in bits of the group the server will send
   private int max; // maximal size in bits of an acceptable group
 
-  private DHSpec dh;
+  private DH dh;
   private byte[] h = null;
   private Session session;
 
@@ -42,19 +41,23 @@ public class Kex {
   }
 
   public void handleKexMessage(ChannelHandlerContext ctx, int cmd, ByteBuf msg) {
-    logger.info("Handling key exchange message - {} ...", cmd);
+    logger.debug("Handling key exchange message - {} ...", SshConstant.messageName(cmd));
 
     switch(cmd) {
-      case SSH_MSG_KEX_DH_GEX_REQUEST_OLD:
+      case SshConstant.SSH_MSG_KEX_DH_GEX_REQUEST_OLD:
         handleDhGexRequestOld(ctx, msg);
         break;
 
-      case SSH_MSG_KEX_DH_GEX_REQUEST:
-        handleDhGexGroup(ctx, msg);
+      case SshConstant.SSH_MSG_KEX_DH_GEX_REQUEST:
+        handleDhGexRequest(ctx, msg);
         break;
 
-      case SSH_MSG_KEX_DH_GEX_INIT:
+      case SshConstant.SSH_MSG_KEX_DH_GEX_INIT:
         handleDhGexInit(ctx, msg);
+        break;
+
+      case SshConstant.SSH_MSG_NEWKEYS:
+        handleNewKeys(ctx, msg);
         break;
 
     }
@@ -76,10 +79,10 @@ public class Kex {
      *   mpint    p, safe prime
      *   mpint    g, generator for subgroup in GF(p)
      */
-    handleDhGexGroup(ctx, min, n, max);
+    replyDhGexGroup(ctx, min, n, max);
   }
 
-  protected void handleDhGexGroup(ChannelHandlerContext ctx, ByteBuf msg) {
+  protected void handleDhGexRequest(ChannelHandlerContext ctx, ByteBuf msg) {
     /*
      * The client sends SSH_MSG_KEX_DH_GEX_REQUEST:
      *   byte     SSH_MSG_KEX_DH_GEX_REQUEST
@@ -97,17 +100,17 @@ public class Kex {
      *   mpint    p, safe prime
      *   mpint    g, generator for subgroup in GF(p)
      */
-    handleDhGexGroup(ctx, min, n, max);
+    replyDhGexGroup(ctx, min, n, max);
   }
 
-  protected void handleDhGexGroup(ChannelHandlerContext ctx, int min, int n, int max) {
+  protected void replyDhGexGroup(ChannelHandlerContext ctx, int min, int n, int max) {
     dh = getDH(min, n, max);
 
     ByteBuf pg = ctx.alloc().buffer();
-    pg.writerIndex(SSH_PACKET_HEADER_LENGTH);
-    pg.readerIndex(SSH_PACKET_HEADER_LENGTH);
+    pg.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    pg.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
 
-    pg.writeByte(SSH_MSG_KEX_DH_GEX_GROUP);
+    pg.writeByte(SshConstant.SSH_MSG_KEX_DH_GEX_GROUP);
 
     SshByteBufUtil.writeMpInt(pg, dh.getP());
     SshByteBufUtil.writeMpInt(pg, dh.getG());
@@ -115,7 +118,7 @@ public class Kex {
     ctx.channel().writeAndFlush(pg);
   }
 
-  private DHSpec getDH(int min, int n, int max) {
+  private DH getDH(int min, int n, int max) {
     BigInteger p;
     if (n == 2048) {
       p = new BigInteger("CF14CEC123C83DF3CF6EA7A5A4C03FB0B1542DCAA09DDFC11B5F8AD4468D28A193BC550E267308712F30688BB9559F68224F1262331E900F9F89E04A7CE2A0126FB2B69008B71219ED6109E6E353A893977179CD9CC15C980D8921EA61C56FD36752819816E7D658F22F2FC1698C30392E4BB97023B0D9943B13286CAC1C351C342341CCE3234D8C5C70B6369158D6DEA23037045D19C690FAF4A7F50750A2ECEF42223DA315999847C624A5BCAA0CF634F0F827DC14762E4F63827A15411BC8CFF3BCAAFD3C5D69D9D033B5D99FEF178881960E09C085819EF2255BD0715378E051EA56AB9341F46698FAF86B736C745E1B152082251CBB6969E8F12F909B43", 16);
@@ -128,7 +131,7 @@ public class Kex {
     }
     BigInteger g = new BigInteger("2", 16);
 
-    return new DHSpec(p, g);
+    return new DH(p, g);
   }
 
   private void handleDhGexInit(ChannelHandlerContext ctx, ByteBuf req) {
@@ -169,11 +172,11 @@ public class Kex {
     byte[] i_c = session.getClientKexInit();
     byte[] i_s = session.getServerKexInit();
 
-    handleKexDhGexReply(ctx, v_c, v_s, i_c, i_s);
+    replyKexDhGexReply(ctx, v_c, v_s, i_c, i_s);
     requestKexNewKeys(ctx);
   }
 
-  private void handleKexDhGexReply(ChannelHandlerContext ctx, byte[] v_c, byte[] v_s, byte[] i_c, byte[] i_s) {
+  private void replyKexDhGexReply(ChannelHandlerContext ctx, byte[] v_c, byte[] v_s, byte[] i_c, byte[] i_s) {
     KeyPairGenerator kpg = null;
     try {
       kpg = KeyPairGenerator.getInstance("RSA");
@@ -219,11 +222,11 @@ public class Kex {
     md.update(h_s, 0, h_s.length);
     h = md.digest();
 
-    List<String> kexInit = session.getKexInitResult();
+    List<String> kexParams = session.getKexParams();
 
     Signature sig = null;
     try {
-      sig = Factory.create(SignatureFactory.values, kexInit.get(KexAlgorithm.SERVER_HOST_KEY));
+      sig = Factory.create(SignatureFactory.values, kexParams.get(KexParam.SERVER_HOST_KEY));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -233,7 +236,7 @@ public class Kex {
       sig.update(h);
 
       reply.clear();
-      SshByteBufUtil.writeUtf8(reply, kexInit.get(KexAlgorithm.SERVER_HOST_KEY));
+      SshByteBufUtil.writeUtf8(reply, kexParams.get(KexParam.SERVER_HOST_KEY));
       SshByteBufUtil.writeBytes(reply, sig.sign());
     } catch (SignatureException | InvalidKeyException e1) {
       e1.printStackTrace();
@@ -243,9 +246,9 @@ public class Kex {
     reply.readBytes(sigH);
 
     reply.clear();
-    reply.writerIndex(SSH_PACKET_HEADER_LENGTH);
-    reply.readerIndex(SSH_PACKET_HEADER_LENGTH);
-    reply.writeByte(SSH_MSG_KEX_DH_GEX_REPLY);
+    reply.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    reply.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    reply.writeByte(SshConstant.SSH_MSG_KEX_DH_GEX_REPLY);
 
     SshByteBufUtil.writeBytes(reply, k_s);
     SshByteBufUtil.writeBytes(reply, dh.getPubKey());
@@ -256,7 +259,7 @@ public class Kex {
 
   private void requestKexNewKeys(ChannelHandlerContext ctx) {
     int bsize = 8;
-    int len   = Byte.SIZE + SSH_PACKET_HEADER_LENGTH;
+    int len   = Byte.SIZE + SshConstant.SSH_PACKET_HEADER_LENGTH;
     int pad   = (-len) & (bsize - 1);
     if (pad < bsize) {
       pad += bsize;
@@ -265,10 +268,123 @@ public class Kex {
 
     ByteBuf newKeys = Unpooled.wrappedBuffer(new byte[len + Byte.SIZE]);
 
-    newKeys.writerIndex(SSH_PACKET_HEADER_LENGTH);
-    newKeys.readerIndex(SSH_PACKET_HEADER_LENGTH);
-    newKeys.writeByte(SSH_MSG_NEWKEYS);
+    newKeys.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    newKeys.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    newKeys.writeByte(SshConstant.SSH_MSG_NEWKEYS);
 
     ctx.channel().writeAndFlush(newKeys);
+  }
+
+  protected void handleNewKeys(ChannelHandlerContext ctx, ByteBuf msg) {
+    byte[] id = h;
+    StringBuilder sb = new StringBuilder();
+    for (byte b : id) {
+      sb.append("0123456789abcdef".charAt((b >> 4) & 0x0F));
+      sb.append("0123456789abcdef".charAt(b & 0x0F));
+      sb.append(":");
+    }
+    logger.info("SSH_MSG_NEWKEYS: {}", sb.toString());
+
+    ByteBuf buf = ctx.alloc().buffer();
+    byte[]  k   = dh.getSecretKey();
+    SshByteBufUtil.writeMpInt(buf, k);
+    buf.writeBytes(id);
+    buf.writeByte((byte) 0x41);
+    buf.writeBytes(id);
+
+    int readableBytes = buf.readableBytes();
+    byte[] array = new byte[readableBytes];
+    buf.readBytes(array);
+
+    int j = readableBytes - id.length - 1;
+
+    md.update(array);
+    byte[] iv_c2s = md.digest();
+
+    array[j]++;
+    md.update(array);
+    byte[] iv_s2c = md.digest();
+
+    array[j]++;
+    md.update(array);
+    byte[] e_c2s = md.digest();
+
+    array[j]++;
+    md.update(array);
+    byte[] e_s2c = md.digest();
+
+    array[j]++;
+    md.update(array);
+    byte[] mac_c2s = md.digest();
+
+    array[j]++;
+    md.update(array);
+    byte[] mac_s2c = md.digest();
+
+    List<String> kp = session.getKexParams();
+
+    try {
+      CipherFactory cf;
+
+      // server to client cipher
+      cf = CipherFactory.fromName(kp.get(KexParam.ENCRYPTION_S2C));
+      assert cf != null;
+      e_s2c = hashKey(e_s2c, cf.getBlkSize(), k);
+      Cipher s2cCip = cf.create(e_s2c, iv_s2c, Cipher.ENCRYPT_MODE);
+      assert s2cCip != null;
+
+      session.setS2cCipher(s2cCip);
+      session.setS2cCipherSize(cf.getIvSize());
+
+      // client to server cipher
+      cf = CipherFactory.fromName(kp.get(KexParam.ENCRYPTION_C2S));
+      assert cf != null;
+      e_c2s = hashKey(e_c2s, cf.getBlkSize(), k);
+      Cipher c2sCip = cf.create(e_c2s, iv_c2s, Cipher.DECRYPT_MODE);
+      assert c2sCip != null;
+
+      session.setC2sCipher(c2sCip);
+      session.setC2sCipherSize(cf.getIvSize());
+
+      MacFactory mf;
+
+      // server to client MAC
+      mf = MacFactory.fromName(kp.get(KexParam.MAC_S2C));
+      assert mf != null;
+      Mac s2cMac = mf.create(mac_s2c);
+      assert s2cMac != null;
+
+      session.setS2cMac(s2cMac);
+      session.setS2cMacSize(mf.getBlkSize());
+
+      // client to server MAC
+      mf = MacFactory.fromName(kp.get(KexParam.MAC_C2S));
+      assert mf != null;
+      Mac c2sMac = mf.create(mac_c2s);
+      assert c2sMac != null;
+
+      session.setC2sMac(c2sMac);
+      session.setC2sMacSize(mf.getBlkSize());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private byte[] hashKey(byte[] e, int blockSize, byte[] k) {
+    for (ByteBuf b = Unpooled.buffer(); e.length < blockSize; b.clear()) {
+      SshByteBufUtil.writeMpInt(b, k);
+      b.writeBytes(h);
+      b.writeBytes(e);
+      byte[] a = new byte[b.readableBytes()];
+      b.readBytes(a);
+      md.update(a);
+
+      byte[] foo = md.digest();
+      byte[] bar = new byte[e.length + foo.length];
+      System.arraycopy(e, 0, bar, 0, e.length);
+      System.arraycopy(foo, 0, bar, e.length, foo.length);
+      e = bar;
+    }
+    return e;
   }
 }

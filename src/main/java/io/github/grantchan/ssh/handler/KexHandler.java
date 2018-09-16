@@ -69,7 +69,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     msg.skipBytes(SshConstant.MSG_KEX_COOKIE_SIZE);
 
     List<String> kexInit = resolveKexInit(msg);
-    session.setKexInitResult(kexInit);
+    session.setKexParams(kexInit);
 
     msg.readBoolean();
     msg.readInt();
@@ -81,7 +81,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     session.setClientKexInit(clientKexInit);
 
     try {
-      kex = Factory.create(KexFactory.values, kexInit.get(KexAlgorithm.KEX));
+      kex = Factory.create(KexFactory.values, kexInit.get(KexParam.KEX));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -97,70 +97,70 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     String s2c = NamedObject.getNames(KexFactory.values);
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexAlgorithm.KEX, negotiate(c2s, s2c));
+    result.add(KexParam.KEX, negotiate(c2s, s2c));
 
     // server host key
     c2s = SshByteBufUtil.readUtf8(buf);
     s2c = NamedObject.getNames(SignatureFactory.values);
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexAlgorithm.SERVER_HOST_KEY, negotiate(c2s, s2c));
+    result.add(KexParam.SERVER_HOST_KEY, negotiate(c2s, s2c));
 
     // encryption c2s
     c2s = SshByteBufUtil.readUtf8(buf);
     s2c = NamedObject.getNames(CipherFactory.values);
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexAlgorithm.ENCRYPTION_C2S, negotiate(c2s, s2c));
+    result.add(KexParam.ENCRYPTION_C2S, negotiate(c2s, s2c));
 
     // encryption s2c
     c2s = SshByteBufUtil.readUtf8(buf);
     s2c = NamedObject.getNames(CipherFactory.values);
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexAlgorithm.ENCRYPTION_S2C, negotiate(c2s, s2c));
+    result.add(KexParam.ENCRYPTION_S2C, negotiate(c2s, s2c));
 
     // mac c2s
     c2s = SshByteBufUtil.readUtf8(buf);
     s2c = NamedObject.getNames(MacFactory.values);
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexAlgorithm.MAC_C2S, negotiate(c2s, s2c));
+    result.add(KexParam.MAC_C2S, negotiate(c2s, s2c));
 
     // mac s2c
     c2s = SshByteBufUtil.readUtf8(buf);
     s2c = NamedObject.getNames(MacFactory.values);
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexAlgorithm.MAC_S2C, negotiate(c2s, s2c));
+    result.add(KexParam.MAC_S2C, negotiate(c2s, s2c));
 
     // compression c2s
     c2s = SshByteBufUtil.readUtf8(buf);
     s2c = "none";
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexAlgorithm.COMPRESSION_C2S, negotiate(c2s, s2c));
+    result.add(KexParam.COMPRESSION_C2S, negotiate(c2s, s2c));
 
     // compression s2c
     c2s = SshByteBufUtil.readUtf8(buf);
     s2c = "none";
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexAlgorithm.COMPRESSION_S2C, negotiate(c2s, s2c));
+    result.add(KexParam.COMPRESSION_S2C, negotiate(c2s, s2c));
 
     // language c2s
     c2s = SshByteBufUtil.readUtf8(buf);
     s2c = "";
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexAlgorithm.LANGUAGE_C2S, negotiate(c2s, s2c));
+    result.add(KexParam.LANGUAGE_C2S, negotiate(c2s, s2c));
 
     // language s2c
     c2s = SshByteBufUtil.readUtf8(buf);
     s2c = "";
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexAlgorithm.LANGUAGE_S2C, negotiate(c2s, s2c));
+    result.add(KexParam.LANGUAGE_S2C, negotiate(c2s, s2c));
 
     return result;
   }
