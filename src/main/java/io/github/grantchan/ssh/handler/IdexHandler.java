@@ -204,8 +204,8 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
     SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(CipherFactory.values));
     SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(MacFactory.values));
     SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(MacFactory.values));
-    SshByteBufUtil.writeUtf8(buf, "none");
-    SshByteBufUtil.writeUtf8(buf, "none");
+    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(CompressionFactory.values));
+    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(CompressionFactory.values));
     SshByteBufUtil.writeUtf8(buf, "");
     SshByteBufUtil.writeUtf8(buf, "");
 

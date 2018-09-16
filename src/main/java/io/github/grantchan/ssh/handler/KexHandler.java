@@ -136,14 +136,14 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
 
     // compression c2s
     c2s = SshByteBufUtil.readUtf8(buf);
-    s2c = "none";
+    s2c = NamedObject.getNames(CompressionFactory.values);
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.COMPRESSION_C2S, negotiate(c2s, s2c));
 
     // compression s2c
     c2s = SshByteBufUtil.readUtf8(buf);
-    s2c = "none";
+    s2c = NamedObject.getNames(CompressionFactory.values);
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.COMPRESSION_S2C, negotiate(c2s, s2c));
