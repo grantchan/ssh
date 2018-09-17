@@ -2,16 +2,12 @@ package io.github.grantchan.ssh.kex;
 
 import io.github.grantchan.ssh.common.Factory;
 import io.github.grantchan.ssh.common.NamedObject;
-import io.github.grantchan.ssh.util.KeyUtil;
+import io.github.grantchan.ssh.util.ByteUtil;
 import io.netty.util.internal.StringUtil;
 
 import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
@@ -47,12 +43,12 @@ public enum CipherFactory implements NamedObject, Factory<Cipher> {
     return this.algorithm;
   }
 
-  public int getBlkSize() {
-    return this.blkSize;
-  }
-
   public int getIvSize() {
     return this.ivSize;
+  }
+
+  public int getBlkSize() {
+    return this.blkSize;
   }
 
   @Override
@@ -68,8 +64,8 @@ public enum CipherFactory implements NamedObject, Factory<Cipher> {
     byte[] iv  = (byte[]) params[1];
     int mode   = (int) params[2];
 
-    key = KeyUtil.resizeKey(key, getBlkSize());
-    iv = KeyUtil.resizeKey(iv, getIvSize());
+    key = ByteUtil.resizeKey(key, getBlkSize());
+    iv = ByteUtil.resizeKey(iv, getIvSize());
     cip.init(mode, new SecretKeySpec(key, getAlgorithm()), new IvParameterSpec(iv));
 
     return cip;

@@ -2,14 +2,12 @@ package io.github.grantchan.ssh.kex;
 
 import io.github.grantchan.ssh.common.Factory;
 import io.github.grantchan.ssh.common.NamedObject;
-import io.github.grantchan.ssh.util.KeyUtil;
+import io.github.grantchan.ssh.util.ByteUtil;
 import io.netty.util.internal.StringUtil;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.InvalidKeyException;
 import java.security.Key;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
@@ -57,7 +55,7 @@ public enum MacFactory implements NamedObject, Factory<Mac> {
 
     byte[] key = (byte[]) params[0];
 
-    key = KeyUtil.resizeKey(key, getDefBlkSize());
+    key = ByteUtil.resizeKey(key, getDefBlkSize());
     Key sks = new SecretKeySpec(key, transformation);
     mac.init(sks);
 

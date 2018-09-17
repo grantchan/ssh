@@ -1,12 +1,17 @@
 package io.github.grantchan.ssh.handler;
 
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.util.ByteUtil;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.crypto.Cipher;
+import javax.crypto.Mac;
 
 import static io.github.grantchan.ssh.common.SshConstant.SSH_PACKET_LENGTH;
 
@@ -17,6 +22,8 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
   private final Session session;
 
   protected ByteBuf accuBuf;
+  private int decodeStep = 0;
+  private long seq = 0;
 
   public PacketDecoder(Session session) {
     this.session = session;
@@ -37,18 +44,23 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     accuBuf.writeBytes((ByteBuf) msg);
 
-    while (accuBuf.readableBytes() > session.getC2sCipherSize()) {
+    int c2sCipSize = session.getC2sCipherSize();
+    while (accuBuf.readableBytes() > c2sCipSize) {
       int wIdx = accuBuf.writerIndex();
 
       int pkLen = decode();
       if (pkLen != -1) {
+        // This is important - handling the SSH_MSG_NEWKEYS will update the MAC block size,
+        // we need to cache this value and use it until the message is fully process.
+        int macSize = session.getC2sMacSize();
+
         ctx.fireChannelRead(accuBuf);
 
         // restore the writer index
         accuBuf.writerIndex(wIdx);
 
         // update reader index to the start of next packet
-        accuBuf.readerIndex(pkLen + SSH_PACKET_LENGTH + session.getC2sMacSize());
+        accuBuf.readerIndex(pkLen + SSH_PACKET_LENGTH + macSize);
 
         accuBuf.discardReadBytes();
       } else {
@@ -64,19 +76,50 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
    * @return the length of the packet fully contains the message if successful,otherwise -1,
    * the accumulate buffer remains unchanged.
    */
-  private int decode() {
+  private int decode() throws Exception {
     int rIdx = accuBuf.readerIndex();
+    byte[] packet = new byte[accuBuf.readableBytes()];
+    accuBuf.getBytes(rIdx, packet);
+
+    Cipher c2sCip = session.getC2sCipher();
+    int c2sCipSize = session.getC2sCipherSize();
+    if (decodeStep == 0 && c2sCip != null) {
+      // decrypt the first block of the packet
+      accuBuf.setBytes(rIdx, c2sCip.update(packet, 0, c2sCipSize));
+
+      decodeStep = 1;
+    }
 
     int pkLen  = accuBuf.readInt();
 
-    if (accuBuf.readableBytes() < pkLen + session.getC2sMacSize()) {
+    int c2sMacSize = session.getC2sMacSize();
+    if (accuBuf.readableBytes() < pkLen + c2sMacSize) {
       // packet has not been fully received, restore the reader pointer
       accuBuf.readerIndex(rIdx);
       return -1;
     }
 
+    // decrypt the remaining blocks of the packet
+    if (c2sCip != null) {
+      accuBuf.setBytes(rIdx + c2sCipSize,
+          c2sCip.update(packet, rIdx + c2sCipSize, pkLen + SSH_PACKET_LENGTH - c2sCipSize));
+    }
+
+    // verify the packet by the MAC
+    Mac c2sMac = session.getC2sMac();
+    if (c2sMac != null) {
+      c2sMac.update(ByteUtil.htonl(seq));
+      c2sMac.update(packet, 0, pkLen + SSH_PACKET_LENGTH);
+      byte[] blk = new byte[c2sMacSize];
+      c2sMac.doFinal(blk, 0);
+
+    }
+    seq = (++seq) & 0xffffffffL;
+
     int pad = accuBuf.readByte() & 0xFF;
     accuBuf.writerIndex(pkLen + SSH_PACKET_LENGTH - pad);
+
+    decodeStep = 0;
 
     return pkLen;
   }

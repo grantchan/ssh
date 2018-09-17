@@ -31,11 +31,15 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     ByteBuf req = (ByteBuf) msg;
 
     int cmd = req.readByte() & 0xFF;
-    logger.debug("Handling message - {} ...", SshConstant.messageName(cmd));
+    logger.info("Handling message - {} ...", SshConstant.messageName(cmd));
 
     switch (cmd) {
       case SshConstant.SSH_MSG_KEXINIT:
         handleKexInit(ctx, req);
+        break;
+
+      case SshConstant.SSH_MSG_SERVICE_REQUEST:
+        handleServiceRequest(ctx, req);
         break;
 
       default:
@@ -98,6 +102,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.KEX, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexParam.KEX));
 
     // server host key
     c2s = SshByteBufUtil.readUtf8(buf);
@@ -105,6 +110,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.SERVER_HOST_KEY, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexParam.SERVER_HOST_KEY));
 
     // encryption c2s
     c2s = SshByteBufUtil.readUtf8(buf);
@@ -112,6 +118,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.ENCRYPTION_C2S, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexParam.ENCRYPTION_C2S));
 
     // encryption s2c
     c2s = SshByteBufUtil.readUtf8(buf);
@@ -119,6 +126,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.ENCRYPTION_S2C, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexParam.ENCRYPTION_S2C));
 
     // mac c2s
     c2s = SshByteBufUtil.readUtf8(buf);
@@ -126,6 +134,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.MAC_C2S, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexParam.MAC_C2S));
 
     // mac s2c
     c2s = SshByteBufUtil.readUtf8(buf);
@@ -133,6 +142,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.MAC_S2C, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexParam.MAC_S2C));
 
     // compression c2s
     c2s = SshByteBufUtil.readUtf8(buf);
@@ -140,6 +150,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.COMPRESSION_C2S, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexParam.COMPRESSION_C2S));
 
     // compression s2c
     c2s = SshByteBufUtil.readUtf8(buf);
@@ -147,6 +158,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.COMPRESSION_S2C, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexParam.COMPRESSION_S2C));
 
     // language c2s
     c2s = SshByteBufUtil.readUtf8(buf);
@@ -154,6 +166,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.LANGUAGE_C2S, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexParam.LANGUAGE_C2S));
 
     // language s2c
     c2s = SshByteBufUtil.readUtf8(buf);
@@ -161,6 +174,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.LANGUAGE_S2C, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexParam.LANGUAGE_S2C));
 
     return result;
   }
@@ -173,5 +187,10 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
       }
     }
     return null;
+  }
+
+  private void handleServiceRequest(ChannelHandlerContext ctx, ByteBuf req) {
+    String service = SshByteBufUtil.readUtf8(req);
+    logger.info(service);
   }
 }

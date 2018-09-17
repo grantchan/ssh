@@ -115,6 +115,7 @@ public class Kex {
     SshByteBufUtil.writeMpInt(pg, dh.getP());
     SshByteBufUtil.writeMpInt(pg, dh.getG());
 
+    logger.debug("Replying SSH_MSG_KEX_DH_GEX_GROUP...");
     ctx.channel().writeAndFlush(pg);
   }
 
@@ -254,6 +255,7 @@ public class Kex {
     SshByteBufUtil.writeBytes(reply, dh.getPubKey());
     SshByteBufUtil.writeBytes(reply, sigH);
 
+    logger.debug("Replying SSH_MSG_KEX_DH_GEX_REPLY...");
     ctx.channel().writeAndFlush(reply);
   }
 
@@ -272,6 +274,7 @@ public class Kex {
     newKeys.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
     newKeys.writeByte(SshConstant.SSH_MSG_NEWKEYS);
 
+    logger.debug("Requesting SSH_MSG_NEWKEYS...");
     ctx.channel().writeAndFlush(newKeys);
   }
 
@@ -324,9 +327,8 @@ public class Kex {
     List<String> kp = session.getKexParams();
 
     try {
-      CipherFactory cf;
-
       // server to client cipher
+      CipherFactory cf;
       cf = CipherFactory.fromName(kp.get(KexParam.ENCRYPTION_S2C));
       assert cf != null;
       e_s2c = hashKey(e_s2c, cf.getBlkSize(), k);
@@ -346,9 +348,8 @@ public class Kex {
       session.setC2sCipher(c2sCip);
       session.setC2sCipherSize(cf.getIvSize());
 
-      MacFactory mf;
-
       // server to client MAC
+      MacFactory mf;
       mf = MacFactory.fromName(kp.get(KexParam.MAC_S2C));
       assert mf != null;
       Mac s2cMac = mf.create(mac_s2c);
