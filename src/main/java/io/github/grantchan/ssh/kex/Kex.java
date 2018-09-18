@@ -65,6 +65,7 @@ public class Kex {
 
   protected void handleDhGexRequestOld(ChannelHandlerContext ctx, ByteBuf msg) {
     /*
+     * RFC 4419:
      * The client sends SSH_MSG_KEX_DH_GEX_REQUEST_OLD:
      *   byte     SSH_MSG_KEX_DH_GEX_REQUEST_OLD
      *   uint32   n, preferred size in bits of the group the server will send
@@ -74,6 +75,7 @@ public class Kex {
     max = -1;
 
     /*
+     * RFC 4419:
      * The server responds with SSH_MSG_KEX_DH_GEX_GROUP:
      *   byte     SSH_MSG_KEX_DH_GEX_GROUP
      *   mpint    p, safe prime
@@ -84,6 +86,7 @@ public class Kex {
 
   protected void handleDhGexRequest(ChannelHandlerContext ctx, ByteBuf msg) {
     /*
+     * RFC 4419:
      * The client sends SSH_MSG_KEX_DH_GEX_REQUEST:
      *   byte     SSH_MSG_KEX_DH_GEX_REQUEST
      *   uint32   min, minimal size in bits of an acceptable group
@@ -95,6 +98,7 @@ public class Kex {
     max = msg.readInt();
 
     /*
+     * RFC 4419:
      * The server responds with SSH_MSG_KEX_DH_GEX_GROUP:
      *   byte     SSH_MSG_KEX_DH_GEX_GROUP
      *   mpint    p, safe prime
@@ -137,6 +141,7 @@ public class Kex {
 
   private void handleDhGexInit(ChannelHandlerContext ctx, ByteBuf req) {
     /*
+     * RFC 4419:
      * The client sends SSH_MSG_KEX_DH_GEX_INIT
      *   byte    SSH_MSG_KEX_DH_GEX_INIT
      *   mpint   e
@@ -145,6 +150,7 @@ public class Kex {
     dh.receivedPubKey(e);
 
     /*
+     * RFC 4419:
      * The server responds with SSH_MSG_KEX_DH_GEX_REPLY:
      *   byte    SSH_MSG_KEX_DH_GEX_REPLY
      *   string  server public host key and certificates (K_S)

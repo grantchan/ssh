@@ -56,10 +56,8 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
 
         ctx.fireChannelRead(accuBuf);
 
-        // restore the writer index
+        // restore the writer index, and update reader index to the start of next packet
         accuBuf.writerIndex(wIdx);
-
-        // update reader index to the start of next packet
         accuBuf.readerIndex(pkLen + SSH_PACKET_LENGTH + macSize);
 
         accuBuf.discardReadBytes();
@@ -103,6 +101,10 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
     if (c2sCip != null) {
       accuBuf.setBytes(rIdx + c2sCipSize,
           c2sCip.update(packet, rIdx + c2sCipSize, pkLen + SSH_PACKET_LENGTH - c2sCipSize));
+
+      StringBuilder sb = new StringBuilder();
+      ByteBufUtil.appendPrettyHexDump(sb, accuBuf);
+      logger.debug("Decrypted packet: \n{}", sb.toString());
     }
 
     // verify the packet by the MAC

@@ -53,6 +53,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
 
   protected void handleKexInit(ChannelHandlerContext ctx, ByteBuf msg) {
     /*
+     * RFC 4253:
      * The client sends SSH_MSG_KEXINIT:
      *   byte         SSH_MSG_KEXINIT
      *   byte[16]     cookie (random bytes)
@@ -190,7 +191,32 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
   }
 
   private void handleServiceRequest(ChannelHandlerContext ctx, ByteBuf req) {
-    String service = SshByteBufUtil.readUtf8(req);
-    logger.info(service);
+    /*
+     * RFC 4253:
+     * The client sends SSH_MSG_SERVICE_REQUEST:
+     *   byte      SSH_MSG_SERVICE_REQUEST
+     *   string    service name
+     *
+     * Service Request
+     * After the key exchange, the client requests a service.  The service is identified by a name.
+     * The format of names and procedures for defining new names are defined in [SSH-ARCH] and
+     * [SSH-NUMBERS].
+     *
+     * Currently, the following names have been reserved:
+     *
+     * ssh-userauth
+     * ssh-connection
+     *
+     * Similar local naming policy is applied to the service names, as is applied to the algorithm
+     * names.  A local service should use the PRIVATE USE syntax of "servicename@domain".
+     *
+     * If the server rejects the service request, it SHOULD send an appropriate SSH_MSG_DISCONNECT
+     * message and MUST disconnect.
+     *
+     * When the service starts, it may have access to the session identifier generated during the
+     * key exchange.
+     */
+    String svcName = SshByteBufUtil.readUtf8(req);
+    logger.info(svcName);
   }
 }
