@@ -9,6 +9,8 @@ import io.github.grantchan.ssh.util.SshByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,10 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     logger.info("Handling message - {} ...", SshConstant.messageName(cmd));
 
     switch (cmd) {
+      case SshConstant.SSH_MSG_DISCONNECT:
+        handleDisconnect(ctx, req);
+        break;
+
       case SshConstant.SSH_MSG_KEXINIT:
         handleKexInit(ctx, req);
         break;
@@ -49,6 +55,34 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
           throw new IllegalStateException("Unknown request command - " + SshConstant.messageName(cmd));
         }
     }
+  }
+
+  private void handleDisconnect(ChannelHandlerContext ctx, ByteBuf req) {
+    /*
+     * RFC 4253:
+     * The client sends SSH_MSG_DISCONNECT:
+     *   byte      SSH_MSG_DISCONNECT
+     *   uint32    reason code
+     *   string    description in ISO-10646 UTF-8 encoding [RFC3629]
+     *   string    language tag [RFC3066]
+     *
+     * This message causes immediate termination of the connection.  All
+     * implementations MUST be able to process this message; they SHOULD be
+     * able to send this message.
+     *
+     * The sender MUST NOT send or receive any data after this message, and
+     * the recipient MUST NOT accept any data after receiving this message.
+     * The Disconnection Message 'description' string gives a more specific
+     * explanation in a human-readable form.  The Disconnection Message
+     * 'reason code' gives the reason in a more machine-readable format
+     * (suitable for localization)
+     */
+    int code = req.readInt();
+    String msg = SshByteBufUtil.readUtf8(req);
+
+    logger.info("disconnecting by peer, reason: {}, msg: {}", code, msg);
+
+    ctx.channel().close();
   }
 
   protected void handleKexInit(ChannelHandlerContext ctx, ByteBuf msg) {
@@ -197,26 +231,28 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
      *   byte      SSH_MSG_SERVICE_REQUEST
      *   string    service name
      *
-     * Service Request
-     * After the key exchange, the client requests a service.  The service is identified by a name.
-     * The format of names and procedures for defining new names are defined in [SSH-ARCH] and
-     * [SSH-NUMBERS].
+     * After the key exchange, the client requests a service.  The service
+     * is identified by a name.  The format of names and procedures for
+     * defining new names are defined in [SSH-ARCH] and [SSH-NUMBERS].
      *
      * Currently, the following names have been reserved:
      *
-     * ssh-userauth
-     * ssh-connection
+     *    ssh-userauth
+     *    ssh-connection
      *
-     * Similar local naming policy is applied to the service names, as is applied to the algorithm
-     * names.  A local service should use the PRIVATE USE syntax of "servicename@domain".
+     * Similar local naming policy is applied to the service names, as is
+     * applied to the algorithm names.  A local service should use the
+     * PRIVATE USE syntax of "servicename@domain".
      *
-     * If the server rejects the service request, it SHOULD send an appropriate SSH_MSG_DISCONNECT
-     * message and MUST disconnect.
+     * If the server rejects the service request, it SHOULD send an
+     * appropriate SSH_MSG_DISCONNECT message and MUST disconnect.
      *
-     * When the service starts, it may have access to the session identifier generated during the
-     * key exchange.
+     * When the service starts, it may have access to the session identifier
+     * generated during the key exchange.
      */
     String svcName = SshByteBufUtil.readUtf8(req);
     logger.info(svcName);
+
+    ctx.channel().close();
   }
 }
