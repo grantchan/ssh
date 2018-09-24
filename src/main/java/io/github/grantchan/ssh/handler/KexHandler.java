@@ -253,6 +253,13 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     String svcName = SshByteBufUtil.readUtf8(req);
     logger.info(svcName);
 
-    ctx.channel().close();
+    ByteBuf buf = ctx.alloc().buffer();
+    buf.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    buf.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    buf.writeByte(SshConstant.SSH_MSG_SERVICE_ACCEPT);
+
+    SshByteBufUtil.writeUtf8(buf, svcName);
+
+    ctx.channel().writeAndFlush(buf);
   }
 }

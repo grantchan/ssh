@@ -14,6 +14,7 @@ public final class SshConstant {
   // SSH op codes
   public static final byte SSH_MSG_DISCONNECT             = 1;
   public static final byte SSH_MSG_SERVICE_REQUEST        = 5;
+  public static final byte SSH_MSG_SERVICE_ACCEPT         = 6;
   public static final byte SSH_MSG_KEXINIT                = 20;
   public static final byte SSH_MSG_NEWKEYS                = 21;
   public static final byte SSH_MSG_KEX_DH_GEX_REQUEST_OLD = 30;

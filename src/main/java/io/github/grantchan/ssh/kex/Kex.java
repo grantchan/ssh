@@ -266,15 +266,7 @@ public class Kex {
   }
 
   private void requestKexNewKeys(ChannelHandlerContext ctx) {
-    int bsize = 8;
-    int len   = Byte.SIZE + SshConstant.SSH_PACKET_HEADER_LENGTH;
-    int pad   = (-len) & (bsize - 1);
-    if (pad < bsize) {
-      pad += bsize;
-    }
-    len += pad - 4;
-
-    ByteBuf newKeys = Unpooled.wrappedBuffer(new byte[len + Byte.SIZE]);
+    ByteBuf newKeys = ctx.alloc().buffer();
 
     newKeys.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
     newKeys.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
@@ -363,6 +355,7 @@ public class Kex {
 
       session.setS2cMac(s2cMac);
       session.setS2cMacSize(mf.getBlkSize());
+      session.setS2cDefMacSize(mf.getDefBlkSize());
 
       // client to server MAC
       mf = MacFactory.fromName(kp.get(KexParam.MAC_C2S));
@@ -372,6 +365,7 @@ public class Kex {
 
       session.setC2sMac(c2sMac);
       session.setC2sMacSize(mf.getBlkSize());
+      session.setC2sDefMacSize(mf.getDefBlkSize());
     } catch (Exception e) {
       e.printStackTrace();
     }

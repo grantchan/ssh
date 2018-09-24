@@ -24,6 +24,7 @@ public class Session {
 
   private Mac c2sMac, s2cMac;
   private int c2sMacSize = 0, s2cMacSize = 0;
+  private int c2sDefMacSize = 0, s2cDefMacSize = 0;
 
   public String getClientVer() {
     return clientVer;
@@ -123,5 +124,21 @@ public class Session {
 
   public void setS2cMacSize(int s2cMacSize) {
     this.s2cMacSize = s2cMacSize;
+  }
+
+  public int getC2sDefMacSize() {
+    return c2sDefMacSize;
+  }
+
+  public void setC2sDefMacSize(int c2sDefMacSize) {
+    this.c2sDefMacSize = c2sDefMacSize;
+  }
+
+  public int getS2cDefMacSize() {
+    return s2cDefMacSize;
+  }
+
+  public void setS2cDefMacSize(int s2cDefMacSize) {
+    this.s2cDefMacSize = s2cDefMacSize;
   }
 }
