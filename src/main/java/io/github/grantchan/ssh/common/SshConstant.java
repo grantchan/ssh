@@ -3,6 +3,7 @@ package io.github.grantchan.ssh.common;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 public final class SshConstant {
 
@@ -61,10 +62,10 @@ public final class SshConstant {
     return num.intValue();
   }
 
-  public static String messageName(int cmd) {
+  private static String getName(int cmd, Predicate<? super Field> filter) {
     for (Field f : SshConstant.class.getFields()) {
       String name = f.getName();
-      if (!name.startsWith("SSH_MSG_")) {
+      if (!filter.test(f)) {
         continue;
       }
 
@@ -89,6 +90,14 @@ public final class SshConstant {
         return name;
       }
     }
-    return null;
+    return Integer.valueOf(cmd).toString();
+  }
+
+  public static String messageName(int cmd) {
+    return getName(cmd, f -> f.getName().startsWith("SSH_MSG_"));
+  }
+
+  public static String disconnectReason(int code) {
+    return getName(code, f -> f.getName().startsWith("SSH_DISCONNECT"));
   }
 }

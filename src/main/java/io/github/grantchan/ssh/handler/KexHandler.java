@@ -80,7 +80,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     int code = req.readInt();
     String msg = SshByteBufUtil.readUtf8(req);
 
-    logger.info("disconnecting by peer, reason: {}, msg: {}", code, msg);
+    logger.info("Disconnecting... reason: {}, msg: {}", SshConstant.disconnectReason(code), msg);
 
     ctx.channel().close();
   }

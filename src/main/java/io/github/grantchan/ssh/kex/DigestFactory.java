@@ -14,9 +14,6 @@ public enum DigestFactory implements NamedObject, Factory<MessageDigest> {
   sha1("sha1"),
   sha256("sha256");
 
-  public static final Set<DigestFactory> values =
-      Collections.unmodifiableSet(EnumSet.allOf(DigestFactory.class));
-
   private String name;
 
   DigestFactory(String name) {
