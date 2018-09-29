@@ -15,8 +15,8 @@ public class Session {
   private       String clientVer = null;            // client identification
   private final String serverVer = "SSH-2.0-DEMO";  // server identification
 
-  private byte[] clientKexInit = null; // the payload of the client's SSH_MSG_KEXINIT
-  private byte[] serverKexInit = null; // the payload of the server's SSH_MSG_KEXINIT
+  private byte[] c2sKex = null; // the payload of the client's SSH_MSG_KEXINIT
+  private byte[] s2cKex = null; // the payload of the server's SSH_MSG_KEXINIT
   private List<String> kexParams;
 
   private Cipher c2sCipher, s2cCipher;
@@ -38,20 +38,20 @@ public class Session {
     return serverVer;
   }
 
-  public byte[] getClientKexInit() {
-    return clientKexInit;
+  public byte[] getC2sKex() {
+    return c2sKex;
   }
 
-  public void setClientKexInit(byte[] clientKexInit) {
-    this.clientKexInit = clientKexInit;
+  public void setC2sKex(byte[] c2sKex) {
+    this.c2sKex = c2sKex;
   }
 
-  public byte[] getServerKexInit() {
-    return serverKexInit;
+  public byte[] getS2cKex() {
+    return s2cKex;
   }
 
-  public void setServerKexInit(byte[] serverKexInit) {
-    this.serverKexInit = serverKexInit;
+  public void setS2cKex(byte[] s2cKex) {
+    this.s2cKex = s2cKex;
   }
 
   public void setKexParams(List<String> kexParams) {

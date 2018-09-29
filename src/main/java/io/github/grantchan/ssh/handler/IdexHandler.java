@@ -93,7 +93,7 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
       ByteBuf serverKexInit = kexInit(ctx);
       byte[] buf = new byte[serverKexInit.readableBytes()];
       serverKexInit.getBytes(SSH_PACKET_HEADER_LENGTH, buf);
-      session.setServerKexInit(buf);
+      session.setS2cKex(buf);
 
       ctx.channel().writeAndFlush(serverKexInit);
 

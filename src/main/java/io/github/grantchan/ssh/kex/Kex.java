@@ -176,8 +176,8 @@ public class Kex {
      */
     byte[] v_c = session.getClientVer().getBytes(StandardCharsets.UTF_8);
     byte[] v_s = session.getServerVer().getBytes(StandardCharsets.UTF_8);
-    byte[] i_c = session.getClientKexInit();
-    byte[] i_s = session.getServerKexInit();
+    byte[] i_c = session.getC2sKex();
+    byte[] i_s = session.getS2cKex();
 
     replyKexDhGexReply(ctx, v_c, v_s, i_c, i_s);
     requestKexNewKeys(ctx);

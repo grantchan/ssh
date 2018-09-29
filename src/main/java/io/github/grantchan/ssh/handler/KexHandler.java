@@ -9,8 +9,6 @@ import io.github.grantchan.ssh.util.SshByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,7 +115,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
     byte[] clientKexInit = new byte[payloadLen + 1];
     clientKexInit[0] = SshConstant.SSH_MSG_KEXINIT;
     msg.getBytes(startPos, clientKexInit, 1, payloadLen);
-    session.setClientKexInit(clientKexInit);
+    session.setC2sKex(clientKexInit);
 
     try {
       kex = Factory.create(KexFactory.values, kexInit.get(KexParam.KEX));
