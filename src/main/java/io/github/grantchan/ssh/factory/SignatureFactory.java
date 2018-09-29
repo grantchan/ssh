@@ -1,9 +1,8 @@
-package io.github.grantchan.ssh.kex;
+package io.github.grantchan.ssh.factory;
 
 import io.github.grantchan.ssh.common.Factory;
 import io.github.grantchan.ssh.common.NamedObject;
 
-import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.util.Collections;
 import java.util.EnumSet;

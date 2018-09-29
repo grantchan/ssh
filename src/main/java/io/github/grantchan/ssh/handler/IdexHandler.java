@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.handler;
 
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.kex.*;
+import io.github.grantchan.ssh.factory.*;
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.util.SshByteBufUtil;
 import io.netty.buffer.ByteBuf;
@@ -209,7 +209,7 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
     SshByteBufUtil.writeUtf8(buf, "");
     SshByteBufUtil.writeUtf8(buf, "");
 
-    buf.writeBoolean(false); // first kex packet follows
+    buf.writeBoolean(false); // first factory packet follows
     buf.writeInt(0); // reserved (FFU)
 
     return buf;

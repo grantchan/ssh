@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.kex;
+package io.github.grantchan.ssh.factory;
 
 import io.github.grantchan.ssh.common.Factory;
 import io.github.grantchan.ssh.common.NamedObject;

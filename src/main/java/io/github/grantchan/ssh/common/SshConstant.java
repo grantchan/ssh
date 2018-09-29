@@ -24,6 +24,22 @@ public final class SshConstant {
   public static final byte SSH_MSG_KEX_DH_GEX_REPLY       = 33;
   public static final byte SSH_MSG_KEX_DH_GEX_REQUEST     = 34;
 
+  // SSH connection protocol message (RFC 4254)
+  public static final byte SSH_MSG_GLOBAL_REQUEST            = 80;
+  public static final byte SSH_MSG_REQUEST_SUCCESS           = 81;
+  public static final byte SSH_MSG_REQUEST_FAILURE           = 82;
+  public static final byte SSH_MSG_CHANNEL_OPEN              = 90;
+  public static final byte SSH_MSG_CHANNEL_OPEN_CONFIRMATION = 91;
+  public static final byte SSH_MSG_CHANNEL_OPEN_FAILURE      = 92;
+  public static final byte SSH_MSG_CHANNEL_WINDOW_ADJUST     = 93;
+  public static final byte SSH_MSG_CHANNEL_DATA              = 94;
+  public static final byte SSH_MSG_CHANNEL_EXTENDED_DATA     = 95;
+  public static final byte SSH_MSG_CHANNEL_EOF               = 96;
+  public static final byte SSH_MSG_CHANNEL_CLOSE             = 97;
+  public static final byte SSH_MSG_CHANNEL_REQUEST           = 98;
+  public static final byte SSH_MSG_CHANNEL_SUCCESS           = 99;
+  public static final byte SSH_MSG_CHANNEL_FAILURE           = 100;
+
   // Disconnect reason code
   public static final int SSH_DISCONNECT_HOST_NOT_ALLOWED_TO_CONNECT    = 1;
   public static final int SSH_DISCONNECT_PROTOCOL_ERROR                 = 2;

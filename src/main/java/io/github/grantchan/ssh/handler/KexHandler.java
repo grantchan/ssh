@@ -1,10 +1,8 @@
 package io.github.grantchan.ssh.handler;
 
-import io.github.grantchan.ssh.common.Factory;
-import io.github.grantchan.ssh.common.NamedObject;
-import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.common.SshConstant;
-import io.github.grantchan.ssh.kex.*;
+import io.github.grantchan.ssh.common.*;
+import io.github.grantchan.ssh.factory.*;
+import io.github.grantchan.ssh.kex.KexParam;
 import io.github.grantchan.ssh.util.SshByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -21,6 +19,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
 
   private Session session;
   private Kex     kex;
+  private Service svc;
 
   public KexHandler(Session session) {
     this.session = session;
@@ -47,8 +46,11 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
         break;
 
       default:
-        if (cmd >= 21 && cmd <= 49) {
-          kex.handleKexMessage(ctx, cmd, req);
+        if (cmd >= SshConstant.SSH_MSG_NEWKEYS && cmd <= 49) {
+          kex.handleMessage(ctx, cmd, req);
+        } else if (cmd >= SshConstant.SSH_MSG_GLOBAL_REQUEST &&
+                   cmd <= SshConstant.SSH_MSG_CHANNEL_FAILURE) {
+          svc.handleMessage(cmd, req);
         } else {
           throw new IllegalStateException("Unknown request command - " + SshConstant.messageName(cmd));
         }
@@ -129,7 +131,7 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
   private List<String> resolveKexInit(ByteBuf buf) {
     List<String> result = new ArrayList<>(10);
 
-    // kex
+    // factory
     String c2s = SshByteBufUtil.readUtf8(buf);
     String s2c = NamedObject.getNames(KexFactory.values);
     logger.debug("server said: {}", s2c);
@@ -250,6 +252,12 @@ public class KexHandler extends ChannelInboundHandlerAdapter {
      */
     String svcName = SshByteBufUtil.readUtf8(req);
     logger.info(svcName);
+
+    try {
+      svc = Factory.create(ServiceFactory.values, svcName);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
     ByteBuf buf = ctx.alloc().buffer();
     buf.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);

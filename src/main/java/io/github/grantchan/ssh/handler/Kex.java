@@ -1,8 +1,11 @@
-package io.github.grantchan.ssh.kex;
+package io.github.grantchan.ssh.handler;
 
 import io.github.grantchan.ssh.common.Factory;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshConstant;
+import io.github.grantchan.ssh.factory.*;
+import io.github.grantchan.ssh.kex.DH;
+import io.github.grantchan.ssh.kex.KexParam;
 import io.github.grantchan.ssh.util.SshByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -40,7 +43,7 @@ public class Kex {
     this.session = session;
   }
 
-  public void handleKexMessage(ChannelHandlerContext ctx, int cmd, ByteBuf msg) {
+  public void handleMessage(ChannelHandlerContext ctx, int cmd, ByteBuf msg) {
     logger.debug("Handling key exchange message - {} ...", SshConstant.messageName(cmd));
 
     switch(cmd) {

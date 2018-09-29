@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.kex;
+package io.github.grantchan.ssh.factory;
 
 import io.github.grantchan.ssh.common.Factory;
 import io.github.grantchan.ssh.common.NamedObject;
@@ -20,11 +20,11 @@ public enum CipherFactory implements NamedObject, Factory<Cipher> {
   public static final Set<CipherFactory> values =
       Collections.unmodifiableSet(EnumSet.allOf(CipherFactory.class));
 
-  private String name;
-  private String algorithm;
-  private String transformation;
-  private int ivSize;
-  private int blkSize;
+  private final String name;
+  private final String algorithm;
+  private final String transformation;
+  private final int ivSize;
+  private final int blkSize;
 
   CipherFactory(String name, String algorithm, String transformation, int ivSize, int blkSize) {
     this.name = name;
