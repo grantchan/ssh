@@ -1,6 +1,7 @@
 package io.github.grantchan.ssh.handler;
 
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.SshConstant;
 import io.github.grantchan.ssh.util.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -13,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 
+import java.io.IOException;
+
 import static io.github.grantchan.ssh.common.SshConstant.SSH_PACKET_LENGTH;
 
 public class PacketDecoder extends ChannelInboundHandlerAdapter {
@@ -23,7 +26,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
 
   protected ByteBuf accuBuf;
   private int decodeStep = 0;
-  private long seq = 0;
+  private long seq = 0; // packet sequence number
 
   public PacketDecoder(Session session) {
     this.session = session;
@@ -88,10 +91,10 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
       decodeStep = 1;
     }
 
-    int pkLen  = accuBuf.readInt();
+    int len  = accuBuf.readInt();
 
     int c2sMacSize = session.getC2sMacSize();
-    if (accuBuf.readableBytes() < pkLen + c2sMacSize) {
+    if (accuBuf.readableBytes() < len + c2sMacSize) {
       // packet has not been fully received, restore the reader pointer
       accuBuf.readerIndex(rIdx);
       return -1;
@@ -100,29 +103,41 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
     // decrypt the remaining blocks of the packet
     if (c2sCip != null) {
       accuBuf.setBytes(rIdx + c2sCipSize,
-          c2sCip.update(packet, rIdx + c2sCipSize, pkLen + SSH_PACKET_LENGTH - c2sCipSize));
+          c2sCip.update(packet, rIdx + c2sCipSize, len + SSH_PACKET_LENGTH - c2sCipSize));
 
       StringBuilder sb = new StringBuilder();
+      int i = accuBuf.readerIndex();
+      accuBuf.readerIndex(i - SSH_PACKET_LENGTH);
       ByteBufUtil.appendPrettyHexDump(sb, accuBuf);
       logger.debug("Decrypted packet: \n{}", sb.toString());
+      accuBuf.readerIndex(i);
     }
 
     // verify the packet by the MAC
     Mac c2sMac = session.getC2sMac();
     if (c2sMac != null) {
       c2sMac.update(ByteUtil.htonl(seq));
-      c2sMac.update(packet, 0, pkLen + SSH_PACKET_LENGTH);
+
+      byte[] decryptedPacket = new byte[len + SSH_PACKET_LENGTH];
+      accuBuf.getBytes(rIdx, decryptedPacket);
+      c2sMac.update(decryptedPacket, 0, len + SSH_PACKET_LENGTH);
       byte[] blk = new byte[c2sMacSize];
       c2sMac.doFinal(blk, 0);
 
+      int i = 0, j = len + SSH_PACKET_LENGTH;
+      while (c2sMacSize-- > 0) {
+        if (blk[i++] != packet[j++]) {
+          throw new IOException(SshConstant.disconnectReason(SshConstant.SSH_DISCONNECT_MAC_ERROR));
+        }
+      }
     }
     seq = (++seq) & 0xffffffffL;
 
     int pad = accuBuf.readByte() & 0xFF;
-    accuBuf.writerIndex(pkLen + SSH_PACKET_LENGTH - pad);
+    accuBuf.writerIndex(len + SSH_PACKET_LENGTH - pad);
 
     decodeStep = 0;
 
-    return pkLen;
+    return len;
   }
 }

@@ -74,12 +74,12 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
       }
     }
 
-    StringBuilder sb = new StringBuilder();
-    ByteBufUtil.appendPrettyHexDump(sb, buf);
-    logger.debug("Packet before decryption: \n{}", sb.toString());
-
     Cipher s2cCipher = session.getS2cCipher();
     if (s2cCipher != null) {
+      StringBuilder sb = new StringBuilder();
+      ByteBufUtil.appendPrettyHexDump(sb, buf);
+      logger.debug("Packet before decryption: \n{}", sb.toString());
+
       byte[] tmp = new byte[len + 4 - off];
       buf.getBytes(off, tmp);
 
