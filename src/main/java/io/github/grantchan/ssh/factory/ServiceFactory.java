@@ -1,14 +1,12 @@
 package io.github.grantchan.ssh.factory;
 
-import io.github.grantchan.ssh.common.Factory;
-import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.common.Service;
 
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-public enum ServiceFactory implements NamedObject, Factory<Service> {
+public enum ServiceFactory implements NamedFactory<Service> {
 
   userauth("ssh-userauth") {
     @Override

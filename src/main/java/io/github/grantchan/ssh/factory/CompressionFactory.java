@@ -1,19 +1,22 @@
 package io.github.grantchan.ssh.factory;
 
 import io.github.grantchan.ssh.common.Compression;
-import io.github.grantchan.ssh.common.Factory;
 import io.github.grantchan.ssh.common.NamedObject;
 
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-public enum CompressionFactory implements NamedObject, Factory<Compression> {
+public enum CompressionFactory implements NamedFactory<Compression> {
 
   none("none");
 
-  public static final Set<CompressionFactory> values =
+  private static final Set<CompressionFactory> values =
       Collections.unmodifiableSet(EnumSet.allOf(CompressionFactory.class));
+
+  public static String getNames() {
+    return NamedObject.getNames(CompressionFactory.values);
+  }
 
   private final String name;
 

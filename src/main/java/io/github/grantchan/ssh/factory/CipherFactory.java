@@ -1,6 +1,5 @@
 package io.github.grantchan.ssh.factory;
 
-import io.github.grantchan.ssh.common.Factory;
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.util.ByteUtil;
 import io.netty.util.internal.StringUtil;
@@ -12,13 +11,17 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-public enum CipherFactory implements NamedObject, Factory<Cipher> {
+public enum CipherFactory implements NamedFactory<Cipher> {
 
   aes256cbc("aes256-cbc", "AES", "AES/CBC/NoPadding", 16, 32),
   aes256ctr("aes256-ctr", "AES", "AES/CTR/NoPadding", 16, 32);
 
-  public static final Set<CipherFactory> values =
+  private static final Set<CipherFactory> values =
       Collections.unmodifiableSet(EnumSet.allOf(CipherFactory.class));
+
+  public static String getNames() {
+    return NamedObject.getNames(CipherFactory.values);
+  }
 
   private final String name;
   private final String algorithm;

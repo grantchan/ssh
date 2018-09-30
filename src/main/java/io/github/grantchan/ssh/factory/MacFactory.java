@@ -1,6 +1,5 @@
 package io.github.grantchan.ssh.factory;
 
-import io.github.grantchan.ssh.common.Factory;
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.util.ByteUtil;
 import io.netty.util.internal.StringUtil;
@@ -12,12 +11,16 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-public enum MacFactory implements NamedObject, Factory<Mac> {
+public enum MacFactory implements NamedFactory<Mac> {
 
   hmacsha1("hmac-sha1", "HmacSHA1", 20, 20);
 
-  public static final Set<MacFactory> values =
+  private static final Set<MacFactory> values =
       Collections.unmodifiableSet(EnumSet.allOf(MacFactory.class));
+
+  public static String getNames() {
+    return NamedObject.getNames(MacFactory.values);
+  }
 
   private String name;
   private String transformation;

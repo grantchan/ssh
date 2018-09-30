@@ -86,7 +86,7 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
       session.setClientVer(clientVer);
 
       ctx.pipeline().addLast(new PacketDecoder(session),
-                             new KexHandler(session),
+                             new RequestHandler(session),
                              new PacketEncoder(session));
       ctx.pipeline().remove(this);
 
@@ -198,14 +198,14 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
     rand.nextBytes(cookie);
     buf.writeBytes(cookie);
 
-    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(KexFactory.values));
-    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(SignatureFactory.values));
-    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(CipherFactory.values));
-    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(CipherFactory.values));
-    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(MacFactory.values));
-    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(MacFactory.values));
-    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(CompressionFactory.values));
-    SshByteBufUtil.writeUtf8(buf, NamedObject.getNames(CompressionFactory.values));
+    SshByteBufUtil.writeUtf8(buf, KexFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, SignatureFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, CipherFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, CipherFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, MacFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, MacFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, CompressionFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, CompressionFactory.getNames());
     SshByteBufUtil.writeUtf8(buf, "");
     SshByteBufUtil.writeUtf8(buf, "");
 

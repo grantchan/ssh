@@ -1,14 +1,11 @@
 package io.github.grantchan.ssh.factory;
 
-import io.github.grantchan.ssh.common.Factory;
-import io.github.grantchan.ssh.common.NamedObject;
-
 import java.security.MessageDigest;
 
-public enum DigestFactory implements NamedObject, Factory<MessageDigest> {
+public enum DigestFactory implements NamedFactory<MessageDigest> {
 
-  sha1("sha1"),
-  sha256("sha256");
+  sha1("sha-1"),
+  sha256("sha-256");
 
   private String name;
 
@@ -18,6 +15,10 @@ public enum DigestFactory implements NamedObject, Factory<MessageDigest> {
 
   @Override
   public MessageDigest create(Object... params) throws Exception {
+    if (params != null && params.length != 0) {
+      throw new IllegalArgumentException("Bad parameters for " + getName());
+    }
+
     return MessageDigest.getInstance(name);
   }
 
