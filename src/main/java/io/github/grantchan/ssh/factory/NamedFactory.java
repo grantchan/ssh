@@ -17,6 +17,6 @@ public interface NamedFactory<T> extends NamedObject, Factory<T> {
   T create(Collection<? extends NamedFactory<? extends T>> factories, String name, Object... params)
       throws Exception {
     NamedFactory<? extends T> f = NamedObject.find(name, factories, String.CASE_INSENSITIVE_ORDER);
-    return (f == null) ? null : f.create(params);
+    return (f == null) ? null : f.create();
   }
 }

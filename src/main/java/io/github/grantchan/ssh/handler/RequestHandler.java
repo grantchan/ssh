@@ -120,7 +120,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     session.setC2sKex(clientKexInit);
 
     try {
-      kex = NamedFactory.create(KexFactory.values, kexInit.get(KexParam.KEX));
+      kex = NamedFactory.create(SshKexFactory.values, kexInit.get(KexParam.KEX));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -133,7 +133,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // factory
     String c2s = SshByteBufUtil.readUtf8(buf);
-    String s2c = KexFactory.getNames();
+    String s2c = SshKexFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.KEX, negotiate(c2s, s2c));
@@ -141,7 +141,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // server host key
     c2s = SshByteBufUtil.readUtf8(buf);
-    s2c = SignatureFactory.getNames();
+    s2c = SshSignatureFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.SERVER_HOST_KEY, negotiate(c2s, s2c));
@@ -149,7 +149,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // encryption c2s
     c2s = SshByteBufUtil.readUtf8(buf);
-    s2c = CipherFactory.getNames();
+    s2c = SshCipherFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.ENCRYPTION_C2S, negotiate(c2s, s2c));
@@ -157,7 +157,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // encryption s2c
     c2s = SshByteBufUtil.readUtf8(buf);
-    s2c = CipherFactory.getNames();
+    s2c = SshCipherFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.ENCRYPTION_S2C, negotiate(c2s, s2c));
@@ -165,7 +165,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // mac c2s
     c2s = SshByteBufUtil.readUtf8(buf);
-    s2c = MacFactory.getNames();
+    s2c = SshMacFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.MAC_C2S, negotiate(c2s, s2c));
@@ -173,7 +173,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // mac s2c
     c2s = SshByteBufUtil.readUtf8(buf);
-    s2c = MacFactory.getNames();
+    s2c = SshMacFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.MAC_S2C, negotiate(c2s, s2c));
@@ -181,7 +181,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // compression c2s
     c2s = SshByteBufUtil.readUtf8(buf);
-    s2c = CompressionFactory.getNames();
+    s2c = SshCompressionFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.COMPRESSION_C2S, negotiate(c2s, s2c));
@@ -189,7 +189,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // compression s2c
     c2s = SshByteBufUtil.readUtf8(buf);
-    s2c = CompressionFactory.getNames();
+    s2c = SshCompressionFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.COMPRESSION_S2C, negotiate(c2s, s2c));
@@ -254,11 +254,27 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.info(svcName);
 
     try {
-      svc = NamedFactory.create(ServiceFactory.values, svcName);
+      accept(svcName);
     } catch (Exception e) {
-      e.printStackTrace();
+      // logging
+
+      // disconnect
+      replyDisconnect(ctx, SshConstant.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE, svcName);
     }
 
+    replyAccept(ctx, svcName);
+  }
+
+  private void accept(String svcName) throws Exception {
+    svc = NamedFactory.create(SshServiceFactory.values, svcName);
+
+  }
+
+  private void replyDisconnect(ChannelHandlerContext ctx, int reason, String svcName) {
+
+  }
+
+  private void replyAccept(ChannelHandlerContext ctx, String svcName) {
     ByteBuf buf = ctx.alloc().buffer();
     buf.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
     buf.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);

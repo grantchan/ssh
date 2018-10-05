@@ -2,7 +2,6 @@ package io.github.grantchan.ssh.handler;
 
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.factory.*;
-import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.util.SshByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -198,14 +197,14 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
     rand.nextBytes(cookie);
     buf.writeBytes(cookie);
 
-    SshByteBufUtil.writeUtf8(buf, KexFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, SignatureFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, CipherFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, CipherFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, MacFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, MacFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, CompressionFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, CompressionFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, SshKexFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, SshSignatureFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, SshCipherFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, SshCipherFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, SshMacFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, SshMacFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, SshCompressionFactory.getNames());
+    SshByteBufUtil.writeUtf8(buf, SshCompressionFactory.getNames());
     SshByteBufUtil.writeUtf8(buf, "");
     SshByteBufUtil.writeUtf8(buf, "");
 

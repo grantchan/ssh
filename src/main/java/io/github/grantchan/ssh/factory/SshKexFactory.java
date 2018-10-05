@@ -7,31 +7,31 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-public enum KexFactory implements NamedFactory<KexHandler> {
+public enum SshKexFactory implements NamedFactory<KexHandler> {
 
   dhgexsha1("diffie-hellman-group-exchange-sha1") {
     @Override
-    public KexHandler create(Object... params) throws Exception {
-      return new KexHandler(DigestFactory.sha1.create());
+    public KexHandler create() {
+      return new KexHandler(SshDigestFactory.sha1.create());
     }
   },
   dhgexsha256("diffie-hellman-group-exchange-sha256") {
     @Override
-    public KexHandler create(Object... params) throws Exception {
-      return new KexHandler(DigestFactory.sha256.create());
+    public KexHandler create() {
+      return new KexHandler(SshDigestFactory.sha256.create());
     }
   };
 
-  public static final Set<KexFactory> values =
-      Collections.unmodifiableSet(EnumSet.allOf(KexFactory.class));
+  public static final Set<SshKexFactory> values =
+      Collections.unmodifiableSet(EnumSet.allOf(SshKexFactory.class));
 
   public static String getNames() {
-    return NamedObject.getNames(KexFactory.values);
+    return NamedObject.getNames(SshKexFactory.values);
   }
 
   public String name;
 
-  KexFactory(String name) {
+  SshKexFactory(String name) {
     this.name = name;
   }
 

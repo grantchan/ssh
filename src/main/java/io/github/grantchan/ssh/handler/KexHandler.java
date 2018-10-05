@@ -2,10 +2,10 @@ package io.github.grantchan.ssh.handler;
 
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshConstant;
-import io.github.grantchan.ssh.factory.CipherFactory;
-import io.github.grantchan.ssh.factory.MacFactory;
+import io.github.grantchan.ssh.factory.SshCipherFactory;
+import io.github.grantchan.ssh.factory.SshMacFactory;
 import io.github.grantchan.ssh.factory.NamedFactory;
-import io.github.grantchan.ssh.factory.SignatureFactory;
+import io.github.grantchan.ssh.factory.SshSignatureFactory;
 import io.github.grantchan.ssh.kex.DH;
 import io.github.grantchan.ssh.kex.KexParam;
 import io.github.grantchan.ssh.util.SshByteBufUtil;
@@ -238,7 +238,7 @@ public class KexHandler {
 
     Signature sig = null;
     try {
-      sig = NamedFactory.create(SignatureFactory.values,
+      sig = NamedFactory.create(SshSignatureFactory.values,
                                 kexParams.get(KexParam.SERVER_HOST_KEY));
     } catch (Exception e) {
       e.printStackTrace();
@@ -330,51 +330,47 @@ public class KexHandler {
 
     List<String> kp = session.getKexParams();
 
-    try {
-      // server to client cipher
-      CipherFactory cf;
-      cf = CipherFactory.fromName(kp.get(KexParam.ENCRYPTION_S2C));
-      assert cf != null;
-      e_s2c = hashKey(e_s2c, cf.getBlkSize(), k);
-      Cipher s2cCip = cf.create(e_s2c, iv_s2c, Cipher.ENCRYPT_MODE);
-      assert s2cCip != null;
+    // server to client cipher
+    SshCipherFactory cf;
+    cf = SshCipherFactory.fromName(kp.get(KexParam.ENCRYPTION_S2C));
+    assert cf != null;
+    e_s2c = hashKey(e_s2c, cf.getBlkSize(), k);
+    Cipher s2cCip = cf.create(e_s2c, iv_s2c, Cipher.ENCRYPT_MODE);
+    assert s2cCip != null;
 
-      session.setS2cCipher(s2cCip);
-      session.setS2cCipherSize(cf.getIvSize());
+    session.setS2cCipher(s2cCip);
+    session.setS2cCipherSize(cf.getIvSize());
 
-      // client to server cipher
-      cf = CipherFactory.fromName(kp.get(KexParam.ENCRYPTION_C2S));
-      assert cf != null;
-      e_c2s = hashKey(e_c2s, cf.getBlkSize(), k);
-      Cipher c2sCip = cf.create(e_c2s, iv_c2s, Cipher.DECRYPT_MODE);
-      assert c2sCip != null;
+    // client to server cipher
+    cf = SshCipherFactory.fromName(kp.get(KexParam.ENCRYPTION_C2S));
+    assert cf != null;
+    e_c2s = hashKey(e_c2s, cf.getBlkSize(), k);
+    Cipher c2sCip = cf.create(e_c2s, iv_c2s, Cipher.DECRYPT_MODE);
+    assert c2sCip != null;
 
-      session.setC2sCipher(c2sCip);
-      session.setC2sCipherSize(cf.getIvSize());
+    session.setC2sCipher(c2sCip);
+    session.setC2sCipherSize(cf.getIvSize());
 
-      // server to client MAC
-      MacFactory mf;
-      mf = MacFactory.fromName(kp.get(KexParam.MAC_S2C));
-      assert mf != null;
-      Mac s2cMac = mf.create(mac_s2c);
-      assert s2cMac != null;
+    // server to client MAC
+    SshMacFactory mf;
+    mf = SshMacFactory.fromName(kp.get(KexParam.MAC_S2C));
+    assert mf != null;
+    Mac s2cMac = mf.create(mac_s2c);
+    assert s2cMac != null;
 
-      session.setS2cMac(s2cMac);
-      session.setS2cMacSize(mf.getBlkSize());
-      session.setS2cDefMacSize(mf.getDefBlkSize());
+    session.setS2cMac(s2cMac);
+    session.setS2cMacSize(mf.getBlkSize());
+    session.setS2cDefMacSize(mf.getDefBlkSize());
 
-      // client to server MAC
-      mf = MacFactory.fromName(kp.get(KexParam.MAC_C2S));
-      assert mf != null;
-      Mac c2sMac = mf.create(mac_c2s);
-      assert c2sMac != null;
+    // client to server MAC
+    mf = SshMacFactory.fromName(kp.get(KexParam.MAC_C2S));
+    assert mf != null;
+    Mac c2sMac = mf.create(mac_c2s);
+    assert c2sMac != null;
 
-      session.setC2sMac(c2sMac);
-      session.setC2sMacSize(mf.getBlkSize());
-      session.setC2sDefMacSize(mf.getDefBlkSize());
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    session.setC2sMac(c2sMac);
+    session.setC2sMacSize(mf.getBlkSize());
+    session.setC2sDefMacSize(mf.getDefBlkSize());
   }
 
   private byte[] hashKey(byte[] e, int blockSize, byte[] k) {

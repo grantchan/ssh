@@ -6,32 +6,32 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-public enum ServiceFactory implements NamedFactory<Service> {
+public enum SshServiceFactory implements NamedFactory<Service> {
 
   userauth("ssh-userauth") {
     @Override
-    public Service create(Object... params) throws Exception {
+    public Service create() {
       return null;
     }
   },
   connection("ssh-connection") {
     @Override
-    public Service create(Object... params) throws Exception {
+    public Service create() {
       return null;
     }
   };
 
-  public static final Set<ServiceFactory> values =
-      Collections.unmodifiableSet(EnumSet.allOf(ServiceFactory.class));
+  public static final Set<SshServiceFactory> values =
+      Collections.unmodifiableSet(EnumSet.allOf(SshServiceFactory.class));
 
   private final String name;
 
-  ServiceFactory(String name) {
+  SshServiceFactory(String name) {
     this.name = name;
   }
 
   @Override
-  public Service create(Object... params) throws Exception {
+  public Service create() {
     return null;
   }
 
