@@ -11,6 +11,12 @@ public final class ByteUtil {
     return array;
   }
 
+  /**
+   * Convert the unsigned integer {@code i} from host byte order to network byte order
+   *
+   * @param i the unsigned integer in host byte order
+   * @return the network byte order byte array of {@code i}
+   */
   public static byte[] htonl(long i) {
     byte[] n = new byte[4];
     n[0] = (byte) (i >>> 24);
@@ -20,4 +26,7 @@ public final class ByteUtil {
 
     return n;
   }
+
+  /* Private constructor to prevent this class from being explicitly instantiated */
+  private ByteUtil() {}
 }

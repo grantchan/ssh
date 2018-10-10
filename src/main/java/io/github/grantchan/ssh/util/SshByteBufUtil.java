@@ -52,4 +52,7 @@ public final class SshByteBufUtil {
 
     return buf;
   }
+
+  /* Private constructor to prevent this class from being explicitly instantiated */
+  private SshByteBufUtil() {}
 }

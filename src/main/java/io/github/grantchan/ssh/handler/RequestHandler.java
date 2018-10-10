@@ -10,6 +10,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -267,6 +268,9 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
   private void accept(String svcName) throws Exception {
     svc = NamedFactory.create(SshServiceFactory.values, svcName);
+    if (svc == null) {
+      throw new IOException("Unknown service: " + svcName);
+    }
 
   }
 
