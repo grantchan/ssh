@@ -7,6 +7,15 @@ import java.nio.charset.StandardCharsets;
 
 public final class SshByteBufUtil {
 
+  /**
+   * Read a byte array from a {@link ByteBuf}
+   * <p>The byte array in the {@code buf} is represented as a uint32 containing its length (number
+   * of bytes that follow) followed by a byte array</p>
+   *
+   * @param buf the {@link ByteBuf} object to read from
+   * @return a byte array contains bytes from {@code buf}
+   * @see #writeBytes(ByteBuf, byte[])
+   */
   public static byte[] readBytes(ByteBuf buf) {
     byte[] val = new byte[buf.readInt()];
     buf.readBytes(val);
@@ -14,6 +23,15 @@ public final class SshByteBufUtil {
     return val;
   }
 
+  /**
+   * Write a byte array to a {@link ByteBuf}
+   * <p>The byte array is stored in the {@code buf} as a uint32 containing its length (number of
+   * bytes that follow) and zero (means empty string) or more bytes that are the byte array</p>
+   *
+   * @param buf the {@link ByteBuf} object to be written into
+   * @param val the byte array to be stored in {@code buf}
+   * @see #readBytes(ByteBuf)
+   */
   public static void writeBytes(ByteBuf buf, byte[] val) {
     buf.writeInt(val.length);
     buf.writeBytes(val);
