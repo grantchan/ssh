@@ -17,11 +17,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
+import java.util.Objects;
 
 public class KexHandler {
 
@@ -45,7 +47,7 @@ public class KexHandler {
     this.session = session;
   }
 
-  public void handleMessage(ChannelHandlerContext ctx, int cmd, ByteBuf msg) {
+  public void handleMessage(ChannelHandlerContext ctx, int cmd, ByteBuf msg) throws IOException {
     logger.debug("Handling key exchange message - {} ...", SshConstant.messageName(cmd));
 
     switch(cmd) {
@@ -144,7 +146,7 @@ public class KexHandler {
     return new DH(p, g);
   }
 
-  private void handleDhGexInit(ChannelHandlerContext ctx, ByteBuf req) {
+  private void handleDhGexInit(ChannelHandlerContext ctx, ByteBuf req) throws IOException {
     /*
      * RFC 4419:
      * The client sends SSH_MSG_KEX_DH_GEX_INIT
@@ -188,14 +190,18 @@ public class KexHandler {
     requestKexNewKeys(ctx);
   }
 
-  private void replyKexDhGexReply(ChannelHandlerContext ctx, byte[] v_c, byte[] v_s, byte[] i_c, byte[] i_s) {
-    KeyPairGenerator kpg = null;
+  private void replyKexDhGexReply(ChannelHandlerContext ctx,
+                                  byte[] v_c,
+                                  byte[] v_s,
+                                  byte[] i_c,
+                                  byte[] i_s) throws IOException {
+    KeyPairGenerator kpg;
     try {
       kpg = KeyPairGenerator.getInstance("RSA");
     } catch (NoSuchAlgorithmException e1) {
       e1.printStackTrace();
+      return;
     }
-    assert kpg != null;
     KeyPair kp = kpg.generateKeyPair();
 
     ByteBuf reply = ctx.alloc().buffer();
@@ -236,14 +242,12 @@ public class KexHandler {
 
     List<String> kexParams = session.getKexParams();
 
-    Signature sig = null;
-    try {
-      sig = NamedFactory.create(SshSignatureFactory.values,
-                                kexParams.get(KexParam.SERVER_HOST_KEY));
-    } catch (Exception e) {
-      e.printStackTrace();
+    Signature sig;
+    sig = NamedFactory.create(SshSignatureFactory.values, kexParams.get(KexParam.SERVER_HOST_KEY));
+    if (sig == null) {
+      throw new IOException("Unknown signature: " + KexParam.SERVER_HOST_KEY);
     }
-    assert sig != null;
+
     try {
       sig.initSign(kp.getPrivate());
       sig.update(h);
@@ -293,7 +297,7 @@ public class KexHandler {
     logger.info("SSH_MSG_NEWKEYS: {}", sb.toString());
 
     ByteBuf buf = ctx.alloc().buffer();
-    byte[]  k   = dh.getSecretKey();
+    byte[] k = dh.getSecretKey();
     SshByteBufUtil.writeMpInt(buf, k);
     buf.writeBytes(id);
     buf.writeByte((byte) 0x41);
@@ -332,41 +336,33 @@ public class KexHandler {
 
     // server to client cipher
     SshCipherFactory cf;
-    cf = SshCipherFactory.fromName(kp.get(KexParam.ENCRYPTION_S2C));
-    assert cf != null;
+    cf = Objects.requireNonNull(SshCipherFactory.fromName(kp.get(KexParam.ENCRYPTION_S2C)));
     e_s2c = hashKey(e_s2c, cf.getBlkSize(), k);
-    Cipher s2cCip = cf.create(e_s2c, iv_s2c, Cipher.ENCRYPT_MODE);
-    assert s2cCip != null;
+    Cipher s2cCip = Objects.requireNonNull(cf.create(e_s2c, iv_s2c, Cipher.ENCRYPT_MODE));
 
     session.setS2cCipher(s2cCip);
     session.setS2cCipherSize(cf.getIvSize());
 
     // client to server cipher
-    cf = SshCipherFactory.fromName(kp.get(KexParam.ENCRYPTION_C2S));
-    assert cf != null;
+    cf = Objects.requireNonNull(SshCipherFactory.fromName(kp.get(KexParam.ENCRYPTION_C2S)));
     e_c2s = hashKey(e_c2s, cf.getBlkSize(), k);
-    Cipher c2sCip = cf.create(e_c2s, iv_c2s, Cipher.DECRYPT_MODE);
-    assert c2sCip != null;
+    Cipher c2sCip = Objects.requireNonNull(cf.create(e_c2s, iv_c2s, Cipher.DECRYPT_MODE));
 
     session.setC2sCipher(c2sCip);
     session.setC2sCipherSize(cf.getIvSize());
 
     // server to client MAC
     SshMacFactory mf;
-    mf = SshMacFactory.fromName(kp.get(KexParam.MAC_S2C));
-    assert mf != null;
-    Mac s2cMac = mf.create(mac_s2c);
-    assert s2cMac != null;
+    mf = Objects.requireNonNull(SshMacFactory.fromName(kp.get(KexParam.MAC_S2C)));
+    Mac s2cMac = Objects.requireNonNull(mf.create(mac_s2c));
 
     session.setS2cMac(s2cMac);
     session.setS2cMacSize(mf.getBlkSize());
     session.setS2cDefMacSize(mf.getDefBlkSize());
 
     // client to server MAC
-    mf = SshMacFactory.fromName(kp.get(KexParam.MAC_C2S));
-    assert mf != null;
-    Mac c2sMac = mf.create(mac_c2s);
-    assert c2sMac != null;
+    mf = Objects.requireNonNull(SshMacFactory.fromName(kp.get(KexParam.MAC_C2S)));
+    Mac c2sMac = Objects.requireNonNull(mf.create(mac_c2s));
 
     session.setC2sMac(c2sMac);
     session.setC2sMacSize(mf.getBlkSize());

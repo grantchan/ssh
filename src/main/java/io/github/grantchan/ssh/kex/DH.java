@@ -7,6 +7,7 @@ import javax.crypto.spec.DHPublicKeySpec;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Objects;
 
 public class DH {
 
@@ -27,9 +28,9 @@ public class DH {
       kpg.initialize(spec);
     } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
       e.printStackTrace();
+      return;
     }
 
-    assert kpg != null;
     KeyPair kp = kpg.generateKeyPair();
     pubKey = ((DHPublicKey)kp.getPublic()).getY();
     priKey = kp.getPrivate();
@@ -56,9 +57,9 @@ public class DH {
   }
 
   public byte[] getSecretKey() {
-    KeyAgreement ka = null;
+    KeyAgreement ka;
     try {
-      KeyFactory      kf   = KeyFactory.getInstance("DH");
+      KeyFactory kf = KeyFactory.getInstance("DH");
       DHPublicKeySpec spec = new DHPublicKeySpec(new BigInteger(receivedPubKey), p, g);
 
       ka = KeyAgreement.getInstance("DH");
@@ -66,12 +67,11 @@ public class DH {
       ka.doPhase(kf.generatePublic(spec), true);
     } catch (NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException e) {
       e.printStackTrace();
+      return null;
     }
 
-    assert ka != null;
-    byte[] x = ka.generateSecret();
+    byte[] x = Objects.requireNonNull(ka.generateSecret());
 
-    assert x != null;
     int i = 0;
     while (x[i] == 0) {
       i++;

@@ -11,6 +11,7 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Set;
 
 public enum SshMacFactory implements NamedObject, MacFactory {
@@ -57,12 +58,11 @@ public enum SshMacFactory implements NamedObject, MacFactory {
     } catch (NoSuchAlgorithmException e) {
       e.printStackTrace();
     }
-    assert mac != null;
 
     key = ByteUtil.resizeKey(key, getDefBlkSize());
     Key sks = new SecretKeySpec(key, transformation);
     try {
-      mac.init(sks);
+      Objects.requireNonNull(mac).init(sks);
     } catch (InvalidKeyException e) {
       e.printStackTrace();
     }

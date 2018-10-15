@@ -86,7 +86,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     ctx.channel().close();
   }
 
-  protected void handleKexInit(ChannelHandlerContext ctx, ByteBuf msg) {
+  protected void handleKexInit(ChannelHandlerContext ctx, ByteBuf msg) throws IOException {
     /*
      * RFC 4253:
      * The client sends SSH_MSG_KEXINIT:
@@ -120,12 +120,11 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     msg.getBytes(startPos, clientKexInit, 1, payloadLen);
     session.setC2sKex(clientKexInit);
 
-    try {
-      kex = NamedFactory.create(SshKexFactory.values, kexInit.get(KexParam.KEX));
-    } catch (Exception e) {
-      e.printStackTrace();
+    kex = NamedFactory.create(SshKexFactory.values, kexInit.get(KexParam.KEX));
+    if (kex == null) {
+      throw new IOException("Unknown key exchange: " + KexParam.KEX);
     }
-    assert kex != null;
+
     kex.setSession(session);
   }
 

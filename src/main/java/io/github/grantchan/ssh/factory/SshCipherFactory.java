@@ -13,6 +13,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Set;
 
 public enum SshCipherFactory implements NamedObject, CipherFactory {
@@ -66,12 +67,12 @@ public enum SshCipherFactory implements NamedObject, CipherFactory {
     } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
       e.printStackTrace();
     }
-    assert cip != null;
 
     key = ByteUtil.resizeKey(key, getBlkSize());
     iv = ByteUtil.resizeKey(iv, getIvSize());
     try {
-      cip.init(mode, new SecretKeySpec(key, getAlgorithm()), new IvParameterSpec(iv));
+      Objects.requireNonNull(cip)
+             .init(mode, new SecretKeySpec(key, getAlgorithm()), new IvParameterSpec(iv));
     } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
       e.printStackTrace();
     }
