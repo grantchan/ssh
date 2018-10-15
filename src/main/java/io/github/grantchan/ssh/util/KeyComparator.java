@@ -16,17 +16,15 @@ public final class KeyComparator {
    * <p>by calling the overload method where the certain key object belongs to, it could be:
    * <ul><li>{@link DSAPublicKey} or</li>
    *     <li>{@link RSAPublicKey} or</li>
-   *     <li>{@link ECPublicKey}</li></ul>
-   * </p>
+   *     <li>{@link ECPublicKey}</li></ul></p>
    *
-   * @param a one of public keys to compare
-   * @param b another public key to compare
-   * @return {@code true} if they're identical, {@code false} if they're not identical, or they're
-   * not belong to same certain {@link PublicKey} class
-   *
-   * @see #compare(DSAParams, DSAParams)
-   * @see #compare(RSAPublicKey, RSAPublicKey)
-   * @see #compare(ECPublicKey, ECPublicKey)
+   * @param a  one of public keys to compare
+   * @param b  another public key to compare
+   * @return   {@code true} if they're identical, {@code false} if they're not identical, or they're
+   *           not belong to same certain {@link PublicKey} class
+   * @see      #compare(DSAParams, DSAParams)
+   * @see      #compare(RSAPublicKey, RSAPublicKey)
+   * @see      #compare(ECPublicKey, ECPublicKey)
    */
   public static boolean compare(PublicKey a, PublicKey b) {
     if ((a instanceof DSAPublicKey) && (b instanceof DSAPublicKey)) {
@@ -46,10 +44,10 @@ public final class KeyComparator {
    *     <li>the DSA-specific key parameters via {@link DSAPublicKey#getParams()}</li></ul>
    * of two keys</p>
    *
-   * @param a one of {@link DSAPublicKey} to compare
-   * @param b another {@link DSAPublicKey}
-   * @return {@code true} if they're identical, otherwise, {@code false}
-   * @see #compare(DSAParams, DSAParams)
+   * @param a  one of {@link DSAPublicKey} to compare
+   * @param b  another {@link DSAPublicKey}
+   * @return   {@code true} if they're identical, otherwise, {@code false}
+   * @see      #compare(DSAParams, DSAParams)
    */
   public static boolean compare(DSAPublicKey a, DSAPublicKey b) {
     if (a == b) { // if both are null
@@ -70,9 +68,10 @@ public final class KeyComparator {
    *     <li>the base, G via {@link DSAParams#getG()}</li>
    *     <li>the subprime, Q via {@link DSAParams#getQ()}</li></ul>
    * of two keys</p>
-   * @param a one of {@link DSAParams} to compare
-   * @param b another {@link DSAParams} to compare
-   * @return {@code true} if they're identical, otherwise, {@code false}
+   *
+   * @param a  one of {@link DSAParams} to compare
+   * @param b  another {@link DSAParams} to compare
+   * @return   {@code true} if they're identical, otherwise, {@code false}
    */
   private static boolean compare(DSAParams a, DSAParams b) {
     if (a == b) { // if both are null
@@ -94,9 +93,9 @@ public final class KeyComparator {
    *     <li>the modulus via {@link RSAPublicKey#getModulus()}</li></ul>
    * of two keys</p>
    *
-   * @param a one of {@link RSAPublicKey} to compare
-   * @param b another {@link RSAPublicKey}
-   * @return {@code true} if they're identical, otherwise, {@code false}
+   * @param a  one of {@link RSAPublicKey} to compare
+   * @param b  another {@link RSAPublicKey}
+   * @return   {@code true} if they're identical, otherwise, {@code false}
    */
   public static boolean compare(RSAPublicKey a, RSAPublicKey b) {
     if (a == b) { // if both are null
@@ -117,10 +116,10 @@ public final class KeyComparator {
    *     <li>domain parameters via {@link ECPublicKey#getParams()}</li></ul>
    * of two keys</p>
    *
-   * @param a one of {@link ECPublicKey} to compare
-   * @param b another {@link ECPublicKey}
-   * @return {@code true} if they're identical, otherwise, {@code false}
-   * @see #compare(ECParameterSpec, ECParameterSpec)
+   * @param a  one of {@link ECPublicKey} to compare
+   * @param b  another {@link ECPublicKey}
+   * @return   {@code true} if they're identical, otherwise, {@code false}
+   * @see      #compare(ECParameterSpec, ECParameterSpec)
    */
   public static boolean compare(ECPublicKey a, ECPublicKey b) {
     if (a == b) { // if both are null
@@ -145,7 +144,7 @@ public final class KeyComparator {
    *
    * @param a one of {@link ECParameterSpec} to compare
    * @param b another {@link ECParameterSpec}
-   * @return {@code true} if they're identical, otherwise, {@code false}
+   * @return  {@code true} if they're identical, otherwise, {@code false}
    */
   private static boolean compare(ECParameterSpec a, ECParameterSpec b) {
     if (a == b) { // if both are null

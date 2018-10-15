@@ -9,9 +9,9 @@ public final class ByteUtil {
    *    If the {@code newSize} is bigger than or equal to the {@code array} size, just return the
    *    {@code array}</p>
    *
-   * @param array the array to be resized
-   * @param newSize new size of the array to be resized to
-   * @return a new resized array or the original array.
+   * @param   array the array to be resized
+   * @param   newSize new size of the array to be resized to
+   * @return  a new resized array or the original array.
    */
   public static byte[] resizeKey(byte[] array, int newSize) {
     if (array.length > newSize) {
@@ -25,8 +25,9 @@ public final class ByteUtil {
   /**
    * Convert the unsigned integer {@code i} from host byte order to network byte order
    *
-   * @param i the unsigned integer in host byte order
-   * @return the network byte order byte array of {@code i}
+   * @param   i the unsigned integer in host byte order
+   * @return  the network byte order byte array of {@code i}
+   * @see     <a href="https://en.wikipedia.org/wiki/Endianness">Endianness</a>
    */
   public static byte[] htonl(long i) {
     byte[] n = new byte[4];
