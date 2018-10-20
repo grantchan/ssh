@@ -1,6 +1,8 @@
 package io.github.grantchan.ssh.handler;
 
-import io.github.grantchan.ssh.common.*;
+import io.github.grantchan.ssh.common.Service;
+import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.SshConstant;
 import io.github.grantchan.ssh.factory.*;
 import io.github.grantchan.ssh.kex.KexParam;
 import io.github.grantchan.ssh.util.SshByteBufUtil;
@@ -11,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -256,10 +259,14 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     try {
       accept(svcName);
     } catch (Exception e) {
-      // logging
+      InetSocketAddress peer = (InetSocketAddress)ctx.channel().remoteAddress();
+      logger.info("Requested service ({}) from {} is unavailable, rejected.",
+                  svcName, peer.getAddress().getHostAddress());
 
       // disconnect
       replyDisconnect(ctx, SshConstant.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE, svcName);
+
+      return;
     }
 
     replyAccept(ctx, svcName);
