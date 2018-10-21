@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.kex;
+package io.github.grantchan.ssh.trans.kex;
 
 import javax.crypto.KeyAgreement;
 import javax.crypto.interfaces.DHPublicKey;

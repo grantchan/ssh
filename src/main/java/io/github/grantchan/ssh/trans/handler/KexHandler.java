@@ -1,15 +1,15 @@
-package io.github.grantchan.ssh.handler;
+package io.github.grantchan.ssh.trans.handler;
 
 import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.arch.SshMessage;
-import io.github.grantchan.ssh.factory.SshCipherFactory;
-import io.github.grantchan.ssh.factory.SshMacFactory;
-import io.github.grantchan.ssh.factory.NamedFactory;
-import io.github.grantchan.ssh.factory.SshSignatureFactory;
-import io.github.grantchan.ssh.kex.DH;
-import io.github.grantchan.ssh.kex.KexParam;
-import io.github.grantchan.ssh.arch.SshIOUtil;
+import io.github.grantchan.ssh.trans.cipher.BuiltinCipherFactory;
+import io.github.grantchan.ssh.trans.mac.BuiltinMacFactory;
+import io.github.grantchan.ssh.common.NamedFactory;
+import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
+import io.github.grantchan.ssh.trans.kex.DH;
+import io.github.grantchan.ssh.trans.kex.KexParam;
+import io.github.grantchan.ssh.arch.SshIoUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -124,8 +124,8 @@ public class KexHandler {
 
     pg.writeByte(SshMessage.SSH_MSG_KEX_DH_GEX_GROUP);
 
-    SshIOUtil.writeMpInt(pg, dh.getP());
-    SshIOUtil.writeMpInt(pg, dh.getG());
+    SshIoUtil.writeMpInt(pg, dh.getP());
+    SshIoUtil.writeMpInt(pg, dh.getG());
 
     logger.debug("Replying SSH_MSG_KEX_DH_GEX_GROUP...");
     ctx.channel().writeAndFlush(pg);
@@ -154,7 +154,7 @@ public class KexHandler {
      *   byte    SSH_MSG_KEX_DH_GEX_INIT
      *   mpint   e
      */
-    byte[] e = SshIOUtil.readBytes(req);
+    byte[] e = SshIoUtil.readBytes(req);
     dh.receivedPubKey(e);
 
     /*
@@ -207,20 +207,20 @@ public class KexHandler {
 
     ByteBuf reply = ctx.alloc().buffer();
 
-    SshIOUtil.writeUtf8(reply, "ssh-rsa");
+    SshIoUtil.writeUtf8(reply, "ssh-rsa");
     RSAPublicKey pubKey = ((RSAPublicKey) kp.getPublic());
-    SshIOUtil.writeMpInt(reply, pubKey.getPublicExponent());
-    SshIOUtil.writeMpInt(reply, pubKey.getModulus());
+    SshIoUtil.writeMpInt(reply, pubKey.getPublicExponent());
+    SshIoUtil.writeMpInt(reply, pubKey.getModulus());
 
     byte[] k_s = new byte[reply.readableBytes()];
     reply.readBytes(k_s);
 
     reply.clear();
-    SshIOUtil.writeBytes(reply, v_c);
-    SshIOUtil.writeBytes(reply, v_s);
-    SshIOUtil.writeBytes(reply, i_c);
-    SshIOUtil.writeBytes(reply, i_s);
-    SshIOUtil.writeBytes(reply, k_s);
+    SshIoUtil.writeBytes(reply, v_c);
+    SshIoUtil.writeBytes(reply, v_s);
+    SshIoUtil.writeBytes(reply, i_c);
+    SshIoUtil.writeBytes(reply, i_s);
+    SshIoUtil.writeBytes(reply, k_s);
 
     if (min == -1 || max == -1) { // old request
       reply.writeInt(n);
@@ -230,11 +230,11 @@ public class KexHandler {
       reply.writeInt(max);
     }
 
-    SshIOUtil.writeMpInt(reply, dh.getP());
-    SshIOUtil.writeMpInt(reply, dh.getG());
-    SshIOUtil.writeMpInt(reply, dh.getReceivedPubKey());
-    SshIOUtil.writeMpInt(reply, dh.getPubKey());
-    SshIOUtil.writeMpInt(reply, dh.getSecretKey());
+    SshIoUtil.writeMpInt(reply, dh.getP());
+    SshIoUtil.writeMpInt(reply, dh.getG());
+    SshIoUtil.writeMpInt(reply, dh.getReceivedPubKey());
+    SshIoUtil.writeMpInt(reply, dh.getPubKey());
+    SshIoUtil.writeMpInt(reply, dh.getSecretKey());
     byte[] h_s = new byte[reply.readableBytes()];
     reply.readBytes(h_s);
 
@@ -244,7 +244,7 @@ public class KexHandler {
     List<String> kexParams = session.getKexParams();
 
     Signature sig;
-    sig = NamedFactory.create(SshSignatureFactory.values, kexParams.get(KexParam.SERVER_HOST_KEY));
+    sig = NamedFactory.create(BuiltinSignatureFactory.values, kexParams.get(KexParam.SERVER_HOST_KEY));
     if (sig == null) {
       throw new IOException("Unknown signature: " + KexParam.SERVER_HOST_KEY);
     }
@@ -254,8 +254,8 @@ public class KexHandler {
       sig.update(h);
 
       reply.clear();
-      SshIOUtil.writeUtf8(reply, kexParams.get(KexParam.SERVER_HOST_KEY));
-      SshIOUtil.writeBytes(reply, sig.sign());
+      SshIoUtil.writeUtf8(reply, kexParams.get(KexParam.SERVER_HOST_KEY));
+      SshIoUtil.writeBytes(reply, sig.sign());
     } catch (SignatureException | InvalidKeyException e1) {
       e1.printStackTrace();
     }
@@ -268,9 +268,9 @@ public class KexHandler {
     reply.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
     reply.writeByte(SshMessage.SSH_MSG_KEX_DH_GEX_REPLY);
 
-    SshIOUtil.writeBytes(reply, k_s);
-    SshIOUtil.writeBytes(reply, dh.getPubKey());
-    SshIOUtil.writeBytes(reply, sigH);
+    SshIoUtil.writeBytes(reply, k_s);
+    SshIoUtil.writeBytes(reply, dh.getPubKey());
+    SshIoUtil.writeBytes(reply, sigH);
 
     logger.debug("Replying SSH_MSG_KEX_DH_GEX_REPLY...");
     ctx.channel().writeAndFlush(reply);
@@ -299,7 +299,7 @@ public class KexHandler {
 
     ByteBuf buf = ctx.alloc().buffer();
     byte[] k = dh.getSecretKey();
-    SshIOUtil.writeMpInt(buf, k);
+    SshIoUtil.writeMpInt(buf, k);
     buf.writeBytes(id);
     buf.writeByte((byte) 0x41);
     buf.writeBytes(id);
@@ -336,8 +336,8 @@ public class KexHandler {
     List<String> kp = session.getKexParams();
 
     // server to client cipher
-    SshCipherFactory cf;
-    cf = Objects.requireNonNull(SshCipherFactory.fromName(kp.get(KexParam.ENCRYPTION_S2C)));
+    BuiltinCipherFactory cf;
+    cf = Objects.requireNonNull(BuiltinCipherFactory.fromName(kp.get(KexParam.ENCRYPTION_S2C)));
     e_s2c = hashKey(e_s2c, cf.getBlkSize(), k);
     Cipher s2cCip = Objects.requireNonNull(cf.create(e_s2c, iv_s2c, Cipher.ENCRYPT_MODE));
 
@@ -345,7 +345,7 @@ public class KexHandler {
     session.setS2cCipherSize(cf.getIvSize());
 
     // client to server cipher
-    cf = Objects.requireNonNull(SshCipherFactory.fromName(kp.get(KexParam.ENCRYPTION_C2S)));
+    cf = Objects.requireNonNull(BuiltinCipherFactory.fromName(kp.get(KexParam.ENCRYPTION_C2S)));
     e_c2s = hashKey(e_c2s, cf.getBlkSize(), k);
     Cipher c2sCip = Objects.requireNonNull(cf.create(e_c2s, iv_c2s, Cipher.DECRYPT_MODE));
 
@@ -353,8 +353,8 @@ public class KexHandler {
     session.setC2sCipherSize(cf.getIvSize());
 
     // server to client MAC
-    SshMacFactory mf;
-    mf = Objects.requireNonNull(SshMacFactory.fromName(kp.get(KexParam.MAC_S2C)));
+    BuiltinMacFactory mf;
+    mf = Objects.requireNonNull(BuiltinMacFactory.fromName(kp.get(KexParam.MAC_S2C)));
     Mac s2cMac = Objects.requireNonNull(mf.create(mac_s2c));
 
     session.setS2cMac(s2cMac);
@@ -362,7 +362,7 @@ public class KexHandler {
     session.setS2cDefMacSize(mf.getDefBlkSize());
 
     // client to server MAC
-    mf = Objects.requireNonNull(SshMacFactory.fromName(kp.get(KexParam.MAC_C2S)));
+    mf = Objects.requireNonNull(BuiltinMacFactory.fromName(kp.get(KexParam.MAC_C2S)));
     Mac c2sMac = Objects.requireNonNull(mf.create(mac_c2s));
 
     session.setC2sMac(c2sMac);
@@ -372,7 +372,7 @@ public class KexHandler {
 
   private byte[] hashKey(byte[] e, int blockSize, byte[] k) {
     for (ByteBuf b = Unpooled.buffer(); e.length < blockSize; b.clear()) {
-      SshIOUtil.writeMpInt(b, k);
+      SshIoUtil.writeMpInt(b, k);
       b.writeBytes(h);
       b.writeBytes(e);
       byte[] a = new byte[b.readableBytes()];

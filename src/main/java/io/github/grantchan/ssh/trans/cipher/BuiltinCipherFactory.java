@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.factory;
+package io.github.grantchan.ssh.trans.cipher;
 
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.util.ByteUtil;
@@ -16,16 +16,16 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
 
-public enum SshCipherFactory implements NamedObject, CipherFactory {
+public enum BuiltinCipherFactory implements NamedObject, CipherFactory {
 
   aes256cbc("aes256-cbc", "AES", "AES/CBC/NoPadding", 16, 32),
   aes256ctr("aes256-ctr", "AES", "AES/CTR/NoPadding", 16, 32);
 
-  private static final Set<SshCipherFactory> values =
-      Collections.unmodifiableSet(EnumSet.allOf(SshCipherFactory.class));
+  private static final Set<BuiltinCipherFactory> values =
+      Collections.unmodifiableSet(EnumSet.allOf(BuiltinCipherFactory.class));
 
   public static String getNames() {
-    return NamedObject.getNames(SshCipherFactory.values);
+    return NamedObject.getNames(BuiltinCipherFactory.values);
   }
 
   private final String name;
@@ -34,7 +34,7 @@ public enum SshCipherFactory implements NamedObject, CipherFactory {
   private final int ivSize;
   private final int blkSize;
 
-  SshCipherFactory(String name, String algorithm, String transformation, int ivSize, int blkSize) {
+  BuiltinCipherFactory(String name, String algorithm, String transformation, int ivSize, int blkSize) {
     this.name = name;
     this.algorithm = algorithm;
     this.transformation = transformation;
@@ -80,12 +80,12 @@ public enum SshCipherFactory implements NamedObject, CipherFactory {
     return cip;
   }
 
-  public static SshCipherFactory fromName(String name) {
+  public static BuiltinCipherFactory fromName(String name) {
     if (StringUtil.isNullOrEmpty(name)) {
       return null;
     }
 
-    for (SshCipherFactory f : values) {
+    for (BuiltinCipherFactory f : values) {
       if (name.equalsIgnoreCase(f.getName())) {
         return f;
       }

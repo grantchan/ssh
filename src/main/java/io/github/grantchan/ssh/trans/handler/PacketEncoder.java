@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.handler;
+package io.github.grantchan.ssh.trans.handler;
 
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.util.ByteUtil;

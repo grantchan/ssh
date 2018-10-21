@@ -1,12 +1,18 @@
-package io.github.grantchan.ssh.handler;
+package io.github.grantchan.ssh.trans.handler;
 
 import io.github.grantchan.ssh.arch.SshConstant;
+import io.github.grantchan.ssh.common.NamedFactory;
 import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.arch.SshMessage;
-import io.github.grantchan.ssh.factory.*;
-import io.github.grantchan.ssh.kex.KexParam;
-import io.github.grantchan.ssh.arch.SshIOUtil;
+import io.github.grantchan.ssh.trans.cipher.BuiltinCipherFactory;
+import io.github.grantchan.ssh.trans.compression.BuiltinCompressionFactory;
+import io.github.grantchan.ssh.trans.kex.KexParam;
+import io.github.grantchan.ssh.arch.SshIoUtil;
+import io.github.grantchan.ssh.trans.kex.BuiltinKexFactory;
+import io.github.grantchan.ssh.trans.mac.BuiltinMacFactory;
+import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
+import io.github.grantchan.ssh.userauth.service.SshServiceFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -83,7 +89,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
      * (suitable for localization)
      */
     int code = req.readInt();
-    String msg = SshIOUtil.readUtf8(req);
+    String msg = SshIoUtil.readUtf8(req);
 
     logger.info("Disconnecting... reason: {}, msg: {}", SshMessage.disconnectReason(code), msg);
 
@@ -124,7 +130,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     msg.getBytes(startPos, clientKexInit, 1, payloadLen);
     session.setC2sKex(clientKexInit);
 
-    kex = NamedFactory.create(SshKexFactory.values, kexInit.get(KexParam.KEX));
+    kex = NamedFactory.create(BuiltinKexFactory.values, kexInit.get(KexParam.KEX));
     if (kex == null) {
       throw new IOException("Unknown key exchange: " + KexParam.KEX);
     }
@@ -136,71 +142,71 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     List<String> result = new ArrayList<>(10);
 
     // factory
-    String c2s = SshIOUtil.readUtf8(buf);
-    String s2c = SshKexFactory.getNames();
+    String c2s = SshIoUtil.readUtf8(buf);
+    String s2c = BuiltinKexFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.KEX, negotiate(c2s, s2c));
     logger.debug("negotiated: {}", result.get(KexParam.KEX));
 
     // server host key
-    c2s = SshIOUtil.readUtf8(buf);
-    s2c = SshSignatureFactory.getNames();
+    c2s = SshIoUtil.readUtf8(buf);
+    s2c = BuiltinSignatureFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.SERVER_HOST_KEY, negotiate(c2s, s2c));
     logger.debug("negotiated: {}", result.get(KexParam.SERVER_HOST_KEY));
 
     // encryption c2s
-    c2s = SshIOUtil.readUtf8(buf);
-    s2c = SshCipherFactory.getNames();
+    c2s = SshIoUtil.readUtf8(buf);
+    s2c = BuiltinCipherFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.ENCRYPTION_C2S, negotiate(c2s, s2c));
     logger.debug("negotiated: {}", result.get(KexParam.ENCRYPTION_C2S));
 
     // encryption s2c
-    c2s = SshIOUtil.readUtf8(buf);
-    s2c = SshCipherFactory.getNames();
+    c2s = SshIoUtil.readUtf8(buf);
+    s2c = BuiltinCipherFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.ENCRYPTION_S2C, negotiate(c2s, s2c));
     logger.debug("negotiated: {}", result.get(KexParam.ENCRYPTION_S2C));
 
     // mac c2s
-    c2s = SshIOUtil.readUtf8(buf);
-    s2c = SshMacFactory.getNames();
+    c2s = SshIoUtil.readUtf8(buf);
+    s2c = BuiltinMacFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.MAC_C2S, negotiate(c2s, s2c));
     logger.debug("negotiated: {}", result.get(KexParam.MAC_C2S));
 
     // mac s2c
-    c2s = SshIOUtil.readUtf8(buf);
-    s2c = SshMacFactory.getNames();
+    c2s = SshIoUtil.readUtf8(buf);
+    s2c = BuiltinMacFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.MAC_S2C, negotiate(c2s, s2c));
     logger.debug("negotiated: {}", result.get(KexParam.MAC_S2C));
 
     // compression c2s
-    c2s = SshIOUtil.readUtf8(buf);
-    s2c = SshCompressionFactory.getNames();
+    c2s = SshIoUtil.readUtf8(buf);
+    s2c = BuiltinCompressionFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.COMPRESSION_C2S, negotiate(c2s, s2c));
     logger.debug("negotiated: {}", result.get(KexParam.COMPRESSION_C2S));
 
     // compression s2c
-    c2s = SshIOUtil.readUtf8(buf);
-    s2c = SshCompressionFactory.getNames();
+    c2s = SshIoUtil.readUtf8(buf);
+    s2c = BuiltinCompressionFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.COMPRESSION_S2C, negotiate(c2s, s2c));
     logger.debug("negotiated: {}", result.get(KexParam.COMPRESSION_S2C));
 
     // language c2s
-    c2s = SshIOUtil.readUtf8(buf);
+    c2s = SshIoUtil.readUtf8(buf);
     s2c = "";
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
@@ -208,7 +214,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.debug("negotiated: {}", result.get(KexParam.LANGUAGE_C2S));
 
     // language s2c
-    c2s = SshIOUtil.readUtf8(buf);
+    c2s = SshIoUtil.readUtf8(buf);
     s2c = "";
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
@@ -254,7 +260,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
      * When the service starts, it may have access to the session identifier
      * generated during the key exchange.
      */
-    String svcName = SshIOUtil.readUtf8(req);
+    String svcName = SshIoUtil.readUtf8(req);
     logger.info(svcName);
 
     try {
@@ -291,7 +297,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     buf.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
     buf.writeByte(SshMessage.SSH_MSG_SERVICE_ACCEPT);
 
-    SshIOUtil.writeUtf8(buf, svcName);
+    SshIoUtil.writeUtf8(buf, svcName);
 
     ctx.channel().writeAndFlush(buf);
   }

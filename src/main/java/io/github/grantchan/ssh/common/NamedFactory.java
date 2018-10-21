@@ -1,6 +1,4 @@
-package io.github.grantchan.ssh.factory;
-
-import io.github.grantchan.ssh.common.NamedObject;
+package io.github.grantchan.ssh.common;
 
 import java.util.Collection;
 

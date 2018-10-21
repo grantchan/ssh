@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.factory;
+package io.github.grantchan.ssh.trans.mac;
 
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.util.ByteUtil;
@@ -14,15 +14,15 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
 
-public enum SshMacFactory implements NamedObject, MacFactory {
+public enum BuiltinMacFactory implements NamedObject, MacFactory {
 
   hmacsha1("hmac-sha1", "HmacSHA1", 20, 20);
 
-  private static final Set<SshMacFactory> values =
-      Collections.unmodifiableSet(EnumSet.allOf(SshMacFactory.class));
+  private static final Set<BuiltinMacFactory> values =
+      Collections.unmodifiableSet(EnumSet.allOf(BuiltinMacFactory.class));
 
   public static String getNames() {
-    return NamedObject.getNames(SshMacFactory.values);
+    return NamedObject.getNames(BuiltinMacFactory.values);
   }
 
   private String name;
@@ -30,7 +30,7 @@ public enum SshMacFactory implements NamedObject, MacFactory {
   private int blkSize;
   private int defBlkSize;
 
-  SshMacFactory(String name, String transformation, int blkSize, int defBlkSize) {
+  BuiltinMacFactory(String name, String transformation, int blkSize, int defBlkSize) {
     this.name = name;
     this.transformation = transformation;
     this.blkSize = blkSize;
@@ -69,12 +69,12 @@ public enum SshMacFactory implements NamedObject, MacFactory {
     return mac;
   }
 
-  public static SshMacFactory fromName(String name) {
+  public static BuiltinMacFactory fromName(String name) {
     if (StringUtil.isNullOrEmpty(name)) {
       return null;
     }
 
-    for (SshMacFactory f : values) {
+    for (BuiltinMacFactory f : values) {
       if (name.equalsIgnoreCase(f.getName())) {
         return f;
       }

@@ -1,16 +1,18 @@
-package io.github.grantchan.ssh.factory;
+package io.github.grantchan.ssh.trans.digest;
+
+import io.github.grantchan.ssh.common.NamedFactory;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public enum SshDigestFactory implements NamedFactory<MessageDigest> {
+public enum BuiltinDigestFactory implements NamedFactory<MessageDigest> {
 
   sha1("sha-1"),
   sha256("sha-256");
 
   private String name;
 
-  SshDigestFactory(String name) {
+  BuiltinDigestFactory(String name) {
     this.name = name;
   }
 

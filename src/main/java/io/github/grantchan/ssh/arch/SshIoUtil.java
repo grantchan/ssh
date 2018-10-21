@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
-public final class SshIOUtil {
+public final class SshIoUtil {
 
   /**
    * Read a byte array from a {@link ByteBuf}
@@ -103,5 +103,5 @@ public final class SshIOUtil {
   }
 
   /* Private constructor to prevent this class from being explicitly instantiated */
-  private SshIOUtil() {}
+  private SshIoUtil() {}
 }
