@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.handler;
 
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.common.SshConstant;
+import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.util.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -16,7 +16,7 @@ import javax.crypto.Mac;
 
 import java.io.IOException;
 
-import static io.github.grantchan.ssh.common.SshConstant.SSH_PACKET_LENGTH;
+import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_LENGTH;
 
 public class PacketDecoder extends ChannelInboundHandlerAdapter {
 
@@ -127,7 +127,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
       int i = 0, j = len + SSH_PACKET_LENGTH;
       while (c2sMacSize-- > 0) {
         if (blk[i++] != packet[j++]) {
-          throw new IOException(SshConstant.disconnectReason(SshConstant.SSH_DISCONNECT_MAC_ERROR));
+          throw new IOException(SshMessage.disconnectReason(SshMessage.SSH_DISCONNECT_MAC_ERROR));
         }
       }
     }

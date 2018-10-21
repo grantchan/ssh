@@ -1,11 +1,12 @@
 package io.github.grantchan.ssh.handler;
 
+import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.common.SshConstant;
+import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.factory.*;
 import io.github.grantchan.ssh.kex.KexParam;
-import io.github.grantchan.ssh.util.SshByteBufUtil;
+import io.github.grantchan.ssh.arch.SshIOUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -34,29 +35,29 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     ByteBuf req = (ByteBuf) msg;
 
     int cmd = req.readByte() & 0xFF;
-    logger.info("Handling message - {} ...", SshConstant.messageName(cmd));
+    logger.info("Handling message - {} ...", SshMessage.from(cmd));
 
     switch (cmd) {
-      case SshConstant.SSH_MSG_DISCONNECT:
+      case SshMessage.SSH_MSG_DISCONNECT:
         handleDisconnect(ctx, req);
         break;
 
-      case SshConstant.SSH_MSG_KEXINIT:
+      case SshMessage.SSH_MSG_KEXINIT:
         handleKexInit(ctx, req);
         break;
 
-      case SshConstant.SSH_MSG_SERVICE_REQUEST:
+      case SshMessage.SSH_MSG_SERVICE_REQUEST:
         handleServiceRequest(ctx, req);
         break;
 
       default:
-        if (cmd >= SshConstant.SSH_MSG_NEWKEYS && cmd <= 49) {
+        if (cmd >= SshMessage.SSH_MSG_NEWKEYS && cmd <= 49) {
           kex.handleMessage(ctx, cmd, req);
-        } else if (cmd >= SshConstant.SSH_MSG_GLOBAL_REQUEST &&
-                   cmd <= SshConstant.SSH_MSG_CHANNEL_FAILURE) {
+        } else if (cmd >= SshMessage.SSH_MSG_GLOBAL_REQUEST &&
+                   cmd <= SshMessage.SSH_MSG_CHANNEL_FAILURE) {
           svc.handleMessage(cmd, req);
         } else {
-          throw new IllegalStateException("Unknown request command - " + SshConstant.messageName(cmd));
+          throw new IllegalStateException("Unknown request command - " + SshMessage.from(cmd));
         }
     }
   }
@@ -82,9 +83,9 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
      * (suitable for localization)
      */
     int code = req.readInt();
-    String msg = SshByteBufUtil.readUtf8(req);
+    String msg = SshIOUtil.readUtf8(req);
 
-    logger.info("Disconnecting... reason: {}, msg: {}", SshConstant.disconnectReason(code), msg);
+    logger.info("Disconnecting... reason: {}, msg: {}", SshMessage.disconnectReason(code), msg);
 
     ctx.channel().close();
   }
@@ -119,7 +120,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     int payloadLen = msg.readerIndex() - startPos;
     byte[] clientKexInit = new byte[payloadLen + 1];
-    clientKexInit[0] = SshConstant.SSH_MSG_KEXINIT;
+    clientKexInit[0] = SshMessage.SSH_MSG_KEXINIT;
     msg.getBytes(startPos, clientKexInit, 1, payloadLen);
     session.setC2sKex(clientKexInit);
 
@@ -135,7 +136,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     List<String> result = new ArrayList<>(10);
 
     // factory
-    String c2s = SshByteBufUtil.readUtf8(buf);
+    String c2s = SshIOUtil.readUtf8(buf);
     String s2c = SshKexFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
@@ -143,7 +144,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.debug("negotiated: {}", result.get(KexParam.KEX));
 
     // server host key
-    c2s = SshByteBufUtil.readUtf8(buf);
+    c2s = SshIOUtil.readUtf8(buf);
     s2c = SshSignatureFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
@@ -151,7 +152,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.debug("negotiated: {}", result.get(KexParam.SERVER_HOST_KEY));
 
     // encryption c2s
-    c2s = SshByteBufUtil.readUtf8(buf);
+    c2s = SshIOUtil.readUtf8(buf);
     s2c = SshCipherFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
@@ -159,7 +160,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.debug("negotiated: {}", result.get(KexParam.ENCRYPTION_C2S));
 
     // encryption s2c
-    c2s = SshByteBufUtil.readUtf8(buf);
+    c2s = SshIOUtil.readUtf8(buf);
     s2c = SshCipherFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
@@ -167,7 +168,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.debug("negotiated: {}", result.get(KexParam.ENCRYPTION_S2C));
 
     // mac c2s
-    c2s = SshByteBufUtil.readUtf8(buf);
+    c2s = SshIOUtil.readUtf8(buf);
     s2c = SshMacFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
@@ -175,7 +176,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.debug("negotiated: {}", result.get(KexParam.MAC_C2S));
 
     // mac s2c
-    c2s = SshByteBufUtil.readUtf8(buf);
+    c2s = SshIOUtil.readUtf8(buf);
     s2c = SshMacFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
@@ -183,7 +184,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.debug("negotiated: {}", result.get(KexParam.MAC_S2C));
 
     // compression c2s
-    c2s = SshByteBufUtil.readUtf8(buf);
+    c2s = SshIOUtil.readUtf8(buf);
     s2c = SshCompressionFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
@@ -191,7 +192,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.debug("negotiated: {}", result.get(KexParam.COMPRESSION_C2S));
 
     // compression s2c
-    c2s = SshByteBufUtil.readUtf8(buf);
+    c2s = SshIOUtil.readUtf8(buf);
     s2c = SshCompressionFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
@@ -199,7 +200,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.debug("negotiated: {}", result.get(KexParam.COMPRESSION_S2C));
 
     // language c2s
-    c2s = SshByteBufUtil.readUtf8(buf);
+    c2s = SshIOUtil.readUtf8(buf);
     s2c = "";
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
@@ -207,7 +208,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.debug("negotiated: {}", result.get(KexParam.LANGUAGE_C2S));
 
     // language s2c
-    c2s = SshByteBufUtil.readUtf8(buf);
+    c2s = SshIOUtil.readUtf8(buf);
     s2c = "";
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
@@ -253,7 +254,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
      * When the service starts, it may have access to the session identifier
      * generated during the key exchange.
      */
-    String svcName = SshByteBufUtil.readUtf8(req);
+    String svcName = SshIOUtil.readUtf8(req);
     logger.info(svcName);
 
     try {
@@ -264,7 +265,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
                   svcName, peer.getAddress().getHostAddress());
 
       // disconnect
-      replyDisconnect(ctx, SshConstant.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE, svcName);
+      replyDisconnect(ctx, SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE, svcName);
 
       return;
     }
@@ -288,9 +289,9 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     ByteBuf buf = ctx.alloc().buffer();
     buf.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
     buf.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    buf.writeByte(SshConstant.SSH_MSG_SERVICE_ACCEPT);
+    buf.writeByte(SshMessage.SSH_MSG_SERVICE_ACCEPT);
 
-    SshByteBufUtil.writeUtf8(buf, svcName);
+    SshIOUtil.writeUtf8(buf, svcName);
 
     ctx.channel().writeAndFlush(buf);
   }

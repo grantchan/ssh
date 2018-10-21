@@ -1,11 +1,11 @@
-package io.github.grantchan.ssh.util;
+package io.github.grantchan.ssh.arch;
 
 import io.netty.buffer.ByteBuf;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
-public final class SshByteBufUtil {
+public final class SshIOUtil {
 
   /**
    * Read a byte array from a {@link ByteBuf}
@@ -39,7 +39,6 @@ public final class SshByteBufUtil {
 
   /**
    * Read a string from a {@link ByteBuf}
-   * <p></p>
    *
    * @param buf  the {@link ByteBuf} object to read from
    * @return     the UTF-8 string read from the {@code buf}
@@ -54,7 +53,6 @@ public final class SshByteBufUtil {
 
   /**
    * Write a string to a {@link ByteBuf}
-   * <p></p>
    *
    * @param buf  the {@link ByteBuf} object be written into
    * @param val  the UTF-8 string to be copied into the {@code buf}
@@ -72,7 +70,6 @@ public final class SshByteBufUtil {
 
   /**
    * Write a multiple precision integer to a {@link ByteBuf}
-   * <p></p>
    *
    * @param buf  the {@link ByteBuf} object be written into
    * @param i    the integer, represented as a BigInteger object, to be copied into the {@code buf}
@@ -87,7 +84,6 @@ public final class SshByteBufUtil {
 
   /**
    * Write a multiple precision integer to a {@link ByteBuf}
-   * <p></p>
    *
    * @param buf  the {@link ByteBuf} object be written into
    * @param val  the integer, represented by a byte array, to be copied into the {@code buf}
@@ -107,5 +103,5 @@ public final class SshByteBufUtil {
   }
 
   /* Private constructor to prevent this class from being explicitly instantiated */
-  private SshByteBufUtil() {}
+  private SshIOUtil() {}
 }

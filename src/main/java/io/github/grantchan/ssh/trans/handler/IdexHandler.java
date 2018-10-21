@@ -1,8 +1,11 @@
-package io.github.grantchan.ssh.handler;
+package io.github.grantchan.ssh.trans.handler;
 
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.factory.*;
-import io.github.grantchan.ssh.util.SshByteBufUtil;
+import io.github.grantchan.ssh.arch.SshIOUtil;
+import io.github.grantchan.ssh.handler.PacketDecoder;
+import io.github.grantchan.ssh.handler.PacketEncoder;
+import io.github.grantchan.ssh.handler.RequestHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -15,9 +18,9 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 
-import static io.github.grantchan.ssh.common.SshConstant.MSG_KEX_COOKIE_SIZE;
-import static io.github.grantchan.ssh.common.SshConstant.SSH_MSG_KEXINIT;
-import static io.github.grantchan.ssh.common.SshConstant.SSH_PACKET_HEADER_LENGTH;
+import static io.github.grantchan.ssh.arch.SshConstant.MSG_KEX_COOKIE_SIZE;
+import static io.github.grantchan.ssh.arch.SshMessage.SSH_MSG_KEXINIT;
+import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
 public class IdexHandler extends ChannelInboundHandlerAdapter {
 
@@ -197,16 +200,16 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
     rand.nextBytes(cookie);
     buf.writeBytes(cookie);
 
-    SshByteBufUtil.writeUtf8(buf, SshKexFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, SshSignatureFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, SshCipherFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, SshCipherFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, SshMacFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, SshMacFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, SshCompressionFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, SshCompressionFactory.getNames());
-    SshByteBufUtil.writeUtf8(buf, "");
-    SshByteBufUtil.writeUtf8(buf, "");
+    SshIOUtil.writeUtf8(buf, SshKexFactory.getNames());
+    SshIOUtil.writeUtf8(buf, SshSignatureFactory.getNames());
+    SshIOUtil.writeUtf8(buf, SshCipherFactory.getNames());
+    SshIOUtil.writeUtf8(buf, SshCipherFactory.getNames());
+    SshIOUtil.writeUtf8(buf, SshMacFactory.getNames());
+    SshIOUtil.writeUtf8(buf, SshMacFactory.getNames());
+    SshIOUtil.writeUtf8(buf, SshCompressionFactory.getNames());
+    SshIOUtil.writeUtf8(buf, SshCompressionFactory.getNames());
+    SshIOUtil.writeUtf8(buf, "");
+    SshIOUtil.writeUtf8(buf, "");
 
     buf.writeBoolean(false); // first factory packet follows
     buf.writeInt(0); // reserved (FFU)

@@ -14,7 +14,7 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.security.SecureRandom;
 
-import static io.github.grantchan.ssh.common.SshConstant.SSH_PACKET_HEADER_LENGTH;
+import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
 public class PacketEncoder extends ChannelOutboundHandlerAdapter {
 

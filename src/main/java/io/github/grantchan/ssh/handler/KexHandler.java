@@ -1,14 +1,15 @@
 package io.github.grantchan.ssh.handler;
 
+import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.common.SshConstant;
+import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.factory.SshCipherFactory;
 import io.github.grantchan.ssh.factory.SshMacFactory;
 import io.github.grantchan.ssh.factory.NamedFactory;
 import io.github.grantchan.ssh.factory.SshSignatureFactory;
 import io.github.grantchan.ssh.kex.DH;
 import io.github.grantchan.ssh.kex.KexParam;
-import io.github.grantchan.ssh.util.SshByteBufUtil;
+import io.github.grantchan.ssh.arch.SshIOUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -48,22 +49,22 @@ public class KexHandler {
   }
 
   public void handleMessage(ChannelHandlerContext ctx, int cmd, ByteBuf msg) throws IOException {
-    logger.debug("Handling key exchange message - {} ...", SshConstant.messageName(cmd));
+    logger.debug("Handling key exchange message - {} ...", SshMessage.from(cmd));
 
     switch(cmd) {
-      case SshConstant.SSH_MSG_KEX_DH_GEX_REQUEST_OLD:
+      case SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST_OLD:
         handleDhGexRequestOld(ctx, msg);
         break;
 
-      case SshConstant.SSH_MSG_KEX_DH_GEX_REQUEST:
+      case SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST:
         handleDhGexRequest(ctx, msg);
         break;
 
-      case SshConstant.SSH_MSG_KEX_DH_GEX_INIT:
+      case SshMessage.SSH_MSG_KEX_DH_GEX_INIT:
         handleDhGexInit(ctx, msg);
         break;
 
-      case SshConstant.SSH_MSG_NEWKEYS:
+      case SshMessage.SSH_MSG_NEWKEYS:
         handleNewKeys(ctx, msg);
         break;
 
@@ -121,10 +122,10 @@ public class KexHandler {
     pg.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
     pg.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
 
-    pg.writeByte(SshConstant.SSH_MSG_KEX_DH_GEX_GROUP);
+    pg.writeByte(SshMessage.SSH_MSG_KEX_DH_GEX_GROUP);
 
-    SshByteBufUtil.writeMpInt(pg, dh.getP());
-    SshByteBufUtil.writeMpInt(pg, dh.getG());
+    SshIOUtil.writeMpInt(pg, dh.getP());
+    SshIOUtil.writeMpInt(pg, dh.getG());
 
     logger.debug("Replying SSH_MSG_KEX_DH_GEX_GROUP...");
     ctx.channel().writeAndFlush(pg);
@@ -153,7 +154,7 @@ public class KexHandler {
      *   byte    SSH_MSG_KEX_DH_GEX_INIT
      *   mpint   e
      */
-    byte[] e = SshByteBufUtil.readBytes(req);
+    byte[] e = SshIOUtil.readBytes(req);
     dh.receivedPubKey(e);
 
     /*
@@ -206,20 +207,20 @@ public class KexHandler {
 
     ByteBuf reply = ctx.alloc().buffer();
 
-    SshByteBufUtil.writeUtf8(reply, "ssh-rsa");
+    SshIOUtil.writeUtf8(reply, "ssh-rsa");
     RSAPublicKey pubKey = ((RSAPublicKey) kp.getPublic());
-    SshByteBufUtil.writeMpInt(reply, pubKey.getPublicExponent());
-    SshByteBufUtil.writeMpInt(reply, pubKey.getModulus());
+    SshIOUtil.writeMpInt(reply, pubKey.getPublicExponent());
+    SshIOUtil.writeMpInt(reply, pubKey.getModulus());
 
     byte[] k_s = new byte[reply.readableBytes()];
     reply.readBytes(k_s);
 
     reply.clear();
-    SshByteBufUtil.writeBytes(reply, v_c);
-    SshByteBufUtil.writeBytes(reply, v_s);
-    SshByteBufUtil.writeBytes(reply, i_c);
-    SshByteBufUtil.writeBytes(reply, i_s);
-    SshByteBufUtil.writeBytes(reply, k_s);
+    SshIOUtil.writeBytes(reply, v_c);
+    SshIOUtil.writeBytes(reply, v_s);
+    SshIOUtil.writeBytes(reply, i_c);
+    SshIOUtil.writeBytes(reply, i_s);
+    SshIOUtil.writeBytes(reply, k_s);
 
     if (min == -1 || max == -1) { // old request
       reply.writeInt(n);
@@ -229,11 +230,11 @@ public class KexHandler {
       reply.writeInt(max);
     }
 
-    SshByteBufUtil.writeMpInt(reply, dh.getP());
-    SshByteBufUtil.writeMpInt(reply, dh.getG());
-    SshByteBufUtil.writeMpInt(reply, dh.getReceivedPubKey());
-    SshByteBufUtil.writeMpInt(reply, dh.getPubKey());
-    SshByteBufUtil.writeMpInt(reply, dh.getSecretKey());
+    SshIOUtil.writeMpInt(reply, dh.getP());
+    SshIOUtil.writeMpInt(reply, dh.getG());
+    SshIOUtil.writeMpInt(reply, dh.getReceivedPubKey());
+    SshIOUtil.writeMpInt(reply, dh.getPubKey());
+    SshIOUtil.writeMpInt(reply, dh.getSecretKey());
     byte[] h_s = new byte[reply.readableBytes()];
     reply.readBytes(h_s);
 
@@ -253,8 +254,8 @@ public class KexHandler {
       sig.update(h);
 
       reply.clear();
-      SshByteBufUtil.writeUtf8(reply, kexParams.get(KexParam.SERVER_HOST_KEY));
-      SshByteBufUtil.writeBytes(reply, sig.sign());
+      SshIOUtil.writeUtf8(reply, kexParams.get(KexParam.SERVER_HOST_KEY));
+      SshIOUtil.writeBytes(reply, sig.sign());
     } catch (SignatureException | InvalidKeyException e1) {
       e1.printStackTrace();
     }
@@ -265,11 +266,11 @@ public class KexHandler {
     reply.clear();
     reply.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
     reply.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    reply.writeByte(SshConstant.SSH_MSG_KEX_DH_GEX_REPLY);
+    reply.writeByte(SshMessage.SSH_MSG_KEX_DH_GEX_REPLY);
 
-    SshByteBufUtil.writeBytes(reply, k_s);
-    SshByteBufUtil.writeBytes(reply, dh.getPubKey());
-    SshByteBufUtil.writeBytes(reply, sigH);
+    SshIOUtil.writeBytes(reply, k_s);
+    SshIOUtil.writeBytes(reply, dh.getPubKey());
+    SshIOUtil.writeBytes(reply, sigH);
 
     logger.debug("Replying SSH_MSG_KEX_DH_GEX_REPLY...");
     ctx.channel().writeAndFlush(reply);
@@ -280,7 +281,7 @@ public class KexHandler {
 
     newKeys.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
     newKeys.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    newKeys.writeByte(SshConstant.SSH_MSG_NEWKEYS);
+    newKeys.writeByte(SshMessage.SSH_MSG_NEWKEYS);
 
     logger.debug("Requesting SSH_MSG_NEWKEYS...");
     ctx.channel().writeAndFlush(newKeys);
@@ -298,7 +299,7 @@ public class KexHandler {
 
     ByteBuf buf = ctx.alloc().buffer();
     byte[] k = dh.getSecretKey();
-    SshByteBufUtil.writeMpInt(buf, k);
+    SshIOUtil.writeMpInt(buf, k);
     buf.writeBytes(id);
     buf.writeByte((byte) 0x41);
     buf.writeBytes(id);
@@ -371,7 +372,7 @@ public class KexHandler {
 
   private byte[] hashKey(byte[] e, int blockSize, byte[] k) {
     for (ByteBuf b = Unpooled.buffer(); e.length < blockSize; b.clear()) {
-      SshByteBufUtil.writeMpInt(b, k);
+      SshIOUtil.writeMpInt(b, k);
       b.writeBytes(h);
       b.writeBytes(e);
       byte[] a = new byte[b.readableBytes()];
