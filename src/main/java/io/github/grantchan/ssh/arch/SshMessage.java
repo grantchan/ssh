@@ -45,10 +45,12 @@ public final class SshMessage {
   public static final byte SSH_MSG_SERVICE_ACCEPT            = 6;   // [SSH-TRANS]
   public static final byte SSH_MSG_KEXINIT                   = 20;  // [SSH-TRANS]
   public static final byte SSH_MSG_NEWKEYS                   = 21;  // [SSH-TRANS]
+
   public static final byte SSH_MSG_USERAUTH_REQUEST          = 50;  // [SSH-USERAUTH]
   public static final byte SSH_MSG_USERAUTH_FAILURE          = 51;  // [SSH-USERAUTH]
   public static final byte SSH_MSG_USERAUTH_SUCCESS          = 52;  // [SSH-USERAUTH]
   public static final byte SSH_MSG_USERAUTH_BANNER           = 53;  // [SSH-USERAUTH]
+
   public static final byte SSH_MSG_GLOBAL_REQUEST            = 80;  // [SSH-CONNECT]
   public static final byte SSH_MSG_REQUEST_SUCCESS           = 81;  // [SSH-CONNECT]
   public static final byte SSH_MSG_REQUEST_FAILURE           = 82;  // [SSH-CONNECT]
@@ -64,8 +66,19 @@ public final class SshMessage {
   public static final byte SSH_MSG_CHANNEL_SUCCESS           = 99;  // [SSH-CONNECT]
   public static final byte SSH_MSG_CHANNEL_FAILURE           = 100; // [SSH-CONNECT]
 
+  // Diffie-Hellman Key Exchange Message Numbers
+  // The numbers 30-49 are key exchange specific and may be redefined by other kex methods.
+  public static final byte SSH_MSG_KEXDH_INIT  = 30;
+  public static final byte SSH_MSG_KEXDH_REPLY = 31;
+
   // Diffie-Hellman Group Exchange Message Numbers
   // <a href="https://tools.ietf.org/html/rfc4419#section-5">Summary of Message Numbers</a>
+  /**
+   * SSH_MSG_KEX_DH_GEX_REQUEST_OLD is used for backward compatibility.<br>
+   * Instead of sending "min || n || max", the client only sends "n".<br>In
+   * addition, the hash is calculated using only "n" instead of "min || n
+   * || max".
+   */
   public static final byte SSH_MSG_KEX_DH_GEX_REQUEST_OLD = 30;
   public static final byte SSH_MSG_KEX_DH_GEX_REQUEST     = 34;
   public static final byte SSH_MSG_KEX_DH_GEX_GROUP       = 31;
