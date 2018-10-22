@@ -48,6 +48,12 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
         handleDisconnect(ctx, req);
         break;
 
+      case SshMessage.SSH_MSG_IGNORE:
+      case SshMessage.SSH_MSG_UNIMPLEMENTED:
+      case SshMessage.SSH_MSG_DEBUG:
+        // ignore
+        break;
+
       case SshMessage.SSH_MSG_KEXINIT:
         handleKexInit(ctx, req);
         break;
@@ -56,11 +62,14 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
         handleServiceRequest(ctx, req);
         break;
 
+      case SshMessage.SSH_MSG_NEWKEYS:
+        handleNewKeys(ctx, req);
+        break;
+
       default:
-        if (cmd >= SshMessage.SSH_MSG_NEWKEYS && cmd <= 49) {
+        if (cmd >= SshMessage.SSH_MSG_KEXDH_FIRST && cmd <= SshMessage.SSH_MSG_KEXDH_LAST) {
           kex.handleMessage(ctx, cmd, req);
-        } else if (cmd >= SshMessage.SSH_MSG_GLOBAL_REQUEST &&
-                   cmd <= SshMessage.SSH_MSG_CHANNEL_FAILURE) {
+        } else if (svc != null) {
           svc.handleMessage(cmd, req);
         } else {
           throw new IllegalStateException("Unknown request command - " + SshMessage.from(cmd));
@@ -87,6 +96,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
      * explanation in a human-readable form.  The Disconnection Message
      * 'reason code' gives the reason in a more machine-readable format
      * (suitable for localization)
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc4253#section-11.1">Disconnection Message</a>
      */
     int code = req.readInt();
     String msg = SshIoUtil.readUtf8(req);
@@ -114,6 +125,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
      *   name-list    languages_server_to_client
      *   boolean      first_kex_packet_follows
      *   uint32       0 (reserved for future extension)
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc4253#section-7.1">Algorithm Negotiation</a>
      */
     int startPos = msg.readerIndex();
     msg.skipBytes(SshConstant.MSG_KEX_COOKIE_SIZE);
@@ -259,6 +272,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
      *
      * When the service starts, it may have access to the session identifier
      * generated during the key exchange.
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc4253#section-10">Service Request</a>
      */
     String svcName = SshIoUtil.readUtf8(req);
     logger.info(svcName);
@@ -284,11 +299,19 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     if (svc == null) {
       throw new IOException("Unknown service: " + svcName);
     }
-
   }
 
   private void replyDisconnect(ChannelHandlerContext ctx, int reason, String svcName) {
+    ByteBuf buf = ctx.alloc().buffer();
+    buf.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    buf.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    buf.writeByte(SshMessage.SSH_MSG_DISCONNECT);
 
+    buf.writeInt(reason);
+    SshIoUtil.writeUtf8(buf, "Bad service request: " +  svcName);
+    SshIoUtil.writeUtf8(buf, "");
+
+    ctx.channel().writeAndFlush(buf);
   }
 
   private void replyAccept(ChannelHandlerContext ctx, String svcName) {
@@ -300,5 +323,27 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     SshIoUtil.writeUtf8(buf, svcName);
 
     ctx.channel().writeAndFlush(buf);
+  }
+
+  private void handleNewKeys(ChannelHandlerContext ctx, ByteBuf req) {
+    /*
+     * RFC 4253:
+     * The client sends SSH_MSG_NEWKEYS:
+     *   byte      SSH_MSG_NEWKEYS
+     *
+     * Key exchange ends by each side sending an SSH_MSG_NEWKEYS message.
+     * This message is sent with the old keys and algorithms.  All messages
+     * sent after this message MUST use the new keys and algorithms.
+     *
+     * When this message is received, the new keys and algorithms MUST be
+     * used for receiving.
+     *
+     * The purpose of this message is to ensure that a party is able to
+     * respond with an SSH_MSG_DISCONNECT message that the other party can
+     * understand if something goes wrong with the key exchange.
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc4253#section-7.3">Taking Keys Into Use</a>
+     */
+    kex.handleNewKeys(ctx, req);
   }
 }

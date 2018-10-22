@@ -66,8 +66,11 @@ public final class SshMessage {
   public static final byte SSH_MSG_CHANNEL_SUCCESS           = 99;  // [SSH-CONNECT]
   public static final byte SSH_MSG_CHANNEL_FAILURE           = 100; // [SSH-CONNECT]
 
-  // Diffie-Hellman Key Exchange Message Numbers
   // The numbers 30-49 are key exchange specific and may be redefined by other kex methods.
+  public static final byte SSH_MSG_KEXDH_FIRST = 30;
+  public static final byte SSH_MSG_KEXDH_LAST  = 49;
+
+  // Diffie-Hellman Key Exchange Message Numbers
   public static final byte SSH_MSG_KEXDH_INIT  = 30;
   public static final byte SSH_MSG_KEXDH_REPLY = 31;
 
