@@ -9,7 +9,7 @@ import io.github.grantchan.ssh.trans.cipher.BuiltinCipherFactory;
 import io.github.grantchan.ssh.trans.compression.BuiltinCompressionFactory;
 import io.github.grantchan.ssh.trans.kex.KexParam;
 import io.github.grantchan.ssh.arch.SshIoUtil;
-import io.github.grantchan.ssh.trans.kex.BuiltinKexFactory;
+import io.github.grantchan.ssh.trans.kex.BuiltinKexHandlerFactory;
 import io.github.grantchan.ssh.trans.mac.BuiltinMacFactory;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
 import io.github.grantchan.ssh.userauth.service.SshServiceFactory;
@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class RequestHandler extends ChannelInboundHandlerAdapter {
 
@@ -143,12 +144,11 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     msg.getBytes(startPos, clientKexInit, 1, payloadLen);
     session.setC2sKex(clientKexInit);
 
-    kex = NamedFactory.create(BuiltinKexFactory.values, kexInit.get(KexParam.KEX));
+    kex = Objects.requireNonNull(BuiltinKexHandlerFactory.fromName(kexInit.get(KexParam.KEX)))
+                 .create(session);
     if (kex == null) {
       throw new IOException("Unknown key exchange: " + KexParam.KEX);
     }
-
-    kex.setSession(session);
   }
 
   private List<String> resolveKexInit(ByteBuf buf) {
@@ -156,7 +156,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // factory
     String c2s = SshIoUtil.readUtf8(buf);
-    String s2c = BuiltinKexFactory.getNames();
+    String s2c = BuiltinKexHandlerFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexParam.KEX, negotiate(c2s, s2c));

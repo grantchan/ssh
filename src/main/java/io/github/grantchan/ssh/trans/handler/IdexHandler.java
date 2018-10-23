@@ -4,7 +4,7 @@ import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.arch.SshIoUtil;
 import io.github.grantchan.ssh.trans.cipher.BuiltinCipherFactory;
 import io.github.grantchan.ssh.trans.compression.BuiltinCompressionFactory;
-import io.github.grantchan.ssh.trans.kex.BuiltinKexFactory;
+import io.github.grantchan.ssh.trans.kex.BuiltinKexHandlerFactory;
 import io.github.grantchan.ssh.trans.mac.BuiltinMacFactory;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
 import io.netty.buffer.ByteBuf;
@@ -201,7 +201,7 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
     rand.nextBytes(cookie);
     buf.writeBytes(cookie);
 
-    SshIoUtil.writeUtf8(buf, BuiltinKexFactory.getNames());
+    SshIoUtil.writeUtf8(buf, BuiltinKexHandlerFactory.getNames());
     SshIoUtil.writeUtf8(buf, BuiltinSignatureFactory.getNames());
     SshIoUtil.writeUtf8(buf, BuiltinCipherFactory.getNames());
     SshIoUtil.writeUtf8(buf, BuiltinCipherFactory.getNames());
