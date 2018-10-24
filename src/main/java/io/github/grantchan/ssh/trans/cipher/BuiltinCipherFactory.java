@@ -2,7 +2,6 @@ package io.github.grantchan.ssh.trans.cipher;
 
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.util.ByteUtil;
-import io.netty.util.internal.StringUtil;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
@@ -23,10 +22,6 @@ public enum BuiltinCipherFactory implements NamedObject, CipherFactory {
 
   private static final Set<BuiltinCipherFactory> values =
       Collections.unmodifiableSet(EnumSet.allOf(BuiltinCipherFactory.class));
-
-  public static String getNames() {
-    return NamedObject.getNames(BuiltinCipherFactory.values);
-  }
 
   private final String name;
   private final String algorithm;
@@ -80,16 +75,11 @@ public enum BuiltinCipherFactory implements NamedObject, CipherFactory {
     return cip;
   }
 
-  public static BuiltinCipherFactory fromName(String name) {
-    if (StringUtil.isNullOrEmpty(name)) {
-      return null;
-    }
+  public static String getNames() {
+    return NamedObject.getNames(values);
+  }
 
-    for (BuiltinCipherFactory f : values) {
-      if (name.equalsIgnoreCase(f.getName())) {
-        return f;
-      }
-    }
-    return null;
+  public static BuiltinCipherFactory from(String name) {
+    return NamedObject.find(name, values, String.CASE_INSENSITIVE_ORDER);
   }
 }

@@ -1,15 +1,14 @@
 package io.github.grantchan.ssh.trans.handler;
 
 import io.github.grantchan.ssh.arch.SshConstant;
-import io.github.grantchan.ssh.common.NamedFactory;
+import io.github.grantchan.ssh.arch.SshIoUtil;
+import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.trans.cipher.BuiltinCipherFactory;
 import io.github.grantchan.ssh.trans.compression.BuiltinCompressionFactory;
-import io.github.grantchan.ssh.trans.kex.KexParam;
-import io.github.grantchan.ssh.arch.SshIoUtil;
 import io.github.grantchan.ssh.trans.kex.BuiltinKexHandlerFactory;
+import io.github.grantchan.ssh.trans.kex.KexParam;
 import io.github.grantchan.ssh.trans.mac.BuiltinMacFactory;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
 import io.github.grantchan.ssh.userauth.service.BuiltinServiceFactory;
@@ -23,7 +22,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class RequestHandler extends ChannelInboundHandlerAdapter {
 
@@ -144,8 +142,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     msg.getBytes(startPos, clientKexInit, 1, payloadLen);
     session.setC2sKex(clientKexInit);
 
-    kex = Objects.requireNonNull(BuiltinKexHandlerFactory.fromName(kexInit.get(KexParam.KEX)))
-                 .create(session);
+    kex = BuiltinKexHandlerFactory.create(kexInit.get(KexParam.KEX), session);
     if (kex == null) {
       throw new IOException("Unknown key exchange: " + KexParam.KEX);
     }
@@ -297,7 +294,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
   }
 
   private void accept(String svcName) throws Exception {
-    svc = Objects.requireNonNull(BuiltinServiceFactory.fromName(svcName)).create(session);
+    svc = BuiltinServiceFactory.create(svcName, session);
     if (svc == null) {
       throw new IOException("Unknown service: " + svcName);
     }

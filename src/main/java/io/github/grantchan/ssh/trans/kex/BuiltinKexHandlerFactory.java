@@ -5,7 +5,6 @@ import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.trans.digest.BuiltinDigestFactory;
 import io.github.grantchan.ssh.trans.handler.DhgKexHandler;
 import io.github.grantchan.ssh.trans.handler.KexHandler;
-import io.netty.util.internal.StringUtil;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -29,10 +28,6 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
   public static final Set<BuiltinKexHandlerFactory> values =
       Collections.unmodifiableSet(EnumSet.allOf(BuiltinKexHandlerFactory.class));
 
-  public static String getNames() {
-    return NamedObject.getNames(BuiltinKexHandlerFactory.values);
-  }
-
   public String name;
 
   BuiltinKexHandlerFactory(String name) {
@@ -44,16 +39,12 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
     return this.name;
   }
 
-  public static BuiltinKexHandlerFactory fromName(String name) {
-    if (StringUtil.isNullOrEmpty(name)) {
-      return null;
-    }
+  public static String getNames() {
+    return NamedObject.getNames(values);
+  }
 
-    for (BuiltinKexHandlerFactory f : values) {
-      if (name.equalsIgnoreCase(f.getName())) {
-        return f;
-      }
-    }
-    return null;
+  public static KexHandler create(String name, Session session) {
+    BuiltinKexHandlerFactory f = NamedObject.find(name, values, String.CASE_INSENSITIVE_ORDER);
+    return (f == null) ? null : f.create(session);
   }
 }

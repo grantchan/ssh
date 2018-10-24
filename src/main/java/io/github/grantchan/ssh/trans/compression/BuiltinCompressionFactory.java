@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.trans.compression;
 
-import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.common.NamedFactory;
+import io.github.grantchan.ssh.common.NamedObject;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -13,10 +13,6 @@ public enum BuiltinCompressionFactory implements NamedFactory<Compression> {
 
   private static final Set<BuiltinCompressionFactory> values =
       Collections.unmodifiableSet(EnumSet.allOf(BuiltinCompressionFactory.class));
-
-  public static String getNames() {
-    return NamedObject.getNames(BuiltinCompressionFactory.values);
-  }
 
   private final String name;
 
@@ -32,5 +28,9 @@ public enum BuiltinCompressionFactory implements NamedFactory<Compression> {
   @Override
   public String getName() {
     return this.name;
+  }
+
+  public static String getNames() {
+    return NamedObject.getNames(values);
   }
 }

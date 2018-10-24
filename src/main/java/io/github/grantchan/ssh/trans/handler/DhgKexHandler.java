@@ -334,7 +334,7 @@ public class DhgKexHandler implements KexHandler {
 
     // server to client cipher
     BuiltinCipherFactory cf;
-    cf = Objects.requireNonNull(BuiltinCipherFactory.fromName(kp.get(KexParam.ENCRYPTION_S2C)));
+    cf = Objects.requireNonNull(BuiltinCipherFactory.from(kp.get(KexParam.ENCRYPTION_S2C)));
     e_s2c = hashKey(e_s2c, cf.getBlkSize(), k);
     Cipher s2cCip = Objects.requireNonNull(cf.create(e_s2c, iv_s2c, Cipher.ENCRYPT_MODE));
 
@@ -342,7 +342,7 @@ public class DhgKexHandler implements KexHandler {
     session.setS2cCipherSize(cf.getIvSize());
 
     // client to server cipher
-    cf = Objects.requireNonNull(BuiltinCipherFactory.fromName(kp.get(KexParam.ENCRYPTION_C2S)));
+    cf = Objects.requireNonNull(BuiltinCipherFactory.from(kp.get(KexParam.ENCRYPTION_C2S)));
     e_c2s = hashKey(e_c2s, cf.getBlkSize(), k);
     Cipher c2sCip = Objects.requireNonNull(cf.create(e_c2s, iv_c2s, Cipher.DECRYPT_MODE));
 
@@ -351,7 +351,7 @@ public class DhgKexHandler implements KexHandler {
 
     // server to client MAC
     BuiltinMacFactory mf;
-    mf = Objects.requireNonNull(BuiltinMacFactory.fromName(kp.get(KexParam.MAC_S2C)));
+    mf = Objects.requireNonNull(BuiltinMacFactory.from(kp.get(KexParam.MAC_S2C)));
     Mac s2cMac = Objects.requireNonNull(mf.create(mac_s2c));
 
     session.setS2cMac(s2cMac);
@@ -359,7 +359,7 @@ public class DhgKexHandler implements KexHandler {
     session.setS2cDefMacSize(mf.getDefBlkSize());
 
     // client to server MAC
-    mf = Objects.requireNonNull(BuiltinMacFactory.fromName(kp.get(KexParam.MAC_C2S)));
+    mf = Objects.requireNonNull(BuiltinMacFactory.from(kp.get(KexParam.MAC_C2S)));
     Mac c2sMac = Objects.requireNonNull(mf.create(mac_c2s));
 
     session.setC2sMac(c2sMac);

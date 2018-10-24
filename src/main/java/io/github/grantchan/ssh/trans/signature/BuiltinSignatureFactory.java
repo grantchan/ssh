@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.trans.signature;
 
-import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.common.NamedFactory;
+import io.github.grantchan.ssh.common.NamedObject;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
@@ -15,10 +15,6 @@ public enum BuiltinSignatureFactory implements NamedFactory<Signature> {
 
   public static final Set<BuiltinSignatureFactory> values =
       Collections.unmodifiableSet(EnumSet.allOf(BuiltinSignatureFactory.class));
-
-  public static String getNames() {
-    return NamedObject.getNames(BuiltinSignatureFactory.values);
-  }
 
   private String name;
   private String transformation;
@@ -41,5 +37,9 @@ public enum BuiltinSignatureFactory implements NamedFactory<Signature> {
   @Override
   public String getName() {
     return this.name;
+  }
+
+  public static String getNames() {
+    return NamedObject.getNames(values);
   }
 }

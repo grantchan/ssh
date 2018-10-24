@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.trans.handler;
 
-import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.arch.SshMessage;
+import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.util.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
-
 import java.io.IOException;
 
 import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_LENGTH;

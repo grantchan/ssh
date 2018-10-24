@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.trans.handler;
 
-import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.arch.SshIoUtil;
+import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.trans.cipher.BuiltinCipherFactory;
 import io.github.grantchan.ssh.trans.compression.BuiltinCompressionFactory;
 import io.github.grantchan.ssh.trans.kex.BuiltinKexHandlerFactory;
@@ -20,8 +20,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 
 import static io.github.grantchan.ssh.arch.SshConstant.MSG_KEX_COOKIE_SIZE;
-import static io.github.grantchan.ssh.arch.SshMessage.SSH_MSG_KEXINIT;
 import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
+import static io.github.grantchan.ssh.arch.SshMessage.SSH_MSG_KEXINIT;
 
 public class IdexHandler extends ChannelInboundHandlerAdapter {
 

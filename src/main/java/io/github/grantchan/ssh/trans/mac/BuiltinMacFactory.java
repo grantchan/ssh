@@ -2,7 +2,6 @@ package io.github.grantchan.ssh.trans.mac;
 
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.util.ByteUtil;
-import io.netty.util.internal.StringUtil;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -20,10 +19,6 @@ public enum BuiltinMacFactory implements NamedObject, MacFactory {
 
   private static final Set<BuiltinMacFactory> values =
       Collections.unmodifiableSet(EnumSet.allOf(BuiltinMacFactory.class));
-
-  public static String getNames() {
-    return NamedObject.getNames(BuiltinMacFactory.values);
-  }
 
   private String name;
   private String transformation;
@@ -69,16 +64,11 @@ public enum BuiltinMacFactory implements NamedObject, MacFactory {
     return mac;
   }
 
-  public static BuiltinMacFactory fromName(String name) {
-    if (StringUtil.isNullOrEmpty(name)) {
-      return null;
-    }
+  public static String getNames() {
+    return NamedObject.getNames(values);
+  }
 
-    for (BuiltinMacFactory f : values) {
-      if (name.equalsIgnoreCase(f.getName())) {
-        return f;
-      }
-    }
-    return null;
+  public static BuiltinMacFactory from(String name) {
+    return NamedObject.find(name, values, String.CASE_INSENSITIVE_ORDER);
   }
 }
