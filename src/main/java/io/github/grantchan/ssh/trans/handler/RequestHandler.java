@@ -12,7 +12,7 @@ import io.github.grantchan.ssh.arch.SshIoUtil;
 import io.github.grantchan.ssh.trans.kex.BuiltinKexHandlerFactory;
 import io.github.grantchan.ssh.trans.mac.BuiltinMacFactory;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
-import io.github.grantchan.ssh.userauth.service.SshServiceFactory;
+import io.github.grantchan.ssh.userauth.service.BuiltinServiceFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -282,8 +282,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
       accept(svcName);
     } catch (Exception e) {
       InetSocketAddress peer = (InetSocketAddress)ctx.channel().remoteAddress();
-      logger.info("Requested service ({}) from {} is unavailable, rejected.",
-                  svcName, peer.getAddress().getHostAddress());
+      logger.info("Requested service ({}) from {} is unavailable, rejected.", svcName,
+                  peer.getAddress().getHostAddress());
 
       // disconnect
       replyDisconnect(ctx, SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE, svcName);
@@ -292,10 +292,12 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     }
 
     replyAccept(ctx, svcName);
+
+    // send welcome banner
   }
 
   private void accept(String svcName) throws Exception {
-    svc = NamedFactory.create(SshServiceFactory.values, svcName);
+    svc = Objects.requireNonNull(BuiltinServiceFactory.fromName(svcName)).create(session);
     if (svc == null) {
       throw new IOException("Unknown service: " + svcName);
     }
