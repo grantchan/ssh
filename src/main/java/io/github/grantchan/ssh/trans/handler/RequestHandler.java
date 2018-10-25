@@ -69,7 +69,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
         if (cmd >= SshMessage.SSH_MSG_KEXDH_FIRST && cmd <= SshMessage.SSH_MSG_KEXDH_LAST) {
           kex.handleMessage(ctx, cmd, req);
         } else if (svc != null) {
-          svc.handleMessage(cmd, req);
+          svc.handleMessage(ctx, cmd, req);
         } else {
           throw new IllegalStateException("Unknown request command - " + SshMessage.from(cmd));
         }
@@ -278,9 +278,9 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     try {
       accept(svcName);
     } catch (Exception e) {
-      InetSocketAddress peer = (InetSocketAddress)ctx.channel().remoteAddress();
+      InetSocketAddress peerAddr = (InetSocketAddress)ctx.channel().remoteAddress();
       logger.info("Requested service ({}) from {} is unavailable, rejected.", svcName,
-                  peer.getAddress().getHostAddress());
+                  peerAddr.getAddress().getHostAddress());
 
       // disconnect
       replyDisconnect(ctx, SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE, svcName);

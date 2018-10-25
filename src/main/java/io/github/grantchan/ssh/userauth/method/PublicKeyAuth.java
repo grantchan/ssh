@@ -1,12 +1,13 @@
-package io.github.grantchan.ssh.userauth;
+package io.github.grantchan.ssh.userauth.method;
 
 import io.github.grantchan.ssh.util.KeyComparator;
+import io.netty.buffer.ByteBuf;
 
 import java.security.PublicKey;
 import java.util.Collection;
 import java.util.Collections;
 
-public class PublicKeyAuth {
+public class PublicKeyAuth implements Method {
 
   private final Collection<PublicKey> keys;
 
@@ -25,6 +26,11 @@ public class PublicKeyAuth {
       }
     }
 
+    return false;
+  }
+
+  @Override
+  public boolean authenticate(String user, String service, ByteBuf buf) throws Exception {
     return false;
   }
 }

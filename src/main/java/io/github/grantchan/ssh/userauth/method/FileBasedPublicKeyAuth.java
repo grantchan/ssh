@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.userauth;
+package io.github.grantchan.ssh.userauth.method;
 
 import java.io.File;
 import java.security.PublicKey;
