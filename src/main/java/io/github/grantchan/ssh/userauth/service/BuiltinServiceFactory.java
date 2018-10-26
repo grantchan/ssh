@@ -38,6 +38,10 @@ public enum BuiltinServiceFactory implements NamedObject, ServiceFactory {
     return this.name;
   }
 
+  public static ServiceFactory from(String name) {
+    return NamedObject.find(name, values, String.CASE_INSENSITIVE_ORDER);
+  }
+
   public static Service create(String name, Session session) {
     ServiceFactory f = NamedObject.find(name, values, String.CASE_INSENSITIVE_ORDER);
     return (f == null) ? null : f.create(session);

@@ -2,10 +2,13 @@ package io.github.grantchan.ssh.userauth.handler;
 
 import io.github.grantchan.ssh.arch.SshIoUtil;
 import io.github.grantchan.ssh.arch.SshMessage;
+import io.github.grantchan.ssh.common.Factory;
 import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.userauth.method.BuiltinMethodFactory;
 import io.github.grantchan.ssh.userauth.method.Method;
+import io.github.grantchan.ssh.userauth.service.BuiltinServiceFactory;
+import io.github.grantchan.ssh.userauth.service.ServiceFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
@@ -45,6 +48,24 @@ public class UserAuthService implements Service {
       String service = SshIoUtil.readUtf8(req);
       String method = SshIoUtil.readUtf8(req);
 
+      /*
+       * RFC 4252:
+       * The 'service name' specifies the service to start after
+       * authentication.  There may be several different authenticated
+       * services provided.  If the requested service is not available, the
+       * server MAY disconnect immediately or at any later time.  Sending a
+       * proper disconnect message is RECOMMENDED.  In any case, if the
+       * service does not exist, authentication MUST NOT be accepted.
+       *
+       * @see <a href="https://tools.ietf.org/html/rfc4252#section-5">Authentication Requests</a>
+       */
+      ServiceFactory factory = BuiltinServiceFactory.from(service);
+      if (factory == null){
+        logger.debug("Unsupported service - '{}'", service);
+        // disconnect
+        return;
+      }
+
       InetSocketAddress peerAddr = (InetSocketAddress) ctx.channel().remoteAddress();
       logger.debug("Received SSH_MSG_USERAUTH_REQUEST from {} - user={}, service={}, method={}",
                    peerAddr.getAddress(), user, service, method);
@@ -55,13 +76,20 @@ public class UserAuthService implements Service {
       } else if (this.user.equals(user) && this.service.equals(service)) {
         retryCnt++;
         if (retryCnt >= maxRetryCnt) {
-          // Too many attempts, disconnect
-
+          // Log error - Too many attempts
+          // disconnect
           return;
         }
       } else {
-          // It's not allowed to change user name or service name within a connection, disconnect
+        // The 'user name' and 'service name' are repeated in every new
+        // authentication attempt, and MAY change.  The server implementation
+        // MUST carefully check them in every message, and MUST flush any
+        // accumulated authentication states if they change.  If it is unable to
+        // flush an authentication state, it MUST disconnect if the 'user name'
+        // or 'service name' changes.
 
+        // Log error - It's not allowed to change user name or service name within a connection
+        // disconnect
         return;
       }
 
@@ -71,18 +99,31 @@ public class UserAuthService implements Service {
           user, service, method, retryCnt, maxRetryCnt);
 
       auth = BuiltinMethodFactory.create(method);
-      if (auth == null) {
-        // Log error - unsupported authentication method
-        // disconnect
 
-        return;
+      boolean result = false;
+      if (auth == null) {
+        logger.debug("Unsupported authentication method - '{}'", method);
+      } else {
+        try {
+          result = auth.authenticate(user, service, req);
+        } catch (Exception e) {
+          // Log error - failed to authenticate
+        }
       }
 
-      try {
-        auth.authenticate(user, service, req);
-      } catch (Exception e) {
-        // Log error, failed to authenticate
+      if (result) {
+        replyUserAuthSuccess(ctx);
+      } else {
+        replyUserAuthFailure(ctx);
       }
     }
+  }
+
+  private void replyUserAuthSuccess(ChannelHandlerContext ctx) {
+
+  }
+
+  private void replyUserAuthFailure(ChannelHandlerContext ctx) {
+
   }
 }

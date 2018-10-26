@@ -7,6 +7,10 @@ import java.util.Objects;
 
 public class FileBasedPublicKeyAuth extends PublicKeyAuth {
 
+  public FileBasedPublicKeyAuth() {
+    this(new File("~/.ssh/authorized_keys"));
+  }
+
   public FileBasedPublicKeyAuth(File authorizedKeysFile) {
     super(deserializeKeys(authorizedKeysFile));
   }
