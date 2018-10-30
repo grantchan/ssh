@@ -283,12 +283,13 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
                   peerAddr.getAddress().getHostAddress());
 
       // disconnect
-      replyDisconnect(ctx, SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE, svcName);
+      session.disconnect(SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE,
+          "Bad service requested - '" + svcName + "'");
 
       return;
     }
 
-    replyAccept(ctx, svcName);
+    session.accept(svcName);
 
     // send welcome banner
   }
@@ -298,30 +299,6 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     if (svc == null) {
       throw new IOException("Unknown service: " + svcName);
     }
-  }
-
-  private void replyDisconnect(ChannelHandlerContext ctx, int reason, String svcName) {
-    ByteBuf buf = ctx.alloc().buffer();
-    buf.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    buf.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    buf.writeByte(SshMessage.SSH_MSG_DISCONNECT);
-
-    buf.writeInt(reason);
-    SshIoUtil.writeUtf8(buf, "Bad service request: " +  svcName);
-    SshIoUtil.writeUtf8(buf, "");
-
-    ctx.channel().writeAndFlush(buf);
-  }
-
-  private void replyAccept(ChannelHandlerContext ctx, String svcName) {
-    ByteBuf buf = ctx.alloc().buffer();
-    buf.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    buf.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    buf.writeByte(SshMessage.SSH_MSG_SERVICE_ACCEPT);
-
-    SshIoUtil.writeUtf8(buf, svcName);
-
-    ctx.channel().writeAndFlush(buf);
   }
 
   private void handleNewKeys(ChannelHandlerContext ctx, ByteBuf req) {

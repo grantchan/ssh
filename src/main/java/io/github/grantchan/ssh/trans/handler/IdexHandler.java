@@ -40,7 +40,7 @@ public class IdexHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-    session = new Session();
+    session = new Session(ctx);
     accuBuf = ctx.alloc().buffer();
   }
 

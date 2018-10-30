@@ -1,17 +1,30 @@
 package io.github.grantchan.ssh.common;
 
+import io.github.grantchan.ssh.arch.SshConstant;
+import io.github.grantchan.ssh.arch.SshIoUtil;
+import io.github.grantchan.ssh.arch.SshMessage;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.util.List;
 
 public class Session {
 
+  private ChannelHandlerContext ctx;
+
+  public Session(ChannelHandlerContext ctx) {
+    this.ctx = ctx;
+  }
+
   /*
-   * RFC 4253:
-   * Both the 'protoversion' and 'softwareversion' strings MUST consist of
-   * printable US-ASCII characters, with the exception of whitespace
-   * characters and the minus sign (-).
-   */
+     * RFC 4253:
+     * Both the 'protoversion' and 'softwareversion' strings MUST consist of
+     * printable US-ASCII characters, with the exception of whitespace
+     * characters and the minus sign (-).
+     */
   private       String clientVer = null;            // client identification
   private final String serverVer = "SSH-2.0-DEMO";  // server identification
 
@@ -150,5 +163,46 @@ public class Session {
 
   public void setUsername(String username) {
     this.username = username;
+  }
+
+  /**
+   * Sends a disconnection message to terminate the connection.
+   * <p>This message causes immediate termination of the connection.  All implementations MUST be able
+   * to process this message; they SHOULD be able to send this message.</p>
+   *
+   * @param reason   the reason code, it gives the reason in a more machine-readable format,
+   *                 it should be one of the value in the Disconnection Messages Reason Codes and
+   *                 Descriptions section in {@link SshMessage}.
+   * @param message  the Disconnection Message, it gives a more specific explanation in a
+   *                 human-readable form
+   *
+   * @see <a href="https://tools.ietf.org/html/rfc4253#section-11.1">Disconnection Message</a>
+   */
+  public void disconnect(int reason, String message) {
+    ByteBuf buf = ctx.alloc().buffer();
+    buf.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    buf.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    buf.writeByte(SshMessage.SSH_MSG_DISCONNECT);
+
+    buf.writeInt(reason);
+    SshIoUtil.writeUtf8(buf, message);
+    SshIoUtil.writeUtf8(buf, "");
+
+    ctx.channel().writeAndFlush(buf).addListener((ChannelFuture f) -> {
+      if (f.isDone()) {
+        f.channel().close().sync();
+      }
+    });
+  }
+
+  public void accept(String svcName) {
+    ByteBuf buf = ctx.alloc().buffer();
+    buf.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    buf.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    buf.writeByte(SshMessage.SSH_MSG_SERVICE_ACCEPT);
+
+    SshIoUtil.writeUtf8(buf, svcName);
+
+    ctx.channel().writeAndFlush(buf);
   }
 }
