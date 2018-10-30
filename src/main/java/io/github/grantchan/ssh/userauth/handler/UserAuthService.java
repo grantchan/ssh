@@ -2,7 +2,6 @@ package io.github.grantchan.ssh.userauth.handler;
 
 import io.github.grantchan.ssh.arch.SshIoUtil;
 import io.github.grantchan.ssh.arch.SshMessage;
-import io.github.grantchan.ssh.common.Factory;
 import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.userauth.method.BuiltinMethodFactory;
@@ -13,8 +12,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.InetSocketAddress;
 
 public class UserAuthService implements Service {
 
@@ -28,7 +25,7 @@ public class UserAuthService implements Service {
   public UserAuthService(Session session) {
     this.session = session;
     this.retryCnt = 0;
-    this.maxRetryCnt = 20;
+    this.maxRetryCnt = 10;
   }
 
   @Override
@@ -48,6 +45,8 @@ public class UserAuthService implements Service {
       String service = SshIoUtil.readUtf8(req);
       String method = SshIoUtil.readUtf8(req);
 
+      String remoteAddr = session.getRemoteAddress();
+
       /*
        * RFC 4252:
        * The 'service name' specifies the service to start after
@@ -61,14 +60,14 @@ public class UserAuthService implements Service {
        */
       ServiceFactory factory = BuiltinServiceFactory.from(service);
       if (factory == null){
-        logger.debug("Unsupported service - '{}'", service);
-        // disconnect
+        logger.debug("Unsupported service - '{}', requested by '{}'", service, remoteAddr);
+        session.disconnect(SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE,
+                           "Unknown service - '" + service + "'");
         return;
       }
 
-      InetSocketAddress peerAddr = (InetSocketAddress) ctx.channel().remoteAddress();
       logger.debug("Received SSH_MSG_USERAUTH_REQUEST from {} - user={}, service={}, method={}",
-                   peerAddr.getAddress(), user, service, method);
+                   remoteAddr, user, service, method);
 
       if (this.user == null || this.service == null) {
         this.user = user;
@@ -76,8 +75,8 @@ public class UserAuthService implements Service {
       } else if (this.user.equals(user) && this.service.equals(service)) {
         retryCnt++;
         if (retryCnt >= maxRetryCnt) {
-          // Log error - Too many attempts
-          // disconnect
+          logger.debug("Received too many login attemps - '{}' from '{}'", retryCnt, remoteAddr);
+          session.disconnect(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR, "Too many login attempts.");
           return;
         }
       } else {
@@ -87,9 +86,10 @@ public class UserAuthService implements Service {
         // accumulated authentication states if they change.  If it is unable to
         // flush an authentication state, it MUST disconnect if the 'user name'
         // or 'service name' changes.
-
-        // Log error - It's not allowed to change user name or service name within a connection
-        // disconnect
+        logger.debug("Different user names or service names from '{}' in one authentication session",
+            remoteAddr);
+        session.disconnect(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
+            "It's not allowed to change user name or service in one authentication session");
         return;
       }
 
@@ -107,7 +107,7 @@ public class UserAuthService implements Service {
         try {
           result = auth.authenticate(user, service, req);
         } catch (Exception e) {
-          // Log error - failed to authenticate
+          logger.debug("Failed to authenticate user - '{}' by using method - '{}'", user, method);
         }
       }
 

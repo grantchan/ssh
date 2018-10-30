@@ -79,6 +79,8 @@ public class DhgKexHandler implements KexHandler {
     min = -1;
     max = -1;
 
+    dh = getDH(min, n, max);
+
     /*
      * RFC 4419:
      * The server responds with SSH_MSG_KEX_DH_GEX_GROUP:
@@ -86,7 +88,7 @@ public class DhgKexHandler implements KexHandler {
      *   mpint    p, safe prime
      *   mpint    g, generator for subgroup in GF(p)
      */
-    replyDhGexGroup(ctx, min, n, max);
+    session.replyDhGexGroup(dh.getP(), dh.getG());
   }
 
   protected void handleDhGexRequest(ChannelHandlerContext ctx, ByteBuf msg) {
@@ -102,6 +104,8 @@ public class DhgKexHandler implements KexHandler {
     n = msg.readInt();
     max = msg.readInt();
 
+    dh = getDH(min, n, max);
+
     /*
      * RFC 4419:
      * The server responds with SSH_MSG_KEX_DH_GEX_GROUP:
@@ -109,23 +113,7 @@ public class DhgKexHandler implements KexHandler {
      *   mpint    p, safe prime
      *   mpint    g, generator for subgroup in GF(p)
      */
-    replyDhGexGroup(ctx, min, n, max);
-  }
-
-  protected void replyDhGexGroup(ChannelHandlerContext ctx, int min, int n, int max) {
-    dh = getDH(min, n, max);
-
-    ByteBuf pg = ctx.alloc().buffer();
-    pg.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    pg.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-
-    pg.writeByte(SshMessage.SSH_MSG_KEX_DH_GEX_GROUP);
-
-    SshIoUtil.writeMpInt(pg, dh.getP());
-    SshIoUtil.writeMpInt(pg, dh.getG());
-
-    logger.debug("Replying SSH_MSG_KEX_DH_GEX_GROUP...");
-    ctx.channel().writeAndFlush(pg);
+    session.replyDhGexGroup(dh.getP(), dh.getG());
   }
 
   private DH getDH(int min, int n, int max) {
@@ -185,7 +173,7 @@ public class DhgKexHandler implements KexHandler {
     byte[] i_s = session.getS2cKex();
 
     replyKexDhGexReply(ctx, v_c, v_s, i_c, i_s);
-    requestKexNewKeys(ctx);
+    session.requestKexNewKeys();
   }
 
   private void replyKexDhGexReply(ChannelHandlerContext ctx,
@@ -271,17 +259,6 @@ public class DhgKexHandler implements KexHandler {
 
     logger.debug("Replying SSH_MSG_KEX_DH_GEX_REPLY...");
     ctx.channel().writeAndFlush(reply);
-  }
-
-  private void requestKexNewKeys(ChannelHandlerContext ctx) {
-    ByteBuf newKeys = ctx.alloc().buffer();
-
-    newKeys.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    newKeys.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    newKeys.writeByte(SshMessage.SSH_MSG_NEWKEYS);
-
-    logger.debug("Requesting SSH_MSG_NEWKEYS...");
-    ctx.channel().writeAndFlush(newKeys);
   }
 
   public void handleNewKeys(ChannelHandlerContext ctx, ByteBuf msg) {

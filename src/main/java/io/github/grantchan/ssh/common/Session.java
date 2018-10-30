@@ -6,12 +6,18 @@ import io.github.grantchan.ssh.arch.SshMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
+import java.math.BigInteger;
+import java.net.InetSocketAddress;
 import java.util.List;
 
 public class Session {
+
+  private Logger logger = LoggerFactory.getLogger(getClass());
 
   private ChannelHandlerContext ctx;
 
@@ -179,10 +185,7 @@ public class Session {
    * @see <a href="https://tools.ietf.org/html/rfc4253#section-11.1">Disconnection Message</a>
    */
   public void disconnect(int reason, String message) {
-    ByteBuf buf = ctx.alloc().buffer();
-    buf.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    buf.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    buf.writeByte(SshMessage.SSH_MSG_DISCONNECT);
+    ByteBuf buf = createMessage(SshMessage.SSH_MSG_DISCONNECT);
 
     buf.writeInt(reason);
     SshIoUtil.writeUtf8(buf, message);
@@ -195,14 +198,52 @@ public class Session {
     });
   }
 
+  /**
+   * By sending a SSH_MSG_SERVICE_ACCEPT message to the client, the server notify the client that
+   * the service can be supported, and permits the client to use
+   *
+   * @param svcName  the service name requested by client
+   *
+   * @see <a href="https://tools.ietf.org/html/rfc4253#section-10">Service Request</a>
+   */
   public void accept(String svcName) {
-    ByteBuf buf = ctx.alloc().buffer();
-    buf.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    buf.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    buf.writeByte(SshMessage.SSH_MSG_SERVICE_ACCEPT);
+    ByteBuf buf = createMessage(SshMessage.SSH_MSG_SERVICE_ACCEPT);
 
     SshIoUtil.writeUtf8(buf, svcName);
 
     ctx.channel().writeAndFlush(buf);
+  }
+
+  public String getRemoteAddress() {
+    InetSocketAddress remoteAddr = (InetSocketAddress) ctx.channel().remoteAddress();
+
+    return String.valueOf(remoteAddr.getAddress());
+  }
+
+  public void replyDhGexGroup(BigInteger p, BigInteger g) {
+    ByteBuf pg = createMessage(SshMessage.SSH_MSG_KEX_DH_GEX_GROUP);
+
+    SshIoUtil.writeMpInt(pg, p);
+    SshIoUtil.writeMpInt(pg, g);
+
+    logger.debug("Replying SSH_MSG_KEX_DH_GEX_GROUP...");
+    ctx.channel().writeAndFlush(pg);
+  }
+
+  public void requestKexNewKeys() {
+    ByteBuf newKeys = createMessage(SshMessage.SSH_MSG_NEWKEYS);
+
+    logger.debug("Requesting SSH_MSG_NEWKEYS...");
+    ctx.channel().writeAndFlush(newKeys);
+  }
+
+  private ByteBuf createMessage(byte messageId) {
+    ByteBuf msg = ctx.alloc().buffer();
+
+    msg.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    msg.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    msg.writeByte(messageId);
+
+    return msg;
   }
 }
