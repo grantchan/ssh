@@ -9,7 +9,6 @@ import io.github.grantchan.ssh.userauth.method.Method;
 import io.github.grantchan.ssh.userauth.service.BuiltinServiceFactory;
 import io.github.grantchan.ssh.userauth.service.ServiceFactory;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,7 @@ public class UserAuthService implements Service {
   }
 
   @Override
-  public void handleMessage(ChannelHandlerContext ctx, int cmd, ByteBuf req) {
+  public void handleMessage(int cmd, ByteBuf req) {
     if (cmd == SshMessage.SSH_MSG_USERAUTH_REQUEST) {
 
       /*
@@ -112,18 +111,11 @@ public class UserAuthService implements Service {
       }
 
       if (result) {
-        replyUserAuthSuccess(ctx);
+        session.replyUserAuthSuccess();
       } else {
-        replyUserAuthFailure(ctx);
+        session.replyUserAuthFailure("", false);
       }
+      auth = null;
     }
-  }
-
-  private void replyUserAuthSuccess(ChannelHandlerContext ctx) {
-
-  }
-
-  private void replyUserAuthFailure(ChannelHandlerContext ctx) {
-
   }
 }

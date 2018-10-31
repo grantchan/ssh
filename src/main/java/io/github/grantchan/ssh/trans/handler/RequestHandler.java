@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +43,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     switch (cmd) {
       case SshMessage.SSH_MSG_DISCONNECT:
-        handleDisconnect(ctx, req);
+        handleDisconnect(req);
         break;
 
       case SshMessage.SSH_MSG_IGNORE:
@@ -54,29 +53,29 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
         break;
 
       case SshMessage.SSH_MSG_KEXINIT:
-        handleKexInit(ctx, req);
+        handleKexInit(req);
         break;
 
       case SshMessage.SSH_MSG_SERVICE_REQUEST:
-        handleServiceRequest(ctx, req);
+        handleServiceRequest(req);
         break;
 
       case SshMessage.SSH_MSG_NEWKEYS:
-        handleNewKeys(ctx, req);
+        handleNewKeys(req);
         break;
 
       default:
         if (cmd >= SshMessage.SSH_MSG_KEXDH_FIRST && cmd <= SshMessage.SSH_MSG_KEXDH_LAST) {
-          kex.handleMessage(ctx, cmd, req);
+          kex.handleMessage(cmd, req);
         } else if (svc != null) {
-          svc.handleMessage(ctx, cmd, req);
+          svc.handleMessage(cmd, req);
         } else {
           throw new IllegalStateException("Unknown request command - " + SshMessage.from(cmd));
         }
     }
   }
 
-  private void handleDisconnect(ChannelHandlerContext ctx, ByteBuf req) {
+  private void handleDisconnect(ByteBuf req) {
     /*
      * RFC 4253:
      * The client sends SSH_MSG_DISCONNECT:
@@ -101,12 +100,10 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     int code = req.readInt();
     String msg = SshIoUtil.readUtf8(req);
 
-    logger.info("Disconnecting... reason: {}, msg: {}", SshMessage.disconnectReason(code), msg);
-
-    ctx.channel().close();
+    session.handleDisconnect(code, msg);
   }
 
-  protected void handleKexInit(ChannelHandlerContext ctx, ByteBuf msg) throws IOException {
+  protected void handleKexInit(ByteBuf msg) throws IOException {
     /*
      * RFC 4253:
      * The client sends SSH_MSG_KEXINIT:
@@ -244,7 +241,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     return null;
   }
 
-  private void handleServiceRequest(ChannelHandlerContext ctx, ByteBuf req) {
+  private void handleServiceRequest(ByteBuf req) {
     /*
      * RFC 4253:
      * The client sends SSH_MSG_SERVICE_REQUEST:
@@ -278,14 +275,12 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     try {
       accept(svcName);
     } catch (Exception e) {
-      InetSocketAddress peerAddr = (InetSocketAddress)ctx.channel().remoteAddress();
-      logger.info("Requested service ({}) from {} is unavailable, rejected.", svcName,
-                  peerAddr.getAddress().getHostAddress());
+      logger.info("Requested service ({}) from {} is unavailable, rejected.",
+                  svcName, session.getRemoteAddress());
 
       // disconnect
       session.disconnect(SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE,
-          "Bad service requested - '" + svcName + "'");
-
+                         "Bad service requested - '" + svcName + "'");
       return;
     }
 
@@ -301,7 +296,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     }
   }
 
-  private void handleNewKeys(ChannelHandlerContext ctx, ByteBuf req) {
+  private void handleNewKeys(ByteBuf req) {
     /*
      * RFC 4253:
      * The client sends SSH_MSG_NEWKEYS:
@@ -320,6 +315,6 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
      *
      * @see <a href="https://tools.ietf.org/html/rfc4253#section-7.3">Taking Keys Into Use</a>
      */
-    kex.handleNewKeys(ctx, req);
+    kex.handleNewKeys(req);
   }
 }

@@ -1,6 +1,5 @@
 package io.github.grantchan.ssh.trans.handler;
 
-import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.arch.SshIoUtil;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.NamedFactory;
@@ -12,7 +11,6 @@ import io.github.grantchan.ssh.trans.mac.BuiltinMacFactory;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,30 +43,30 @@ public class DhgKexHandler implements KexHandler {
     this.session = session;
   }
 
-  public void handleMessage(ChannelHandlerContext ctx, int cmd, ByteBuf msg) throws IOException {
+  public void handleMessage(int cmd, ByteBuf msg) throws IOException {
     logger.debug("Handling key exchange message - {} ...", SshMessage.from(cmd));
 
     switch(cmd) {
       case SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST_OLD:
-        handleDhGexRequestOld(ctx, msg);
+        handleDhGexRequestOld(msg);
         break;
 
       case SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST:
-        handleDhGexRequest(ctx, msg);
+        handleDhGexRequest(msg);
         break;
 
       case SshMessage.SSH_MSG_KEX_DH_GEX_INIT:
-        handleDhGexInit(ctx, msg);
+        handleDhGexInit(msg);
         break;
 
       case SshMessage.SSH_MSG_NEWKEYS:
-        handleNewKeys(ctx, msg);
+        handleNewKeys(msg);
         break;
 
     }
   }
 
-  protected void handleDhGexRequestOld(ChannelHandlerContext ctx, ByteBuf msg) {
+  protected void handleDhGexRequestOld(ByteBuf msg) {
     /*
      * RFC 4419:
      * The client sends SSH_MSG_KEX_DH_GEX_REQUEST_OLD:
@@ -91,7 +89,7 @@ public class DhgKexHandler implements KexHandler {
     session.replyDhGexGroup(dh.getP(), dh.getG());
   }
 
-  protected void handleDhGexRequest(ChannelHandlerContext ctx, ByteBuf msg) {
+  protected void handleDhGexRequest(ByteBuf msg) {
     /*
      * RFC 4419:
      * The client sends SSH_MSG_KEX_DH_GEX_REQUEST:
@@ -132,7 +130,7 @@ public class DhgKexHandler implements KexHandler {
     return new DH(p, g);
   }
 
-  private void handleDhGexInit(ChannelHandlerContext ctx, ByteBuf req) throws IOException {
+  private void handleDhGexInit(ByteBuf req) throws IOException {
     /*
      * RFC 4419:
      * The client sends SSH_MSG_KEX_DH_GEX_INIT
@@ -172,15 +170,6 @@ public class DhgKexHandler implements KexHandler {
     byte[] i_c = session.getC2sKex();
     byte[] i_s = session.getS2cKex();
 
-    replyKexDhGexReply(ctx, v_c, v_s, i_c, i_s);
-    session.requestKexNewKeys();
-  }
-
-  private void replyKexDhGexReply(ChannelHandlerContext ctx,
-                                  byte[] v_c,
-                                  byte[] v_s,
-                                  byte[] i_c,
-                                  byte[] i_s) throws IOException {
     KeyPairGenerator kpg;
     try {
       kpg = KeyPairGenerator.getInstance("RSA");
@@ -190,7 +179,7 @@ public class DhgKexHandler implements KexHandler {
     }
     KeyPair kp = kpg.generateKeyPair();
 
-    ByteBuf reply = ctx.alloc().buffer();
+    ByteBuf reply = session.createBuffer();
 
     SshIoUtil.writeUtf8(reply, "ssh-rsa");
     RSAPublicKey pubKey = ((RSAPublicKey) kp.getPublic());
@@ -248,20 +237,11 @@ public class DhgKexHandler implements KexHandler {
     byte[] sigH = new byte[reply.readableBytes()];
     reply.readBytes(sigH);
 
-    reply.clear();
-    reply.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    reply.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    reply.writeByte(SshMessage.SSH_MSG_KEX_DH_GEX_REPLY);
-
-    SshIoUtil.writeBytes(reply, k_s);
-    SshIoUtil.writeBytes(reply, dh.getPubKey());
-    SshIoUtil.writeBytes(reply, sigH);
-
-    logger.debug("Replying SSH_MSG_KEX_DH_GEX_REPLY...");
-    ctx.channel().writeAndFlush(reply);
+    session.replyKexDhGexReply(k_s, dh.getPubKey(), sigH);
+    session.requestKexNewKeys();
   }
 
-  public void handleNewKeys(ChannelHandlerContext ctx, ByteBuf msg) {
+  public void handleNewKeys(ByteBuf msg) {
     byte[] id = h;
     StringBuilder sb = new StringBuilder();
     for (byte b : id) {
@@ -271,7 +251,8 @@ public class DhgKexHandler implements KexHandler {
     }
     logger.info("SSH_MSG_NEWKEYS: {}", sb.toString());
 
-    ByteBuf buf = ctx.alloc().buffer();
+    ByteBuf buf = session.createBuffer();
+
     byte[] k = dh.getSecretKey();
     SshIoUtil.writeMpInt(buf, k);
     buf.writeBytes(id);
