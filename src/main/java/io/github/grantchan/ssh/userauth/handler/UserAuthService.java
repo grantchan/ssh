@@ -113,7 +113,7 @@ public class UserAuthService implements Service {
       if (result) {
         session.replyUserAuthSuccess();
       } else {
-        session.replyUserAuthFailure("", false);
+        session.replyUserAuthFailure(BuiltinMethodFactory.getNames(), false);
       }
       auth = null;
     }

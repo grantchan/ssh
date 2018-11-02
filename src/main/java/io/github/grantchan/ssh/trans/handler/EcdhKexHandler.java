@@ -8,10 +8,10 @@ import java.io.IOException;
 public class EcdhKexHandler implements KexHandler {
 
   @Override
-  public void handleMessage(ChannelHandlerContext ctx, int cmd, ByteBuf req) throws IOException {
+  public void handleMessage(int cmd, ByteBuf req) throws IOException {
   }
 
   @Override
-  public void handleNewKeys(ChannelHandlerContext ctx, ByteBuf req) {
+  public void handleNewKeys(ByteBuf req) {
   }
 }

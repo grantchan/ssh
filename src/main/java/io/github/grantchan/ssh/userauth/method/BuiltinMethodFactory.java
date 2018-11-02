@@ -20,12 +20,6 @@ public enum BuiltinMethodFactory implements NamedFactory<Method> {
     public Method create() {
       return new FileBasedPublicKeyAuth();
     }
-  },
-  hostbased("hostbased") {
-    @Override
-    public Method create() {
-      return null;
-    }
   };
 
   public static final Set<BuiltinMethodFactory> values =
@@ -40,6 +34,10 @@ public enum BuiltinMethodFactory implements NamedFactory<Method> {
   @Override
   public String getName() {
     return this.name;
+  }
+
+  public static String getNames() {
+    return NamedObject.getNames(values);
   }
 
   public static Method create(String name) {
