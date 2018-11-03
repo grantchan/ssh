@@ -48,7 +48,6 @@ public class Session {
   private int c2sDefMacSize = 0, s2cDefMacSize = 0;
 
   private Service service;
-  private String username;
 
   public String getClientVer() {
     return clientVer;
@@ -164,14 +163,6 @@ public class Session {
 
   public void setS2cDefMacSize(int s2cDefMacSize) {
     this.s2cDefMacSize = s2cDefMacSize;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
   }
 
   /**

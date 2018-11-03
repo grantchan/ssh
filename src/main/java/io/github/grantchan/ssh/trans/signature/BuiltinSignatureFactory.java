@@ -42,4 +42,9 @@ public enum BuiltinSignatureFactory implements NamedFactory<Signature> {
   public static String getNames() {
     return NamedObject.getNames(values);
   }
+
+  public static Signature create(String name) {
+    BuiltinSignatureFactory f = NamedObject.find(name, values, String.CASE_INSENSITIVE_ORDER);
+    return (f == null) ? null : f.create();
+  }
 }

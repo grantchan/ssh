@@ -2,7 +2,6 @@ package io.github.grantchan.ssh.trans.handler;
 
 import io.github.grantchan.ssh.arch.SshIoUtil;
 import io.github.grantchan.ssh.arch.SshMessage;
-import io.github.grantchan.ssh.common.NamedFactory;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.trans.cipher.BuiltinCipherFactory;
 import io.github.grantchan.ssh.trans.kex.DH;
@@ -218,7 +217,7 @@ public class DhgKexHandler implements KexHandler {
     List<String> kexParams = session.getKexParams();
 
     Signature sig;
-    sig = NamedFactory.create(BuiltinSignatureFactory.values, kexParams.get(KexParam.SERVER_HOST_KEY));
+    sig = BuiltinSignatureFactory.create(kexParams.get(KexParam.SERVER_HOST_KEY));
     if (sig == null) {
       throw new IOException("Unknown signature: " + KexParam.SERVER_HOST_KEY);
     }
