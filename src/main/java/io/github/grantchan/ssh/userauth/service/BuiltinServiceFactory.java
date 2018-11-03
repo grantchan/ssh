@@ -3,7 +3,6 @@ package io.github.grantchan.ssh.userauth.service;
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.userauth.handler.UserAuthService;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -20,7 +19,7 @@ public enum BuiltinServiceFactory implements NamedObject, ServiceFactory {
   connection("ssh-connection") {
     @Override
     public Service create(Session session) {
-      return null;
+      return new ConnectionService(session);
     }
   };
 

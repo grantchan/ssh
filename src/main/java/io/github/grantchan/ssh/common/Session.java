@@ -3,6 +3,7 @@ package io.github.grantchan.ssh.common;
 import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.arch.SshIoUtil;
 import io.github.grantchan.ssh.arch.SshMessage;
+import io.github.grantchan.ssh.userauth.service.BuiltinServiceFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -45,6 +47,7 @@ public class Session {
   private int c2sMacSize = 0, s2cMacSize = 0;
   private int c2sDefMacSize = 0, s2cDefMacSize = 0;
 
+  private Service service;
   private String username;
 
   public String getClientVer() {
@@ -206,7 +209,7 @@ public class Session {
    *
    * @see <a href="https://tools.ietf.org/html/rfc4253#section-10">Service Request</a>
    */
-  public void accept(String svcName) {
+  public void replyAccept(String svcName) {
     ByteBuf buf = createMessage(SshMessage.SSH_MSG_SERVICE_ACCEPT);
 
     SshIoUtil.writeUtf8(buf, svcName);
@@ -361,5 +364,21 @@ public class Session {
     logger.info("Disconnecting... reason: {}, msg: {}", SshMessage.disconnectReason(code), msg);
 
     ctx.channel().close();
+  }
+
+  /**
+   * Create a {@link Service} instance by a given name
+   * @param name          name of the service to create
+   * @throws IOException  if the given name of service is not supported
+   */
+  public void acceptService(String name) throws IOException {
+    service = BuiltinServiceFactory.create(name, this);
+    if (service == null) {
+      throw new IOException("Unknown service: " + name);
+    }
+  }
+
+  public Service getService() {
+    return this.service;
   }
 }

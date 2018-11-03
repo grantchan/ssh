@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.userauth.handler;
+package io.github.grantchan.ssh.userauth.service;
 
 import io.github.grantchan.ssh.arch.SshIoUtil;
 import io.github.grantchan.ssh.arch.SshMessage;
@@ -6,8 +6,6 @@ import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.userauth.method.BuiltinMethodFactory;
 import io.github.grantchan.ssh.userauth.method.Method;
-import io.github.grantchan.ssh.userauth.service.BuiltinServiceFactory;
-import io.github.grantchan.ssh.userauth.service.ServiceFactory;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +26,7 @@ public class UserAuthService implements Service {
   }
 
   @Override
-  public void handleMessage(int cmd, ByteBuf req) {
+  public void handleMessage(int cmd, ByteBuf req) throws Exception {
     if (cmd == SshMessage.SSH_MSG_USERAUTH_REQUEST) {
 
       /*
@@ -111,6 +109,7 @@ public class UserAuthService implements Service {
       }
 
       if (result) {
+        session.acceptService(service);
         session.replyUserAuthSuccess();
       } else {
         session.replyUserAuthFailure(BuiltinMethodFactory.getNames(), false);

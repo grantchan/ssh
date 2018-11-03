@@ -11,7 +11,6 @@ import io.github.grantchan.ssh.trans.kex.BuiltinKexHandlerFactory;
 import io.github.grantchan.ssh.trans.kex.KexParam;
 import io.github.grantchan.ssh.trans.mac.BuiltinMacFactory;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
-import io.github.grantchan.ssh.userauth.service.BuiltinServiceFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -28,7 +27,6 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
   private Session    session;
   private KexHandler kex;
-  private Service    svc;
 
   public RequestHandler(Session session) {
     this.session = session;
@@ -67,10 +65,13 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
       default:
         if (cmd >= SshMessage.SSH_MSG_KEXDH_FIRST && cmd <= SshMessage.SSH_MSG_KEXDH_LAST) {
           kex.handleMessage(cmd, req);
-        } else if (svc != null) {
-          svc.handleMessage(cmd, req);
         } else {
-          throw new IllegalStateException("Unknown request command - " + SshMessage.from(cmd));
+          Service svc = session.getService();
+          if (svc != null) {
+            svc.handleMessage(cmd, req);
+          } else {
+            throw new IllegalStateException("Unknown request command - " + SshMessage.from(cmd));
+          }
         }
     }
   }
@@ -273,7 +274,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.info(svcName);
 
     try {
-      accept(svcName);
+      session.acceptService(svcName);
     } catch (Exception e) {
       logger.info("Requested service ({}) from {} is unavailable, rejected.",
                   svcName, session.getRemoteAddress());
@@ -283,17 +284,9 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
                          "Bad service requested - '" + svcName + "'");
       return;
     }
-
-    session.accept(svcName);
+    session.replyAccept(svcName);
 
     // send welcome banner
-  }
-
-  private void accept(String svcName) throws Exception {
-    svc = BuiltinServiceFactory.create(svcName, session);
-    if (svc == null) {
-      throw new IOException("Unknown service: " + svcName);
-    }
   }
 
   private void handleNewKeys(ByteBuf req) {

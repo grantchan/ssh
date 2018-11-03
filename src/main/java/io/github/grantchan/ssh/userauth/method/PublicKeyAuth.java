@@ -31,6 +31,9 @@ public class PublicKeyAuth implements Method {
 
   @Override
   public boolean authenticate(String user, String service, ByteBuf buf) throws Exception {
-    return false;
+    for (PublicKey key : keys) {
+
+    }
+    return true;
   }
 }
