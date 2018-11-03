@@ -4,6 +4,11 @@ import io.netty.buffer.ByteBuf;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.RSAPublicKeySpec;
 
 public final class SshIoUtil {
 
@@ -69,6 +74,21 @@ public final class SshIoUtil {
   }
 
   /**
+   * Read a multiple precision integer from a {@link ByteBuf}
+   *
+   * @param buf  the {@link ByteBuf} object to read from
+   * @return     the {@link BigInteger} read from {@code buf}
+   * @see        #writeMpInt(ByteBuf, BigInteger)
+   */
+  public static BigInteger readMpInt(ByteBuf buf) {
+    int len = buf.readInt();
+    byte[] b = new byte[len];
+    buf.readBytes(b);
+
+    return new BigInteger(b);
+  }
+
+  /**
    * Write a multiple precision integer to a {@link ByteBuf}
    *
    * @param buf  the {@link ByteBuf} object be written into
@@ -100,6 +120,30 @@ public final class SshIoUtil {
     buf.writeBytes(val);
 
     return buf;
+  }
+
+  /**
+   * Read a public key from a {@link ByteBuf}
+   * @param buf  the {@link ByteBuf} object to read from
+   * @return     the {@link PublicKey} read from {@code buf}
+   */
+  public static PublicKey readPublicKey(ByteBuf buf) {
+    String type = readUtf8(buf);
+
+    switch(type) {
+      case "ssh-rsa":
+        BigInteger e = readMpInt(buf);
+        BigInteger n = readMpInt(buf);
+        try {
+          KeyFactory kf = KeyFactory.getInstance("RSA");
+          return kf.generatePublic(new RSAPublicKeySpec(n, e));
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e1) {
+          e1.printStackTrace();
+        }
+
+      default:
+        return null;
+    }
   }
 
   /* Private constructor to prevent this class from being explicitly instantiated */
