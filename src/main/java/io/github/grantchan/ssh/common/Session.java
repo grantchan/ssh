@@ -330,6 +330,10 @@ public class Session {
     ctx.channel().writeAndFlush(uaf);
   }
 
+  public void replyUserAuthPkOk() {
+
+  }
+
   /**
    * Sends the {@link SshMessage#SSH_MSG_KEX_DH_GEX_REPLY} to client. This is the message of step 4
    * in diffie-hellman group key exchange.

@@ -6,6 +6,7 @@ import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.userauth.method.BuiltinMethodFactory;
 import io.github.grantchan.ssh.userauth.method.Method;
+import io.github.grantchan.ssh.userauth.method.SshAuthInProgressException;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,6 +104,10 @@ public class UserAuthService implements Service {
       } else {
         try {
           result = auth.authenticate(user, service, req);
+        } catch (SshAuthInProgressException e) {
+          //logger.debug("");
+          //session.replyUserAuthPkOk();
+          return;
         } catch (Exception e) {
           logger.debug("Failed to authenticate user - '{}' by using method - '{}'", user, method);
         }
