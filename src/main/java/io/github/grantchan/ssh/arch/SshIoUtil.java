@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
+import java.security.spec.DSAPublicKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 
 public final class SshIoUtil {
@@ -126,23 +126,32 @@ public final class SshIoUtil {
    * Read a public key from a {@link ByteBuf}
    * @param buf  the {@link ByteBuf} object to read from
    * @return     the {@link PublicKey} read from {@code buf}
+   * @throws Exception if failed to read the key from buf
    */
-  public static PublicKey readPublicKey(ByteBuf buf) {
+  public static PublicKey readPublicKey(ByteBuf buf) throws Exception {
     String type = readUtf8(buf);
 
     switch(type) {
-      case "ssh-rsa":
-        BigInteger e = readMpInt(buf);
-        BigInteger n = readMpInt(buf);
-        try {
-          KeyFactory kf = KeyFactory.getInstance("RSA");
-          return kf.generatePublic(new RSAPublicKeySpec(n, e));
-        } catch (InvalidKeySpecException | NoSuchAlgorithmException e1) {
-          e1.printStackTrace();
-        }
+      case "ssh-rsa": {
+        BigInteger e  = readMpInt(buf);
+        BigInteger n  = readMpInt(buf);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+
+        return kf.generatePublic(new RSAPublicKeySpec(n, e));
+      }
+
+      case "ssh-dss": {
+        BigInteger p  = readMpInt(buf);
+        BigInteger q  = readMpInt(buf);
+        BigInteger g  = readMpInt(buf);
+        BigInteger y  = readMpInt(buf);
+        KeyFactory kf = KeyFactory.getInstance("DSA");
+
+        return kf.generatePublic(new DSAPublicKeySpec(y, p, q, g));
+      }
 
       default:
-        return null;
+        throw new NoSuchAlgorithmException("Unsupported public key type - '" + type + "'");
     }
   }
 
