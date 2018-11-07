@@ -1,6 +1,7 @@
 package io.github.grantchan.ssh.userauth.method;
 
 import io.github.grantchan.ssh.arch.SshIoUtil;
+import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
 import io.github.grantchan.ssh.util.KeyComparator;
 import io.netty.buffer.ByteBuf;
@@ -20,7 +21,7 @@ public class PublicKeyAuth implements Method {
   }
 
   @Override
-  public boolean authenticate(String user, String service, ByteBuf buf) throws Exception {
+  public boolean authenticate(String user, ByteBuf buf, Session session) throws Exception {
 
     boolean hasSig = buf.readBoolean();
     String algorithm = SshIoUtil.readUtf8(buf);

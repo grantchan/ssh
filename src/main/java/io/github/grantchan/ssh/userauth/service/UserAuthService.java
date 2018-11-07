@@ -16,9 +16,8 @@ public class UserAuthService implements Service {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private Session session;
-  private String user, service, method;
+  private String user, service;
   private int retryCnt, maxRetryCnt;
-  private Method auth;
 
   public UserAuthService(Session session) {
     this.session = session;
@@ -45,6 +44,9 @@ public class UserAuthService implements Service {
 
       String remoteAddr = session.getRemoteAddress();
 
+      logger.debug("[{}@{}] Received SSH_MSG_USERAUTH_REQUEST service={}, method={}",
+                   user, remoteAddr, service, method);
+
       /*
        * RFC 4252:
        * The 'service name' specifies the service to start after
@@ -58,23 +60,25 @@ public class UserAuthService implements Service {
        */
       ServiceFactory factory = BuiltinServiceFactory.from(service);
       if (factory == null){
-        logger.debug("Unsupported service - '{}', requested by '{}'", service, remoteAddr);
+        logger.debug("[{}@{}] Unsupported service - '{}'", user, remoteAddr, service);
+
         session.disconnect(SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE,
                            "Unknown service - '" + service + "'");
+
         return;
       }
-
-      logger.debug("Received SSH_MSG_USERAUTH_REQUEST from {} - user={}, service={}, method={}",
-                   remoteAddr, user, service, method);
 
       if (this.user == null || this.service == null) {
         this.user = user;
         this.service = service;
       } else if (this.user.equals(user) && this.service.equals(service)) {
         retryCnt++;
+
         if (retryCnt >= maxRetryCnt) {
-          logger.debug("Received too many login attemps - '{}' from '{}'", retryCnt, remoteAddr);
+          logger.debug("[{}@{}] Too many login attemps", user, remoteAddr);
+
           session.disconnect(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR, "Too many login attempts.");
+
           return;
         }
       } else {
@@ -84,32 +88,32 @@ public class UserAuthService implements Service {
         // accumulated authentication states if they change.  If it is unable to
         // flush an authentication state, it MUST disconnect if the 'user name'
         // or 'service name' changes.
-        logger.debug("Different user names or service names from '{}' in one authentication session",
-            remoteAddr);
+        logger.debug("[{}@{}] User name or service name differs in one authentication session",
+                     user, remoteAddr);
+
         session.disconnect(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
             "It's not allowed to change user name or service in one authentication session");
+
         return;
       }
 
-      this.method = method;
-
-      logger.debug("Authenticating user '{}' with service '{}' and method '{}' (attempt {} / {})",
-          user, service, method, retryCnt, maxRetryCnt);
-
-      auth = BuiltinMethodFactory.create(method);
+      Method auth = BuiltinMethodFactory.create(method);
 
       boolean result = false;
       if (auth == null) {
         logger.debug("Unsupported authentication method - '{}'", method);
       } else {
+        logger.debug("[{}@{}] Authenticating to start service '{}' by method '{}' (attempt {} / {})",
+                     user, remoteAddr, service, method, retryCnt, maxRetryCnt);
+
         try {
-          result = auth.authenticate(user, service, req);
+          result = auth.authenticate(user, req, session);
         } catch (SshAuthInProgressException e) {
-          //logger.debug("");
-          //session.replyUserAuthPkOk();
+          logger.debug("[{}@{}] Authentication in progress...", user, remoteAddr);
+
           return;
         } catch (Exception e) {
-          logger.debug("Failed to authenticate user - '{}' by using method - '{}'", user, method);
+          logger.debug("[{}@{}] Failed to authenticate.  method={}", user, remoteAddr, method);
         }
       }
 
@@ -119,7 +123,6 @@ public class UserAuthService implements Service {
       } else {
         session.replyUserAuthFailure(BuiltinMethodFactory.getNames(), false);
       }
-      auth = null;
     }
   }
 }
