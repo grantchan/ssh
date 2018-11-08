@@ -107,7 +107,7 @@ public class UserAuthService implements Service {
                      user, remoteAddr, service, method, retryCnt, maxRetryCnt);
 
         try {
-          result = auth.authenticate(user, req, session);
+          result = auth.authenticate(user, service, req, session);
         } catch (SshAuthInProgressException e) {
           logger.debug("[{}@{}] Authentication in progress...", user, remoteAddr);
 

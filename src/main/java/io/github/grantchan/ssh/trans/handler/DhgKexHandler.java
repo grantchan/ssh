@@ -216,8 +216,7 @@ public class DhgKexHandler implements KexHandler {
 
     List<String> kexParams = session.getKexParams();
 
-    Signature sig;
-    sig = BuiltinSignatureFactory.create(kexParams.get(KexParam.SERVER_HOST_KEY));
+    Signature sig = BuiltinSignatureFactory.create(kexParams.get(KexParam.SERVER_HOST_KEY));
     if (sig == null) {
       throw new IOException("Unknown signature: " + KexParam.SERVER_HOST_KEY);
     }
@@ -249,6 +248,8 @@ public class DhgKexHandler implements KexHandler {
       sb.append(":");
     }
     logger.info("SSH_MSG_NEWKEYS: {}", sb.toString());
+
+    session.setId(id);
 
     ByteBuf buf = session.createBuffer();
 

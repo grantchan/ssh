@@ -1,18 +1,25 @@
 package io.github.grantchan.ssh.userauth.method;
 
 import io.github.grantchan.ssh.arch.SshIoUtil;
+import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
 import io.github.grantchan.ssh.util.KeyComparator;
 import io.netty.buffer.ByteBuf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.math.BigInteger;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.interfaces.RSAKey;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 
 public class PublicKeyAuth implements Method {
+
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final Collection<PublicKey> keys;
 
@@ -21,11 +28,22 @@ public class PublicKeyAuth implements Method {
   }
 
   @Override
-  public boolean authenticate(String user, ByteBuf buf, Session session) throws Exception {
-
+  public boolean authenticate(String user, String service, ByteBuf buf, Session session) throws Exception {
+    /*
+     * byte      SSH_MSG_USERAUTH_REQUEST
+     * ....      fields already consumed before getting here
+     * boolean   FALSE
+     * string    public key algorithm name
+     * string    public key blob
+     */
     boolean hasSig = buf.readBoolean();
     String algorithm = SshIoUtil.readUtf8(buf);
-    int length = buf.readInt();
+
+    // save the start position of blob
+    int blobPos = buf.readerIndex();
+    int blobLen = buf.readInt();
+
+    // read public key from blob
     PublicKey publicKey = SshIoUtil.readPublicKey(buf);
 
     boolean match = false;
@@ -35,17 +53,48 @@ public class PublicKeyAuth implements Method {
       }
     }
 
+    String remoteAddr = session.getRemoteAddress();
     if (!match) {
+      logger.debug("[{}@{}] Public key not found in server - '{}'", user, remoteAddr, publicKey);
+
       return false;
     }
 
     if (!hasSig) {
+      byte[] blob = new byte[blobLen + 4];
+      buf.getBytes(blobPos, blob);
+
+      session.replyUserAuthPkOk(algorithm, blob);
+
       throw new SshAuthInProgressException("Authentication is in progress... user: " + user + ", algorithm: "
           + algorithm);
     }
 
     Signature verifier = Objects.requireNonNull(BuiltinSignatureFactory.create(algorithm));
     verifier.initVerify(publicKey);
+
+    ByteBuf b = session.createBuffer();
+    SshIoUtil.writeBytes(b, session.getId());
+    b.writeByte(SshMessage.SSH_MSG_USERAUTH_REQUEST);
+    SshIoUtil.writeUtf8(b, user);
+    SshIoUtil.writeUtf8(b, service);
+    SshIoUtil.writeUtf8(b, "publickey");
+    b.writeBoolean(true);
+    SshIoUtil.writeUtf8(b, algorithm);
+    b.writeBytes(buf, blobPos, 4 + blobLen);
+
+    verifier.update(b.nioBuffer());
+
+    if (algorithm.equals("ssh-rsa")) {
+      if (publicKey instanceof RSAKey) {
+        RSAKey rsa = RSAKey.class.cast(publicKey);
+        BigInteger modulus = rsa.getModulus();
+        int signatureSize = (modulus.bitLength() + Byte.SIZE - 1) / Byte.SIZE;
+
+      } else {
+        throw new IllegalArgumentException("not a RSA key");
+      }
+    }
 
     return false;
   }

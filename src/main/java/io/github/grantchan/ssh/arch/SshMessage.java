@@ -51,6 +51,8 @@ public final class SshMessage {
   public static final byte SSH_MSG_USERAUTH_SUCCESS          = 52;  // [SSH-USERAUTH]
   public static final byte SSH_MSG_USERAUTH_BANNER           = 53;  // [SSH-USERAUTH]
 
+  public static final byte SSH_MSG_USERAUTH_PK_OK            = 60;  // [SSH-USERAUTH]
+
   public static final byte SSH_MSG_GLOBAL_REQUEST            = 80;  // [SSH-CONNECT]
   public static final byte SSH_MSG_REQUEST_SUCCESS           = 81;  // [SSH-CONNECT]
   public static final byte SSH_MSG_REQUEST_FAILURE           = 82;  // [SSH-CONNECT]

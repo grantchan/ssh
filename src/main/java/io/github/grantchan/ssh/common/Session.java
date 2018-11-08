@@ -23,9 +23,7 @@ public class Session {
 
   private ChannelHandlerContext ctx;
 
-  public Session(ChannelHandlerContext ctx) {
-    this.ctx = ctx;
-  }
+  private byte[] id;
 
   /*
    * RFC 4253:
@@ -48,6 +46,19 @@ public class Session {
   private int c2sDefMacSize = 0, s2cDefMacSize = 0;
 
   private Service service;
+
+  // constructor
+  public Session(ChannelHandlerContext ctx) {
+    this.ctx = ctx;
+  }
+
+  public byte[] getId() {
+    return id;
+  }
+
+  public void setId(byte[] id) {
+    this.id = id;
+  }
 
   public String getClientVer() {
     return clientVer;
@@ -259,7 +270,7 @@ public class Session {
   }
 
   private ByteBuf createMessage(byte messageId) {
-    ByteBuf msg = ctx.alloc().buffer();
+    ByteBuf msg = createBuffer();
 
     msg.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
     msg.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
@@ -330,8 +341,22 @@ public class Session {
     ctx.channel().writeAndFlush(uaf);
   }
 
-  public void replyUserAuthPkOk() {
+  /**
+   * Sends the SSH_MSG_USERAUTH_PK_OK message to tell client the pass phase in public key
+   * authentication process is successful.
+   *
+   * @param algorithm  public key algorithm name that server received in SSH_MSG_USERAUTH_REQUEST
+   * @param blob       public key blob that server received in SSH_MSG_USERAUTH_REQUEST
+   * @see <a href="https://tools.ietf.org/html/rfc4252#section-7">Public Key Authentication Method: "publickey"</a>
+   */
+  public void replyUserAuthPkOk(String algorithm, byte[] blob) {
+    ByteBuf uapo = createMessage(SshMessage.SSH_MSG_USERAUTH_PK_OK);
 
+    SshIoUtil.writeUtf8(uapo, algorithm);
+    SshIoUtil.writeBytes(uapo, blob);
+
+    logger.debug("Replying SSH_MSG_USERAUTH_PK_OK...");
+    ctx.channel().writeAndFlush(uapo);
   }
 
   /**
@@ -355,6 +380,12 @@ public class Session {
     ctx.channel().writeAndFlush(reply);
   }
 
+  /**
+   * Print a log information regarding the disconnect reason, disconnect the network channel
+   *
+   * @param code  the disconnect reason code
+   * @param msg   message about the reason
+   */
   public void handleDisconnect(int code, String msg) {
     logger.info("Disconnecting... reason: {}, msg: {}", SshMessage.disconnectReason(code), msg);
 
