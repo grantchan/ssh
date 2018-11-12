@@ -25,6 +25,10 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
+  // The numbers 30-49 are key exchange specific and may be redefined by other kex methods.
+  private final byte SSH_MSG_KEXDH_FIRST = 30;
+  private final byte SSH_MSG_KEXDH_LAST  = 49;
+
   private Session    session;
   private KexHandler kex;
 
@@ -63,7 +67,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
         break;
 
       default:
-        if (cmd >= SshMessage.SSH_MSG_KEXDH_FIRST && cmd <= SshMessage.SSH_MSG_KEXDH_LAST) {
+        if (cmd >= SSH_MSG_KEXDH_FIRST && cmd <= SSH_MSG_KEXDH_LAST) {
           kex.handleMessage(cmd, req);
         } else {
           Service svc = session.getService();

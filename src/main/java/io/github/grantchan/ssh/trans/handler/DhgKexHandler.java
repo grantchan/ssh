@@ -8,6 +8,7 @@ import io.github.grantchan.ssh.trans.kex.DH;
 import io.github.grantchan.ssh.trans.kex.KexParam;
 import io.github.grantchan.ssh.trans.mac.BuiltinMacFactory;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
+import io.github.grantchan.ssh.trans.signature.Signature;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
@@ -216,20 +217,20 @@ public class DhgKexHandler implements KexHandler {
 
     List<String> kexParams = session.getKexParams();
 
-    Signature sig = BuiltinSignatureFactory.create(kexParams.get(KexParam.SERVER_HOST_KEY));
+    Signature sig = BuiltinSignatureFactory.create(kexParams.get(KexParam.SERVER_HOST_KEY),
+                                                   kp.getPrivate());
     if (sig == null) {
       throw new IOException("Unknown signature: " + KexParam.SERVER_HOST_KEY);
     }
 
     try {
-      sig.initSign(kp.getPrivate());
       sig.update(h);
 
       reply.clear();
       SshIoUtil.writeUtf8(reply, kexParams.get(KexParam.SERVER_HOST_KEY));
       SshIoUtil.writeBytes(reply, sig.sign());
-    } catch (SignatureException | InvalidKeyException e1) {
-      e1.printStackTrace();
+    } catch (SignatureException ex) {
+      ex.printStackTrace();
     }
 
     byte[] sigH = new byte[reply.readableBytes()];

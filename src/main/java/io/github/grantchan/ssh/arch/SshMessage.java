@@ -68,10 +68,6 @@ public final class SshMessage {
   public static final byte SSH_MSG_CHANNEL_SUCCESS           = 99;  // [SSH-CONNECT]
   public static final byte SSH_MSG_CHANNEL_FAILURE           = 100; // [SSH-CONNECT]
 
-  // The numbers 30-49 are key exchange specific and may be redefined by other kex methods.
-  public static final byte SSH_MSG_KEXDH_FIRST = 30;
-  public static final byte SSH_MSG_KEXDH_LAST  = 49;
-
   // Diffie-Hellman Key Exchange Message Numbers
   public static final byte SSH_MSG_KEXDH_INIT  = 30;
   public static final byte SSH_MSG_KEXDH_REPLY = 31;
@@ -85,10 +81,10 @@ public final class SshMessage {
    * || max".
    */
   public static final byte SSH_MSG_KEX_DH_GEX_REQUEST_OLD = 30;
-  public static final byte SSH_MSG_KEX_DH_GEX_REQUEST     = 34;
   public static final byte SSH_MSG_KEX_DH_GEX_GROUP       = 31;
   public static final byte SSH_MSG_KEX_DH_GEX_INIT        = 32;
   public static final byte SSH_MSG_KEX_DH_GEX_REPLY       = 33;
+  public static final byte SSH_MSG_KEX_DH_GEX_REQUEST     = 34;
 
   // Disconnection Messages Reason Codes and Descriptions
   // <a href="https://tools.ietf.org/html/rfc4250#section-4.2.2">Initial Assignments</a>

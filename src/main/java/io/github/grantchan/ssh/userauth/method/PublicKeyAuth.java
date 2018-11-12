@@ -4,15 +4,13 @@ import io.github.grantchan.ssh.arch.SshIoUtil;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
+import io.github.grantchan.ssh.trans.signature.Signature;
 import io.github.grantchan.ssh.util.KeyComparator;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigInteger;
 import java.security.PublicKey;
-import java.security.Signature;
-import java.security.interfaces.RSAKey;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -70,8 +68,7 @@ public class PublicKeyAuth implements Method {
           + algorithm);
     }
 
-    Signature verifier = Objects.requireNonNull(BuiltinSignatureFactory.create(algorithm));
-    verifier.initVerify(publicKey);
+    Signature verifier = Objects.requireNonNull(BuiltinSignatureFactory.create(algorithm, publicKey));
 
     ByteBuf b = session.createBuffer();
     SshIoUtil.writeBytes(b, session.getId());
@@ -83,18 +80,7 @@ public class PublicKeyAuth implements Method {
     SshIoUtil.writeUtf8(b, algorithm);
     b.writeBytes(buf, blobPos, 4 + blobLen);
 
-    verifier.update(b.nioBuffer());
-
-    if (algorithm.equals("ssh-rsa")) {
-      if (publicKey instanceof RSAKey) {
-        RSAKey rsa = RSAKey.class.cast(publicKey);
-        BigInteger modulus = rsa.getModulus();
-        int signatureSize = (modulus.bitLength() + Byte.SIZE - 1) / Byte.SIZE;
-
-      } else {
-        throw new IllegalArgumentException("not a RSA key");
-      }
-    }
+    //verifier.update(b.nioBuffer());
 
     return false;
   }
