@@ -29,7 +29,6 @@ public class RSAPublicKeyDecoder implements PublicKeyDecoder<RSAPublicKey> {
 
   @Override
   public RSAPublicKey decode0(InputStream key) throws IOException, GeneralSecurityException {
-
     BigInteger e = StreamUtil.readMpInt(key);
     BigInteger n = StreamUtil.readMpInt(key);
 

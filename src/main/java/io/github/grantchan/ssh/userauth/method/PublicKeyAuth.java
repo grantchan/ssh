@@ -5,6 +5,7 @@ import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
 import io.github.grantchan.ssh.trans.signature.Signature;
+import io.github.grantchan.ssh.userauth.method.keydecoder.DSAPublicKeyDecoder;
 import io.github.grantchan.ssh.userauth.method.keydecoder.PublicKeyDecoder;
 import io.github.grantchan.ssh.userauth.method.keydecoder.RSAPublicKeyDecoder;
 import io.github.grantchan.ssh.util.KeyComparator;
@@ -24,6 +25,7 @@ public class PublicKeyAuth implements Method {
   protected static final Map<String, PublicKeyDecoder> decoders =
       new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
   static {
+    registerPublicKeyDecoder(DSAPublicKeyDecoder.getInstance());
     registerPublicKeyDecoder(RSAPublicKeyDecoder.getInstance());
   }
 
