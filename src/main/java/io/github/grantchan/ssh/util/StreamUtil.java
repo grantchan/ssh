@@ -82,11 +82,13 @@ public final class StreamUtil {
    * @throws IOException  if error happens while reading
    */
   static int read(InputStream in, byte[] data, int off, int len) throws IOException {
-    while (len > 0) {
+    int remain = len;
+    while (remain > 0) {
       int cnt = in.read(data, off, len);
       if (cnt == -1) {
         return off - cnt;
       }
+      remain -= cnt;
     }
     return len;
   }
