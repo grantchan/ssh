@@ -1,5 +1,7 @@
 package io.github.grantchan.ssh.util;
 
+import java.util.Objects;
+
 public final class ByteUtil {
 
   /**
@@ -23,7 +25,8 @@ public final class ByteUtil {
   }
 
   /**
-   * Convert the unsigned integer {@code i} from host byte order to network byte order
+   * Convert the unsigned integer {@code i} from little-endian(host byte order) to big-endian
+   * (network byte order) byte array
    *
    * @param   i the unsigned integer in host byte order
    * @return  the network byte order byte array of {@code i}
@@ -35,6 +38,24 @@ public final class ByteUtil {
     n[1] = (byte) (i >>> 16);
     n[2] = (byte) (i >>> 8);
     n[3] = (byte) i;
+
+    return n;
+  }
+
+  /**
+   * Read a network byte order(big-endian) integer buffer
+   * @param val  byte buffer represent the integer in network byte order
+   * @return     unsigned integer represents {@code val}
+   */
+  static int nl(byte[] val) {
+    if (Objects.requireNonNull(val).length != Integer.BYTES) {
+      throw new IllegalArgumentException("");
+    }
+
+    int n = 0;
+    for (int i = 0, sh = Integer.SIZE - Byte.SIZE; i < val.length; i++, sh -= Byte.SIZE) {
+      n |= (val[i] & 0xFF) << sh;
+    }
 
     return n;
   }
