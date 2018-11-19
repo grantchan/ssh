@@ -6,6 +6,7 @@ import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
 import io.github.grantchan.ssh.trans.signature.Signature;
 import io.github.grantchan.ssh.userauth.method.keydecoder.PublicKeyDecoder;
+import io.github.grantchan.ssh.userauth.method.keydecoder.RSAPublicKeyDecoder;
 import io.github.grantchan.ssh.util.KeyComparator;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
@@ -19,7 +20,18 @@ public class PublicKeyAuth implements Method {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final Collection<PublicKey> keys;
-  private Map<String, PublicKeyDecoder> decoders = new TreeMap<>();
+
+  protected static final Map<String, PublicKeyDecoder> decoders =
+      new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+  static {
+    registerPublicKeyDecoder(RSAPublicKeyDecoder.getInstance());
+  }
+
+  public static void registerPublicKeyDecoder(PublicKeyDecoder<?> decoder) {
+    for (String type : decoder.supportKeyTypes()) {
+      decoders.put(type, decoder);
+    }
+  }
 
   public PublicKeyAuth(Collection<PublicKey> keys) {
     this.keys = (keys == null) ? Collections.emptyList() : keys;

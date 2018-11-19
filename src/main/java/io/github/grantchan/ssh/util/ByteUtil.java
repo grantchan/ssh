@@ -8,8 +8,8 @@ public final class ByteUtil {
    * Resize the {@code array} to a new size.
    * <p>If the {@code newSize} is smaller than the original {@code array} size, extra bytes will be
    * truncated.<br>
-   *    If the {@code newSize} is bigger than or equal to the {@code array} size, just return the
-   *    {@code array}</p>
+   * If the {@code newSize} is bigger than or equal to the {@code array} size, just return the
+   * {@code array}</p>
    *
    * @param   array the array to be resized
    * @param   newSize new size of the array to be resized to

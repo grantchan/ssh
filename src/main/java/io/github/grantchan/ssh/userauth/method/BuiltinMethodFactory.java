@@ -18,7 +18,7 @@ public enum BuiltinMethodFactory implements NamedFactory<Method> {
   publickey("publickey") {
     @Override
     public Method create() {
-      return new FileBasedPublicKeyAuth();
+      return FileBasedPublicKeyAuth.getInstance();
     }
   };
 
