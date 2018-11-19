@@ -5,21 +5,21 @@ import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
 import io.github.grantchan.ssh.trans.signature.Signature;
+import io.github.grantchan.ssh.userauth.method.keydecoder.PublicKeyDecoder;
 import io.github.grantchan.ssh.util.KeyComparator;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.PublicKey;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.*;
 
 public class PublicKeyAuth implements Method {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final Collection<PublicKey> keys;
+  private Map<String, PublicKeyDecoder> decoders = new TreeMap<>();
 
   public PublicKeyAuth(Collection<PublicKey> keys) {
     this.keys = (keys == null) ? Collections.emptyList() : keys;

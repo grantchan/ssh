@@ -47,7 +47,13 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
     return null;
   }
 
-  private static PublicKeyEntry parsePublicKeyEntry(String line) {
+  /**
+   * Parse a single line record in key file
+   * @param line  key line
+   * @return      {@link PublicKeyEntry} or {@code null} the line is empty or isn't in valid format
+   * @throws IllegalArgumentException if the line is invalid
+   */
+  private static PublicKeyEntry parsePublicKeyEntry(String line) throws IllegalArgumentException {
     if (StringUtil.isNullOrEmpty(line)) {
       return null;
     }
@@ -55,14 +61,16 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
       return null;
     }
 
-    String[] i = line.split(" ");
-    if (i.length < 2) {
-      return null;
+    String[] fields = line.split(" ");
+    if (fields.length < 2) {
+      throw new IllegalArgumentException("Illegal key record - no delimiter between key type and key data");
     }
 
-    Base64.Decoder decoder = Base64.getDecoder();
-    byte[] data = decoder.decode(i[1]);
+    String type = fields[0];
+    Base64.Decoder base64 = Base64.getDecoder();
+    byte[] data = base64.decode(fields[1]);
+    String comment = fields.length == 3 ? fields[2] : null;
 
-    return new PublicKeyEntry(i[0], data);
+    return new PublicKeyEntry(type, data, comment);
   }
 }
