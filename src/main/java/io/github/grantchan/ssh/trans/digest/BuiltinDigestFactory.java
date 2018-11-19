@@ -7,8 +7,8 @@ import java.security.NoSuchAlgorithmException;
 
 public enum BuiltinDigestFactory implements NamedFactory<MessageDigest> {
 
-  sha1("sha-1"),
-  sha256("sha-256");
+  sha1("SHA-1"),
+  sha256("SHA-256");
 
   private String name;
 
