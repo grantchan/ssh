@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.trans.handler;
 
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.util.ByteUtil;
+import io.github.grantchan.ssh.util.buffer.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;

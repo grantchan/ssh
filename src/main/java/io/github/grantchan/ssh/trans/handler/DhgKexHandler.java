@@ -1,6 +1,6 @@
 package io.github.grantchan.ssh.trans.handler;
 
-import io.github.grantchan.ssh.arch.SshIoUtil;
+import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.trans.cipher.BuiltinCipherFactory;
@@ -137,7 +137,7 @@ public class DhgKexHandler implements KexHandler {
      *   byte    SSH_MSG_KEX_DH_GEX_INIT
      *   mpint   e
      */
-    byte[] e = SshIoUtil.readBytes(req);
+    byte[] e = ByteBufUtil.readBytes(req);
     dh.receivedPubKey(e);
 
     /*
@@ -181,20 +181,20 @@ public class DhgKexHandler implements KexHandler {
 
     ByteBuf reply = session.createBuffer();
 
-    SshIoUtil.writeUtf8(reply, "ssh-rsa");
+    ByteBufUtil.writeUtf8(reply, "ssh-rsa");
     RSAPublicKey pubKey = ((RSAPublicKey) kp.getPublic());
-    SshIoUtil.writeMpInt(reply, pubKey.getPublicExponent());
-    SshIoUtil.writeMpInt(reply, pubKey.getModulus());
+    ByteBufUtil.writeMpInt(reply, pubKey.getPublicExponent());
+    ByteBufUtil.writeMpInt(reply, pubKey.getModulus());
 
     byte[] k_s = new byte[reply.readableBytes()];
     reply.readBytes(k_s);
 
     reply.clear();
-    SshIoUtil.writeBytes(reply, v_c);
-    SshIoUtil.writeBytes(reply, v_s);
-    SshIoUtil.writeBytes(reply, i_c);
-    SshIoUtil.writeBytes(reply, i_s);
-    SshIoUtil.writeBytes(reply, k_s);
+    ByteBufUtil.writeBytes(reply, v_c);
+    ByteBufUtil.writeBytes(reply, v_s);
+    ByteBufUtil.writeBytes(reply, i_c);
+    ByteBufUtil.writeBytes(reply, i_s);
+    ByteBufUtil.writeBytes(reply, k_s);
 
     if (min == -1 || max == -1) { // old request
       reply.writeInt(n);
@@ -204,11 +204,11 @@ public class DhgKexHandler implements KexHandler {
       reply.writeInt(max);
     }
 
-    SshIoUtil.writeMpInt(reply, dh.getP());
-    SshIoUtil.writeMpInt(reply, dh.getG());
-    SshIoUtil.writeMpInt(reply, dh.getReceivedPubKey());
-    SshIoUtil.writeMpInt(reply, dh.getPubKey());
-    SshIoUtil.writeMpInt(reply, dh.getSecretKey());
+    ByteBufUtil.writeMpInt(reply, dh.getP());
+    ByteBufUtil.writeMpInt(reply, dh.getG());
+    ByteBufUtil.writeMpInt(reply, dh.getReceivedPubKey());
+    ByteBufUtil.writeMpInt(reply, dh.getPubKey());
+    ByteBufUtil.writeMpInt(reply, dh.getSecretKey());
     byte[] h_s = new byte[reply.readableBytes()];
     reply.readBytes(h_s);
 
@@ -227,8 +227,8 @@ public class DhgKexHandler implements KexHandler {
       sig.update(h);
 
       reply.clear();
-      SshIoUtil.writeUtf8(reply, kexParams.get(KexParam.SERVER_HOST_KEY));
-      SshIoUtil.writeBytes(reply, sig.sign());
+      ByteBufUtil.writeUtf8(reply, kexParams.get(KexParam.SERVER_HOST_KEY));
+      ByteBufUtil.writeBytes(reply, sig.sign());
     } catch (SignatureException ex) {
       ex.printStackTrace();
     }
@@ -255,7 +255,7 @@ public class DhgKexHandler implements KexHandler {
     ByteBuf buf = session.createBuffer();
 
     byte[] k = dh.getSecretKey();
-    SshIoUtil.writeMpInt(buf, k);
+    ByteBufUtil.writeMpInt(buf, k);
     buf.writeBytes(id);
     buf.writeByte((byte) 0x41);
     buf.writeBytes(id);
@@ -328,7 +328,7 @@ public class DhgKexHandler implements KexHandler {
 
   private byte[] hashKey(byte[] e, int blockSize, byte[] k) {
     for (ByteBuf b = Unpooled.buffer(); e.length < blockSize; b.clear()) {
-      SshIoUtil.writeMpInt(b, k);
+      ByteBufUtil.writeMpInt(b, k);
       b.writeBytes(h);
       b.writeBytes(e);
       byte[] a = new byte[b.readableBytes()];

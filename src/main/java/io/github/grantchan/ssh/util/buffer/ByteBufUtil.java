@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.arch;
+package io.github.grantchan.ssh.util.buffer;
 
 import io.netty.buffer.ByteBuf;
 
@@ -10,7 +10,7 @@ import java.security.PublicKey;
 import java.security.spec.DSAPublicKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 
-public final class SshIoUtil {
+public final class ByteBufUtil {
 
   /**
    * Read a byte array from a {@link ByteBuf}
@@ -156,5 +156,5 @@ public final class SshIoUtil {
   }
 
   /* Private constructor to prevent this class from being explicitly instantiated */
-  private SshIoUtil() {}
+  private ByteBufUtil() {}
 }

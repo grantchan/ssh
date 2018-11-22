@@ -1,6 +1,6 @@
-package io.github.grantchan.ssh.userauth.method.keydecoder;
+package io.github.grantchan.ssh.util.key.decoder;
 
-import io.github.grantchan.ssh.util.StreamUtil;
+import io.github.grantchan.ssh.util.iostream.Reader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,10 +29,10 @@ public class DSAPublicKeyDecoder implements PublicKeyDecoder<DSAPublicKey> {
 
   @Override
   public DSAPublicKey decode0(InputStream key) throws IOException, GeneralSecurityException {
-    BigInteger p = StreamUtil.readMpInt(key);
-    BigInteger q = StreamUtil.readMpInt(key);
-    BigInteger g = StreamUtil.readMpInt(key);
-    BigInteger y = StreamUtil.readMpInt(key);
+    BigInteger p = Reader.readMpInt(key);
+    BigInteger q = Reader.readMpInt(key);
+    BigInteger g = Reader.readMpInt(key);
+    BigInteger y = Reader.readMpInt(key);
 
     KeyFactory kf = KeyFactory.getInstance("DSA");
     return DSAPublicKey.class.cast(kf.generatePublic(new DSAPublicKeySpec(y, p, q, g)));

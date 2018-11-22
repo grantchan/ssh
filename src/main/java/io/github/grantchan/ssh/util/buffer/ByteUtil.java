@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.util;
+package io.github.grantchan.ssh.util.buffer;
 
 import java.util.Objects;
 
@@ -47,7 +47,7 @@ public final class ByteUtil {
    * @param val  byte buffer represent the integer in network byte order
    * @return     unsigned integer represents {@code val}
    */
-  static int nl(byte[] val) {
+  public static int nl(byte[] val) {
     if (Objects.requireNonNull(val).length != Integer.BYTES) {
       throw new IllegalArgumentException("");
     }

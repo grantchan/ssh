@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.trans.cipher;
 
 import io.github.grantchan.ssh.common.NamedObject;
-import io.github.grantchan.ssh.util.ByteUtil;
+import io.github.grantchan.ssh.util.buffer.ByteUtil;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;

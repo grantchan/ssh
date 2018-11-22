@@ -1,14 +1,14 @@
 package io.github.grantchan.ssh.userauth.method;
 
-import io.github.grantchan.ssh.arch.SshIoUtil;
+import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
 import io.github.grantchan.ssh.trans.signature.Signature;
-import io.github.grantchan.ssh.userauth.method.keydecoder.DSAPublicKeyDecoder;
-import io.github.grantchan.ssh.userauth.method.keydecoder.PublicKeyDecoder;
-import io.github.grantchan.ssh.userauth.method.keydecoder.RSAPublicKeyDecoder;
-import io.github.grantchan.ssh.util.KeyComparator;
+import io.github.grantchan.ssh.util.key.decoder.DSAPublicKeyDecoder;
+import io.github.grantchan.ssh.util.key.decoder.PublicKeyDecoder;
+import io.github.grantchan.ssh.util.key.decoder.RSAPublicKeyDecoder;
+import io.github.grantchan.ssh.util.key.KeyComparator;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,14 +49,14 @@ public class PublicKeyAuth implements Method {
      * string    public key blob
      */
     boolean hasSig = buf.readBoolean();
-    String algorithm = SshIoUtil.readUtf8(buf);
+    String algorithm = ByteBufUtil.readUtf8(buf);
 
     // save the start position of blob
     int blobPos = buf.readerIndex();
     int blobLen = buf.readInt();
 
     // read public key from blob
-    PublicKey publicKey = SshIoUtil.readPublicKey(buf);
+    PublicKey publicKey = ByteBufUtil.readPublicKey(buf);
 
     boolean match = false;
     for (PublicKey key : keys) {
@@ -85,13 +85,13 @@ public class PublicKeyAuth implements Method {
     Signature verifier = Objects.requireNonNull(BuiltinSignatureFactory.create(algorithm, publicKey));
 
     ByteBuf b = session.createBuffer();
-    SshIoUtil.writeBytes(b, session.getId());
+    ByteBufUtil.writeBytes(b, session.getId());
     b.writeByte(SshMessage.SSH_MSG_USERAUTH_REQUEST);
-    SshIoUtil.writeUtf8(b, user);
-    SshIoUtil.writeUtf8(b, service);
-    SshIoUtil.writeUtf8(b, "publickey");
+    ByteBufUtil.writeUtf8(b, user);
+    ByteBufUtil.writeUtf8(b, service);
+    ByteBufUtil.writeUtf8(b, "publickey");
     b.writeBoolean(true);
-    SshIoUtil.writeUtf8(b, algorithm);
+    ByteBufUtil.writeUtf8(b, algorithm);
     b.writeBytes(buf, blobPos, 4 + blobLen);
 
     //verifier.update(b.nioBuffer());

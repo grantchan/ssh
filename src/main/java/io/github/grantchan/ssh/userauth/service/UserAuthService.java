@@ -1,6 +1,6 @@
 package io.github.grantchan.ssh.userauth.service;
 
-import io.github.grantchan.ssh.arch.SshIoUtil;
+import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
@@ -38,9 +38,9 @@ public class UserAuthService implements Service {
        *
        * @see <a href="https://tools.ietf.org/html/rfc4252#section-5">Authentication Requests</a>
        */
-      String user = SshIoUtil.readUtf8(req);
-      String service = SshIoUtil.readUtf8(req);
-      String method = SshIoUtil.readUtf8(req);
+      String user = ByteBufUtil.readUtf8(req);
+      String service = ByteBufUtil.readUtf8(req);
+      String method = ByteBufUtil.readUtf8(req);
 
       String remoteAddr = session.getRemoteAddress();
 

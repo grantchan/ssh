@@ -1,6 +1,6 @@
-package io.github.grantchan.ssh.userauth.method.keydecoder;
+package io.github.grantchan.ssh.util.key.decoder;
 
-import io.github.grantchan.ssh.util.StreamUtil;
+import io.github.grantchan.ssh.util.iostream.Reader;
 import io.netty.util.internal.StringUtil;
 
 import java.io.ByteArrayInputStream;
@@ -24,7 +24,7 @@ public interface PublicKeyDecoder<T extends PublicKey> {
   }
 
   default T decode(InputStream key) throws IOException, GeneralSecurityException {
-    String type = StreamUtil.readLengthUtf8(key);
+    String type = Reader.readLengthUtf8(key);
     if (StringUtil.isNullOrEmpty(type)) {
       throw new StreamCorruptedException("Incomplete key record - key type is missing");
     }

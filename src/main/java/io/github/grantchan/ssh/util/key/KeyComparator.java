@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.util;
+package io.github.grantchan.ssh.util.key;
 
 import sun.security.provider.DSAPublicKey;
 

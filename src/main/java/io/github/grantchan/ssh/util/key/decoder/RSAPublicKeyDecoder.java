@@ -1,6 +1,6 @@
-package io.github.grantchan.ssh.userauth.method.keydecoder;
+package io.github.grantchan.ssh.util.key.decoder;
 
-import io.github.grantchan.ssh.util.StreamUtil;
+import io.github.grantchan.ssh.util.iostream.Reader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,8 +29,8 @@ public class RSAPublicKeyDecoder implements PublicKeyDecoder<RSAPublicKey> {
 
   @Override
   public RSAPublicKey decode0(InputStream key) throws IOException, GeneralSecurityException {
-    BigInteger e = StreamUtil.readMpInt(key);
-    BigInteger n = StreamUtil.readMpInt(key);
+    BigInteger e = Reader.readMpInt(key);
+    BigInteger n = Reader.readMpInt(key);
 
     KeyFactory kf = KeyFactory.getInstance("RSA");
     return RSAPublicKey.class.cast(kf.generatePublic(new RSAPublicKeySpec(n, e)));

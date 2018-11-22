@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.util;
+package io.github.grantchan.ssh.util.iostream;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -6,9 +6,9 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
-import static io.github.grantchan.ssh.util.ByteUtil.nl;
+import static io.github.grantchan.ssh.util.buffer.ByteUtil.nl;
 
-public final class StreamUtil {
+public final class Reader {
   /**
    * @param in  the {@link InputStream} to read from
    * @return    {@link String} object read from {@link InputStream} {@code in}
@@ -94,5 +94,5 @@ public final class StreamUtil {
   }
 
   /* Private constructor to prevent this class from being explicitly instantiated */
-  private StreamUtil() {}
+  private Reader() {}
 }
