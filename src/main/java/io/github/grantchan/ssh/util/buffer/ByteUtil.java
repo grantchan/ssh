@@ -43,18 +43,38 @@ public final class ByteUtil {
   }
 
   /**
-   * Read a network byte order(big-endian) integer buffer
-   * @param val  byte buffer represent the integer in network byte order
-   * @return     unsigned integer represents {@code val}
+   * Read a network byte order(big-endian) integer from buffer {@code buf}
+   * @param buf  the buffer has the integer in network byte order.
+   *             <p><b>Note:</b> When {@code buf} contains more than {@code Integer.BYTES} bytes,
+   *             only the first {@code Integer.BYTES} will be used.</p>
+   * @return     the unsigned {@code long} integer
+   * @throws IllegalArgumentException if {@code buf} contains less than {@code Integer.BYTES} bytes
    */
-  public static int nl(byte[] val) {
-    if (Objects.requireNonNull(val).length != Integer.BYTES) {
-      throw new IllegalArgumentException("");
+  public static long nl(byte[] buf) {
+    return nl(buf, 0, buf.length);
+  }
+
+  /**
+   * Read a network byte order(big-endian) integer from buffer {@code buf}
+   * @param buf  the buffer has the integer in network byte order.
+   *             <p><b>Note:</b> When {@code buf} contains more than {@code Integer.BYTES} bytes,
+   *             only the first {@code Integer.BYTES} will be used.</p>
+   * @param off  The offset in {@code buf}
+   * @param len  Length of data in {@code buf} to use to read
+   * @return     the unsigned {@code long} integer
+   * @throws IllegalArgumentException if {@code buf} contains less than {@code Integer.BYTES} bytes
+   */
+  public static long nl(byte[] buf, int off, int len) {
+    Objects.requireNonNull(buf);
+
+    if (len < Integer.BYTES) {
+      throw new IllegalArgumentException("Not enough data to convert to an unsigned integer, " +
+          "required: " + Integer.BYTES + ", actual: " + buf.length);
     }
 
-    int n = 0;
-    for (int i = 0, sh = Integer.SIZE - Byte.SIZE; i < val.length; i++, sh -= Byte.SIZE) {
-      n |= (val[i] & 0xFF) << sh;
+    long n = 0;
+    for (int i = 0, sh = Integer.SIZE - Byte.SIZE; i < Integer.BYTES; i++, sh -= Byte.SIZE) {
+      n |= (buf[off + i] & 0xFFL) << sh;
     }
 
     return n;
