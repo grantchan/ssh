@@ -1,5 +1,7 @@
 package io.github.grantchan.ssh.trans.signature;
 
+import io.netty.buffer.ByteBuf;
+
 import java.security.*;
 import java.util.Objects;
 
@@ -24,11 +26,16 @@ public abstract class Signature {
     Objects.requireNonNull(instance).update(data);
   }
 
+  public void update(ByteBuf data) throws SignatureException {
+    byte[] bytes = new byte[data.readableBytes()];
+    data.readBytes(bytes);
+
+    update(bytes);
+  }
+
   public final byte[] sign() throws SignatureException {
     return Objects.requireNonNull(instance).sign();
   }
 
-  public boolean verify(byte[] data) throws SignatureException {
-    return Objects.requireNonNull(instance).verify(data);
-  }
+  public abstract boolean verify(byte[] data) throws SignatureException;
 }

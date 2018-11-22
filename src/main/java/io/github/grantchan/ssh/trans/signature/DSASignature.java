@@ -1,6 +1,8 @@
 package io.github.grantchan.ssh.trans.signature;
 
 import java.security.Key;
+import java.security.SignatureException;
+import java.util.Objects;
 
 public class DSASignature extends Signature {
 
@@ -10,5 +12,10 @@ public class DSASignature extends Signature {
 
   public DSASignature(String transformation, Key key) {
     super(transformation, key);
+  }
+
+  @Override
+  public boolean verify(byte[] data) throws SignatureException {
+    return Objects.requireNonNull(instance).verify(data);
   }
 }
