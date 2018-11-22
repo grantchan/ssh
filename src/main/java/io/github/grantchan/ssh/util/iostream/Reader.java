@@ -1,12 +1,12 @@
 package io.github.grantchan.ssh.util.iostream;
 
+import io.github.grantchan.ssh.util.buffer.ByteUtil;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-
-import static io.github.grantchan.ssh.util.buffer.ByteUtil.nl;
 
 public final class Reader {
   /**
@@ -58,8 +58,12 @@ public final class Reader {
       throw new EOFException("Not enough data to read. expected: " + Integer.BYTES +
           ", actual: " + bytesRead);
     }
-    return nl(bytes);
+    return (int) ByteUtil.nl(bytes);
   }
+
+//  static byte[] readBytes(InputStream in, int length) {
+//
+//  }
 
   /**
    * Read bytes from {@link InputStream} as much as possible

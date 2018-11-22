@@ -1,19 +1,20 @@
 package io.github.grantchan.ssh.userauth.method;
 
-import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
 import io.github.grantchan.ssh.trans.signature.Signature;
+import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
+import io.github.grantchan.ssh.util.key.KeyComparator;
 import io.github.grantchan.ssh.util.key.decoder.DSAPublicKeyDecoder;
 import io.github.grantchan.ssh.util.key.decoder.PublicKeyDecoder;
 import io.github.grantchan.ssh.util.key.decoder.RSAPublicKeyDecoder;
-import io.github.grantchan.ssh.util.key.KeyComparator;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
 public class PublicKeyAuth implements Method {
@@ -43,20 +44,26 @@ public class PublicKeyAuth implements Method {
   public boolean authenticate(String user, String service, ByteBuf buf, Session session) throws Exception {
     /*
      * byte      SSH_MSG_USERAUTH_REQUEST
-     * ....      fields already consumed before getting here
+     * ....      (fields already consumed before getting here)
      * boolean   FALSE
      * string    public key algorithm name
      * string    public key blob
      */
     boolean hasSig = buf.readBoolean();
-    String algorithm = ByteBufUtil.readUtf8(buf);
+    String keyType = ByteBufUtil.readUtf8(buf);
 
     // save the start position of blob
     int blobPos = buf.readerIndex();
     int blobLen = buf.readInt();
+    byte[] blob = new byte[blobLen];
+    buf.readBytes(blob);
 
     // read public key from blob
-    PublicKey publicKey = ByteBufUtil.readPublicKey(buf);
+    PublicKeyDecoder<?> decoder = decoders.get(keyType);
+    if (decoder == null) {
+      throw new InvalidKeySpecException("No decoder available for this key type: " + keyType);
+    }
+    PublicKey publicKey = decoder.decode(blob);
 
     boolean match = false;
     for (PublicKey key : keys) {
@@ -73,29 +80,54 @@ public class PublicKeyAuth implements Method {
     }
 
     if (!hasSig) {
-      byte[] blob = new byte[blobLen + 4];
-      buf.getBytes(blobPos, blob);
+      session.replyUserAuthPkOk(keyType, blob);
 
-      session.replyUserAuthPkOk(algorithm, blob);
-
-      throw new SshAuthInProgressException("Authentication is in progress... user: " + user + ", algorithm: "
-          + algorithm);
+      throw new SshAuthInProgressException("Authentication is in progress... user: " + user
+          + ", algorithm: " + keyType);
     }
 
-    Signature verifier = Objects.requireNonNull(BuiltinSignatureFactory.create(algorithm, publicKey));
+    /*
+     * https://tools.ietf.org/html/rfc4252#section-7"
+     *
+     * To perform actual authentication... The signature is sent using the following packet
+     *
+     * byte      SSH_MSG_USERAUTH_REQUEST
+     * ....      (fields already consumed before getting here)
+     * string    signature
+     */
+    byte[] sig = ByteBufUtil.readBytes(buf);
 
-    ByteBuf b = session.createBuffer();
-    ByteBufUtil.writeBytes(b, session.getId());
-    b.writeByte(SshMessage.SSH_MSG_USERAUTH_REQUEST);
-    ByteBufUtil.writeUtf8(b, user);
-    ByteBufUtil.writeUtf8(b, service);
-    ByteBufUtil.writeUtf8(b, "publickey");
-    b.writeBoolean(true);
-    ByteBufUtil.writeUtf8(b, algorithm);
-    b.writeBytes(buf, blobPos, 4 + blobLen);
+    Signature verifier = Objects.requireNonNull(BuiltinSignatureFactory.create(keyType, publicKey));
 
-    //verifier.update(b.nioBuffer());
+    /*
+     * The value of 'signature' is a signature by the corresponding private
+     * key over the following data, in the following order:
+     *
+     *  string    session identifier
+     *  byte      SSH_MSG_USERAUTH_REQUEST
+     *  string    user name
+     *  string    service name
+     *  string    "publickey"
+     *  boolean   TRUE
+     *  string    public key algorithm name
+     *  string    public key to be used for authentication
+     *
+     * When the server receives this message, it MUST check whether the
+     * supplied key is acceptable for authentication, and if so, it MUST
+     * check whether the signature is correct.
+     */
+    ByteBuf val = session.createBuffer();
+    ByteBufUtil.writeBytes(val, session.getId());
+    val.writeByte(SshMessage.SSH_MSG_USERAUTH_REQUEST);
+    ByteBufUtil.writeUtf8(val, user);
+    ByteBufUtil.writeUtf8(val, service);
+    ByteBufUtil.writeUtf8(val, "publickey");
+    val.writeBoolean(true);
+    ByteBufUtil.writeUtf8(val, keyType);
+    val.writeBytes(buf, blobPos, 4 + blobLen);
 
-    return false;
+    verifier.update(val);
+
+    return verifier.verify(sig);
   }
 }
