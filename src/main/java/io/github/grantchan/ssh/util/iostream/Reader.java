@@ -35,13 +35,10 @@ public final class Reader {
    * @return    byte buffer in {@code in}
    * @throws IOException  if any error happens while reading
    */
-  static byte[] readLengthBytes(InputStream in) throws IOException {
+  private static byte[] readLengthBytes(InputStream in) throws IOException {
     int len = readInt(in);
-    byte[] data = new byte[len];
 
-    read(in, data);
-
-    return data;
+    return readBytes(in, len);
   }
 
   /**
@@ -51,50 +48,36 @@ public final class Reader {
    * @throws IOException  if error happens while reading
    * @throws EOFException if not enough data to read
    */
-  static int readInt(InputStream in) throws IOException {
-    byte[] bytes = new byte[Integer.BYTES];
-    int bytesRead = read(in, bytes);
-    if (Integer.BYTES != bytesRead) {
+  private static int readInt(InputStream in) throws IOException {
+    byte[] bytes = readBytes(in, Integer.BYTES);
+    if (bytes == null || Integer.BYTES != bytes.length) {
       throw new EOFException("Not enough data to read. expected: " + Integer.BYTES +
-          ", actual: " + bytesRead);
+          ", actual: " + (bytes != null ? bytes.length : 0));
     }
     return (int) ByteUtil.nl(bytes);
   }
 
-//  static byte[] readBytes(InputStream in, int length) {
-//
-//  }
-
   /**
-   * Read bytes from {@link InputStream} as much as possible
-   * @param in    the {@link InputStream} to read from
-   * @param data  the byte data read from {@code in}
-   * @return      number of bytes actually read from {@code in}
+   * Read bytes from {@link InputStream} as much as possible until reaching required {@code length}
+   * or EOF
+   * @param in      the {@link InputStream} to read from
+   * @param length  number of the byte data want to read from {@code in}
+   * @return        bytes actually read from {@code in}
    * @throws IOException  if error happens while reading
    */
-  static int read(InputStream in, byte[] data) throws IOException {
-    return read(in, data, 0, data.length);
-  }
-
-  /**
-   * Read bytes from {@link InputStream} as much as possible
-   * @param in    the {@link InputStream} to read from
-   * @param data  the byte data read from {@code in}
-   * @param off   offset of {@code data} where data writes into
-   * @param len   length to read
-   * @return      number of bytes actually read from {@code in}
-   * @throws IOException  if error happens while reading
-   */
-  static int read(InputStream in, byte[] data, int off, int len) throws IOException {
-    int remain = len;
-    while (remain > 0) {
-      int cnt = in.read(data, off, len);
-      if (cnt == -1) {
-        return off - cnt;
-      }
-      remain -= cnt;
+  private static byte[] readBytes(InputStream in, int length) throws IOException {
+    byte[] data = new byte[length];
+    int cnt = in.read(data);
+    if (cnt == -1) {  // reach the end of stream, no data is read
+      return null;
     }
-    return len;
+
+    if (cnt < length) {
+      byte[] dest = new byte[cnt];
+      System.arraycopy(data, 0, dest, 0, cnt);
+      data = dest;
+    }
+    return data;
   }
 
   /* Private constructor to prevent this class from being explicitly instantiated */

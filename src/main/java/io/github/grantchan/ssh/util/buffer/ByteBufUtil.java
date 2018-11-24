@@ -122,39 +122,6 @@ public final class ByteBufUtil {
     return buf;
   }
 
-  /**
-   * Read a public key from a {@link ByteBuf}
-   * @param buf  the {@link ByteBuf} object to read from
-   * @return     the {@link PublicKey} read from {@code buf}
-   * @throws Exception if failed to read the key from buf
-   */
-  public static PublicKey readPublicKey(ByteBuf buf) throws Exception {
-    String type = readUtf8(buf);
-
-    switch(type) {
-      case "ssh-rsa": {
-        BigInteger e  = readMpInt(buf);
-        BigInteger n  = readMpInt(buf);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-
-        return kf.generatePublic(new RSAPublicKeySpec(n, e));
-      }
-
-      case "ssh-dss": {
-        BigInteger p  = readMpInt(buf);
-        BigInteger q  = readMpInt(buf);
-        BigInteger g  = readMpInt(buf);
-        BigInteger y  = readMpInt(buf);
-        KeyFactory kf = KeyFactory.getInstance("DSA");
-
-        return kf.generatePublic(new DSAPublicKeySpec(y, p, q, g));
-      }
-
-      default:
-        throw new NoSuchAlgorithmException("Unsupported public key type - '" + type + "'");
-    }
-  }
-
   /* Private constructor to prevent this class from being explicitly instantiated */
   private ByteBufUtil() {}
 }
