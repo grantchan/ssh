@@ -1,5 +1,5 @@
-# ssh
-This project is to build a ssh service and client from ground up.
+# SSH
+This project is to build a SSH service and client from ground up.
 
 It's intended to help me to understand the SSH key exchange process between two parties, especially by the elliptic curve cryptography.
 
