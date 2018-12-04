@@ -40,6 +40,18 @@ public class RSASignature extends Signature {
       throw new IllegalSignatureException("Empty signature data");
     }
 
+    /*
+     * The resulting signature is encoded as follows:
+     *
+     * string    "ssh-rsa"
+     * string    rsa_signature_blob
+     *
+     * The value for 'rsa_signature_blob' is encoded as a string containing s
+     * (which is an integer, without lengths or padding, unsigned, and in
+     * network byte order).
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc4253#section-6.6">Public Key Algorithms</a>
+     */
     ByteBuf buf = Unpooled.wrappedBuffer(sig);
     String keyType = ByteBufUtil.readUtf8(buf);
     if (!keyType.equals("ssh-rsa")) {
