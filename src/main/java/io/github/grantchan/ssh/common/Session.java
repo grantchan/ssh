@@ -359,6 +359,17 @@ public class Session {
     ctx.channel().writeAndFlush(uapo);
   }
 
+  public void replyKexDhReply(byte[] k_s, byte[] f, byte[] sigH) {
+    ByteBuf reply = createMessage(SshMessage.SSH_MSG_KEXDH_REPLY);
+
+    ByteBufUtil.writeBytes(reply, k_s);
+    ByteBufUtil.writeBytes(reply, f);
+    ByteBufUtil.writeBytes(reply, sigH);
+
+    logger.debug("Replying SSH_MSG_KEXDH_REPLY...");
+    ctx.channel().writeAndFlush(reply);
+  }
+
   /**
    * Sends the {@link SshMessage#SSH_MSG_KEX_DH_GEX_REPLY} to client. This is the message of step 4
    * in diffie-hellman group key exchange.

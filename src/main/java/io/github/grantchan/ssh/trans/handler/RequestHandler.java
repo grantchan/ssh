@@ -7,6 +7,7 @@ import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.trans.cipher.BuiltinCipherFactory;
 import io.github.grantchan.ssh.trans.compression.BuiltinCompressionFactory;
 import io.github.grantchan.ssh.trans.kex.BuiltinKexHandlerFactory;
+import io.github.grantchan.ssh.trans.kex.KexHandler;
 import io.github.grantchan.ssh.trans.kex.KexParam;
 import io.github.grantchan.ssh.trans.mac.BuiltinMacFactory;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
