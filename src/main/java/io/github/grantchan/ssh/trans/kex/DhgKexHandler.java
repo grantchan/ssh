@@ -24,6 +24,8 @@ public class DhgKexHandler extends KexHandler {
   private int n;   // preferred size in bits of the group the server will send
   private int max; // maximal size in bits of an acceptable group
 
+  private byte expect = SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST;
+
   public DhgKexHandler(MessageDigest md, Session session) {
     super(md, session);
   }
@@ -31,22 +33,25 @@ public class DhgKexHandler extends KexHandler {
   public void handleMessage(int cmd, ByteBuf msg) throws IOException {
     logger.debug("Handling key exchange message - {} ...", SshMessage.from(cmd));
 
-    switch(cmd) {
-      case SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST_OLD:
-        handleDhGexRequestOld(msg);
-        break;
+    if (cmd == SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST_OLD &&
+        expect == SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST) {
+      handleDhGexRequestOld(msg);
 
-      case SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST:
-        handleDhGexRequest(msg);
-        break;
+      expect = SshMessage.SSH_MSG_KEX_DH_GEX_INIT;
+    } else if (cmd == SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST &&
+        expect == SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST) {
+      handleDhGexRequest(msg);
 
-      case SshMessage.SSH_MSG_KEX_DH_GEX_INIT:
-        handleDhGexInit(msg);
-        break;
+      expect = SshMessage.SSH_MSG_KEX_DH_GEX_INIT;
+    } else if (cmd == SshMessage.SSH_MSG_KEX_DH_GEX_INIT && cmd == expect) {
+      handleDhGexInit(msg);
 
-      case SshMessage.SSH_MSG_NEWKEYS:
-        handleNewKeys(msg);
-        break;
+      expect = SshMessage.SSH_MSG_NEWKEYS;
+    } else if (cmd == SshMessage.SSH_MSG_NEWKEYS && cmd == expect) {
+      handleNewKeys(msg);
+    } else {
+      throw new IOException("Invalid key exchange message, expect: " + SshMessage.from(expect) +
+                            ", actual: " + SshMessage.from(cmd));
     }
   }
 

@@ -30,8 +30,8 @@ public class DhKexHandler extends KexHandler {
     logger.debug("Handling key exchange message - {} ...", SshMessage.from(cmd));
 
     if (cmd != SshMessage.SSH_MSG_KEXDH_INIT) {
-      throw new IOException("Invalid key exchange stage packet, expected: SSH_MSG_KEXDH_INIT," +
-                            " actual: " + SshMessage.from(cmd));
+      throw new IOException("Invalid key exchange stage packet, expected: SSH_MSG_KEXDH_INIT" +
+                            ", actual: " + SshMessage.from(cmd));
     }
 
     /*
