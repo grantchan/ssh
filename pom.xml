@@ -45,10 +45,16 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
                 <configuration>
                     <source>${javac.source}</source>
                     <target>${javac.target}</target>
+                    <fork>true</fork>
+                    <compilerArgs>
+                        <arg>-XDignore.symbol.file</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
         </plugins>
