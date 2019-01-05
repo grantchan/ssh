@@ -2,7 +2,7 @@ package io.github.grantchan.ssh.trans.signature;
 
 import com.sun.xml.internal.txw2.IllegalSignatureException;
 import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
-import io.github.grantchan.ssh.util.buffer.ByteUtil;
+import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
@@ -103,7 +103,7 @@ public class DSASignature extends Signature {
       return new byte[]{(byte) i};
     }
 
-    byte[] nbo = ByteUtil.htonl(i);
+    byte[] nbo = Bytes.htonl(i);
     int n = 0;
     while (nbo[n] == 0) {
       ++n;

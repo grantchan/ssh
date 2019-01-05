@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.trans.handler;
 
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.util.buffer.ByteUtil;
+import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
@@ -64,7 +64,7 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
     Mac s2cMac = session.getS2cMac();
     if (s2cMac != null) {
       int macSize = session.getS2cMacSize();
-      s2cMac.update(ByteUtil.htonl(seq));
+      s2cMac.update(Bytes.htonl(seq));
       s2cMac.update(packet);
       byte[] tmp = s2cMac.doFinal();
       if (macSize != session.getS2cDefMacSize()) {

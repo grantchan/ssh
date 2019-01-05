@@ -1,6 +1,5 @@
 package io.github.grantchan.ssh.trans.handler;
 
-import io.github.grantchan.ssh.trans.handler.IdexHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.junit.Before;
@@ -9,7 +8,6 @@ import org.junit.Test;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class IdexHandlerTest {
 

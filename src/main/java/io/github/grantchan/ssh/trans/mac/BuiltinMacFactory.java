@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.trans.mac;
 
 import io.github.grantchan.ssh.common.NamedObject;
-import io.github.grantchan.ssh.util.buffer.ByteUtil;
+import io.github.grantchan.ssh.util.buffer.Bytes;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -54,7 +54,7 @@ public enum BuiltinMacFactory implements NamedObject, MacFactory {
       e.printStackTrace();
     }
 
-    key = ByteUtil.resizeKey(key, getDefBlkSize());
+    key = Bytes.resize(key, getDefBlkSize());
     Key sks = new SecretKeySpec(key, transformation);
     try {
       Objects.requireNonNull(mac).init(sks);

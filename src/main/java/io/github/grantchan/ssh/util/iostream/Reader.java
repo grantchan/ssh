@@ -1,6 +1,6 @@
 package io.github.grantchan.ssh.util.iostream;
 
-import io.github.grantchan.ssh.util.buffer.ByteUtil;
+import io.github.grantchan.ssh.util.buffer.Bytes;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -54,7 +54,7 @@ public final class Reader {
       throw new EOFException("Not enough data to read. expected: " + Integer.BYTES +
           ", actual: " + (bytes != null ? bytes.length : 0));
     }
-    return (int) ByteUtil.nl(bytes);
+    return (int) Bytes.nl(bytes);
   }
 
   /**

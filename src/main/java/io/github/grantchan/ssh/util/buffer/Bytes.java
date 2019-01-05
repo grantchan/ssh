@@ -2,7 +2,7 @@ package io.github.grantchan.ssh.util.buffer;
 
 import java.util.Objects;
 
-public final class ByteUtil {
+public final class Bytes {
 
   /**
    * Resize the {@code array} to a new size.
@@ -15,7 +15,7 @@ public final class ByteUtil {
    * @param   newSize new size of the array to be resized to
    * @return  a new resized array or the original array.
    */
-  public static byte[] resizeKey(byte[] array, int newSize) {
+  public static byte[] resize(byte[] array, int newSize) {
     if (array.length > newSize) {
       byte[] tmp = new byte[newSize];
       System.arraycopy(array, 0, tmp, 0, newSize);
@@ -81,5 +81,5 @@ public final class ByteUtil {
   }
 
   /* Private constructor to prevent this class from being explicitly instantiated */
-  private ByteUtil() {}
+  private Bytes() {}
 }

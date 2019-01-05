@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.trans.cipher;
 
 import io.github.grantchan.ssh.common.NamedObject;
-import io.github.grantchan.ssh.util.buffer.ByteUtil;
+import io.github.grantchan.ssh.util.buffer.Bytes;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
@@ -63,8 +63,8 @@ public enum BuiltinCipherFactory implements NamedObject, CipherFactory {
       e.printStackTrace();
     }
 
-    key = ByteUtil.resizeKey(key, getBlkSize());
-    iv = ByteUtil.resizeKey(iv, getIvSize());
+    key = Bytes.resize(key, getBlkSize());
+    iv = Bytes.resize(iv, getIvSize());
     try {
       Objects.requireNonNull(cip)
              .init(mode, new SecretKeySpec(key, getAlgorithm()), new IvParameterSpec(iv));

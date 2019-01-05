@@ -2,7 +2,7 @@ package io.github.grantchan.ssh.trans.handler;
 
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.util.buffer.ByteUtil;
+import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
@@ -115,7 +115,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
     // verify the packet by the MAC
     Mac c2sMac = session.getC2sMac();
     if (c2sMac != null) {
-      c2sMac.update(ByteUtil.htonl(seq));
+      c2sMac.update(Bytes.htonl(seq));
 
       byte[] decryptedPacket = new byte[len + SSH_PACKET_LENGTH];
       accuBuf.getBytes(rIdx, decryptedPacket);
