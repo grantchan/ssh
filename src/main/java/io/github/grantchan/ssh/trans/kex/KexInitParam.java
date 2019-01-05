@@ -1,6 +1,6 @@
 package io.github.grantchan.ssh.trans.kex;
 
-public class KexParam {
+public class KexInitParam {
   
   public static final int KEX             = 0;
   public static final int SERVER_HOST_KEY = 1;

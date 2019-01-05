@@ -36,7 +36,7 @@ public class Session {
 
   private byte[] c2sKex = null; // the payload of the client's SSH_MSG_KEXINIT
   private byte[] s2cKex = null; // the payload of the server's SSH_MSG_KEXINIT
-  private List<String> kexParams;
+  private List<String> kexInit;
 
   private Cipher c2sCipher, s2cCipher;
   private int c2sCipherSize = 8, s2cCipherSize = 8;
@@ -88,12 +88,12 @@ public class Session {
     this.s2cKex = s2cKex;
   }
 
-  public void setKexParams(List<String> kexParams) {
-    this.kexParams = kexParams;
+  public void setKexInit(List<String> kexInit) {
+    this.kexInit = kexInit;
   }
 
-  public List<String> getKexParams() {
-    return kexParams;
+  public List<String> getKexInit() {
+    return kexInit;
   }
 
   public Cipher getC2sCipher() {

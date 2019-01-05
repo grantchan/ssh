@@ -8,7 +8,7 @@ import io.github.grantchan.ssh.trans.cipher.BuiltinCipherFactory;
 import io.github.grantchan.ssh.trans.compression.BuiltinCompressionFactory;
 import io.github.grantchan.ssh.trans.kex.BuiltinKexHandlerFactory;
 import io.github.grantchan.ssh.trans.kex.KexHandler;
-import io.github.grantchan.ssh.trans.kex.KexParam;
+import io.github.grantchan.ssh.trans.kex.KexInitParam;
 import io.github.grantchan.ssh.trans.mac.BuiltinMacFactory;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
 import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
@@ -134,7 +134,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     msg.skipBytes(SshConstant.MSG_KEX_COOKIE_SIZE);
 
     List<String> kexInit = resolveKexInit(msg);
-    session.setKexParams(kexInit);
+    session.setKexInit(kexInit);
 
     msg.readBoolean();
     msg.readInt();
@@ -145,9 +145,9 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     msg.getBytes(startPos, clientKexInit, 1, payloadLen);
     session.setC2sKex(clientKexInit);
 
-    kex = BuiltinKexHandlerFactory.create(kexInit.get(KexParam.KEX), session);
+    kex = BuiltinKexHandlerFactory.create(kexInit.get(KexInitParam.KEX), session);
     if (kex == null) {
-      throw new IOException("Unknown key exchange: " + KexParam.KEX);
+      throw new IOException("Unknown key exchange: " + KexInitParam.KEX);
     }
   }
 
@@ -159,80 +159,80 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     String s2c = BuiltinKexHandlerFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexParam.KEX, negotiate(c2s, s2c));
-    logger.debug("negotiated: {}", result.get(KexParam.KEX));
+    result.add(KexInitParam.KEX, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexInitParam.KEX));
 
     // server host key
     c2s = ByteBufUtil.readUtf8(buf);
     s2c = BuiltinSignatureFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexParam.SERVER_HOST_KEY, negotiate(c2s, s2c));
-    logger.debug("negotiated: {}", result.get(KexParam.SERVER_HOST_KEY));
+    result.add(KexInitParam.SERVER_HOST_KEY, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexInitParam.SERVER_HOST_KEY));
 
     // encryption c2s
     c2s = ByteBufUtil.readUtf8(buf);
     s2c = BuiltinCipherFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexParam.ENCRYPTION_C2S, negotiate(c2s, s2c));
-    logger.debug("negotiated: {}", result.get(KexParam.ENCRYPTION_C2S));
+    result.add(KexInitParam.ENCRYPTION_C2S, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexInitParam.ENCRYPTION_C2S));
 
     // encryption s2c
     c2s = ByteBufUtil.readUtf8(buf);
     s2c = BuiltinCipherFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexParam.ENCRYPTION_S2C, negotiate(c2s, s2c));
-    logger.debug("negotiated: {}", result.get(KexParam.ENCRYPTION_S2C));
+    result.add(KexInitParam.ENCRYPTION_S2C, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexInitParam.ENCRYPTION_S2C));
 
     // mac c2s
     c2s = ByteBufUtil.readUtf8(buf);
     s2c = BuiltinMacFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexParam.MAC_C2S, negotiate(c2s, s2c));
-    logger.debug("negotiated: {}", result.get(KexParam.MAC_C2S));
+    result.add(KexInitParam.MAC_C2S, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexInitParam.MAC_C2S));
 
     // mac s2c
     c2s = ByteBufUtil.readUtf8(buf);
     s2c = BuiltinMacFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexParam.MAC_S2C, negotiate(c2s, s2c));
-    logger.debug("negotiated: {}", result.get(KexParam.MAC_S2C));
+    result.add(KexInitParam.MAC_S2C, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexInitParam.MAC_S2C));
 
     // compression c2s
     c2s = ByteBufUtil.readUtf8(buf);
     s2c = BuiltinCompressionFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexParam.COMPRESSION_C2S, negotiate(c2s, s2c));
-    logger.debug("negotiated: {}", result.get(KexParam.COMPRESSION_C2S));
+    result.add(KexInitParam.COMPRESSION_C2S, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexInitParam.COMPRESSION_C2S));
 
     // compression s2c
     c2s = ByteBufUtil.readUtf8(buf);
     s2c = BuiltinCompressionFactory.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexParam.COMPRESSION_S2C, negotiate(c2s, s2c));
-    logger.debug("negotiated: {}", result.get(KexParam.COMPRESSION_S2C));
+    result.add(KexInitParam.COMPRESSION_S2C, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexInitParam.COMPRESSION_S2C));
 
     // language c2s
     c2s = ByteBufUtil.readUtf8(buf);
     s2c = "";
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexParam.LANGUAGE_C2S, negotiate(c2s, s2c));
-    logger.debug("negotiated: {}", result.get(KexParam.LANGUAGE_C2S));
+    result.add(KexInitParam.LANGUAGE_C2S, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexInitParam.LANGUAGE_C2S));
 
     // language s2c
     c2s = ByteBufUtil.readUtf8(buf);
     s2c = "";
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
-    result.add(KexParam.LANGUAGE_S2C, negotiate(c2s, s2c));
-    logger.debug("negotiated: {}", result.get(KexParam.LANGUAGE_S2C));
+    result.add(KexInitParam.LANGUAGE_S2C, negotiate(c2s, s2c));
+    logger.debug("negotiated: {}", result.get(KexInitParam.LANGUAGE_S2C));
 
     return result;
   }
