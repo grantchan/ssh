@@ -9,13 +9,15 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Objects;
 
-public class DH {
+public class DH extends KeyExchange {
 
   private BigInteger p; // safe prime;
   private BigInteger g; // generator for subgroup
-  private BigInteger pubKey; // exchange value sent by the client
   private PrivateKey priKey;
-  private byte[]     receivedPubKey; // exchange value sent by the server
+
+  public DH(DhGroup dhg) {
+    this(dhg.P(), dhg.G());
+  }
 
   public DH(BigInteger p, BigInteger g) {
     this.p = p;
@@ -32,7 +34,7 @@ public class DH {
     }
 
     KeyPair kp = kpg.generateKeyPair();
-    pubKey = ((DHPublicKey)kp.getPublic()).getY();
+    this.pubKey = ((DHPublicKey)kp.getPublic()).getY();
     priKey = kp.getPrivate();
   }
 
@@ -44,18 +46,7 @@ public class DH {
     return g;
   }
 
-  public byte[] getPubKey() {
-    return this.pubKey.toByteArray();
-  }
-
-  public byte[] getReceivedPubKey() {
-    return this.receivedPubKey;
-  }
-
-  public void receivedPubKey(byte[] key) {
-    this.receivedPubKey = key;
-  }
-
+  @Override
   public byte[] getSecretKey() {
     KeyAgreement ka;
     try {

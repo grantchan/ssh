@@ -21,13 +21,14 @@ public abstract class KexHandler {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   MessageDigest md;
-  DH dh;
-  byte[] h = null;
-
+  KeyExchange kex;
   protected Session session;
 
-  public KexHandler(MessageDigest md, Session session) {
+  byte[] h = null;
+
+  public KexHandler(MessageDigest md, KeyExchange kex, Session session) {
     this.md = md;
+    this.kex = kex;
     this.session = session;
   }
 
@@ -47,7 +48,7 @@ public abstract class KexHandler {
 
     ByteBuf buf = session.createBuffer();
 
-    byte[] k = dh.getSecretKey();
+    byte[] k = kex.getSecretKey();
     ByteBufUtil.writeMpInt(buf, k);
     buf.writeBytes(id);
     buf.writeByte((byte) 0x41);
@@ -82,11 +83,11 @@ public abstract class KexHandler {
     md.update(array);
     byte[] mac_s2c = md.digest();
 
-    List<String> kp = session.getKexParams();
+    List<String> kp = session.getKexInit();
 
     // server to client cipher
     BuiltinCipherFactory cf;
-    cf = Objects.requireNonNull(BuiltinCipherFactory.from(kp.get(KexParam.ENCRYPTION_S2C)));
+    cf = Objects.requireNonNull(BuiltinCipherFactory.from(kp.get(KexInitParam.ENCRYPTION_S2C)));
     e_s2c = hashKey(e_s2c, cf.getBlkSize(), k);
     Cipher s2cCip = Objects.requireNonNull(cf.create(e_s2c, iv_s2c, Cipher.ENCRYPT_MODE));
 
@@ -94,7 +95,7 @@ public abstract class KexHandler {
     session.setS2cCipherSize(cf.getIvSize());
 
     // client to server cipher
-    cf = Objects.requireNonNull(BuiltinCipherFactory.from(kp.get(KexParam.ENCRYPTION_C2S)));
+    cf = Objects.requireNonNull(BuiltinCipherFactory.from(kp.get(KexInitParam.ENCRYPTION_C2S)));
     e_c2s = hashKey(e_c2s, cf.getBlkSize(), k);
     Cipher c2sCip = Objects.requireNonNull(cf.create(e_c2s, iv_c2s, Cipher.DECRYPT_MODE));
 
@@ -103,7 +104,7 @@ public abstract class KexHandler {
 
     // server to client MAC
     BuiltinMacFactory mf;
-    mf = Objects.requireNonNull(BuiltinMacFactory.from(kp.get(KexParam.MAC_S2C)));
+    mf = Objects.requireNonNull(BuiltinMacFactory.from(kp.get(KexInitParam.MAC_S2C)));
     Mac s2cMac = Objects.requireNonNull(mf.create(mac_s2c));
 
     session.setS2cMac(s2cMac);
@@ -111,7 +112,7 @@ public abstract class KexHandler {
     session.setS2cDefMacSize(mf.getDefBlkSize());
 
     // client to server MAC
-    mf = Objects.requireNonNull(BuiltinMacFactory.from(kp.get(KexParam.MAC_C2S)));
+    mf = Objects.requireNonNull(BuiltinMacFactory.from(kp.get(KexInitParam.MAC_C2S)));
     Mac c2sMac = Objects.requireNonNull(mf.create(mac_c2s));
 
     session.setC2sMac(c2sMac);

@@ -15,14 +15,12 @@ import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 
-public class DhKexHandler extends KexHandler {
+public class DhGroupHandler extends KexHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  public DhKexHandler(MessageDigest md, DHGroupData dhgd, Session session) {
-    super(md, session);
-
-    this.dh = new DH(dhgd.P(), dhgd.G());
+  public DhGroupHandler(MessageDigest md, KeyExchange kex, Session session) {
+    super(md, kex, session);
   }
 
   @Override
@@ -41,7 +39,7 @@ public class DhKexHandler extends KexHandler {
      *   mpint   e
      */
     byte[] e = ByteBufUtil.readBytes(req);
-    dh.receivedPubKey(e);
+    kex.receivedPubKey(e);
 
     /*
      * RFC 4419:
@@ -99,8 +97,8 @@ public class DhKexHandler extends KexHandler {
     ByteBufUtil.writeBytes(reply, i_s);
     ByteBufUtil.writeBytes(reply, k_s);
     ByteBufUtil.writeMpInt(reply, e);
-    ByteBufUtil.writeMpInt(reply, dh.getPubKey());
-    ByteBufUtil.writeMpInt(reply, dh.getSecretKey());
+    ByteBufUtil.writeMpInt(reply, kex.getPubKey());
+    ByteBufUtil.writeMpInt(reply, kex.getSecretKey());
 
     byte[] h_s = new byte[reply.readableBytes()];
     reply.readBytes(h_s);
@@ -108,19 +106,19 @@ public class DhKexHandler extends KexHandler {
     md.update(h_s, 0, h_s.length);
     h = md.digest();
 
-    List<String> kexParams = session.getKexParams();
+    List<String> kexParams = session.getKexInit();
 
-    Signature sig = BuiltinSignatureFactory.create(kexParams.get(KexParam.SERVER_HOST_KEY),
+    Signature sig = BuiltinSignatureFactory.create(kexParams.get(KexInitParam.SERVER_HOST_KEY),
         kp.getPrivate());
     if (sig == null) {
-      throw new IOException("Unknown signature: " + KexParam.SERVER_HOST_KEY);
+      throw new IOException("Unknown signature: " + KexInitParam.SERVER_HOST_KEY);
     }
 
     try {
       sig.update(h);
 
       reply.clear();
-      ByteBufUtil.writeUtf8(reply, kexParams.get(KexParam.SERVER_HOST_KEY));
+      ByteBufUtil.writeUtf8(reply, kexParams.get(KexInitParam.SERVER_HOST_KEY));
       ByteBufUtil.writeBytes(reply, sig.sign());
     } catch (SignatureException ex) {
       ex.printStackTrace();
@@ -129,7 +127,7 @@ public class DhKexHandler extends KexHandler {
     byte[] sigH = new byte[reply.readableBytes()];
     reply.readBytes(sigH);
 
-    session.replyKexDhReply(k_s, dh.getPubKey(), sigH);
+    session.replyKexDhReply(k_s, kex.getPubKey(), sigH);
     session.requestKexNewKeys();
   }
 }

@@ -2,7 +2,7 @@ package io.github.grantchan.ssh.trans.kex;
 
 import java.math.BigInteger;
 
-public enum DHGroupData {
+public enum DhGroup {
 
   P1() {
     /**
