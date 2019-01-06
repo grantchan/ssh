@@ -1,5 +1,7 @@
 package io.github.grantchan.ssh.trans.kex;
 
+import io.github.grantchan.ssh.util.buffer.Bytes;
+
 import javax.crypto.KeyAgreement;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
@@ -13,17 +15,16 @@ public class DH extends KeyExchange {
 
   private BigInteger p; // safe prime;
   private BigInteger g; // generator for subgroup
-  private PrivateKey priKey;
 
-  public DH(DhGroup dhg) {
-    this(dhg.P(), dhg.G());
+  public DH(final DhGroup dhg) {
+    this(Objects.requireNonNull(dhg).P(), dhg.G());
   }
 
-  public DH(BigInteger p, BigInteger g) {
-    this.p = p;
-    this.g = g;
+  public DH(final BigInteger p, final BigInteger g) {
+    this.p = Objects.requireNonNull(p);
+    this.g = Objects.requireNonNull(g);
 
-    KeyPairGenerator kpg = null;
+    KeyPairGenerator kpg;
     try {
       kpg = KeyPairGenerator.getInstance("DH");
       DHParameterSpec spec = new DHParameterSpec(p, g);
@@ -34,8 +35,14 @@ public class DH extends KeyExchange {
     }
 
     KeyPair kp = kpg.generateKeyPair();
-    this.pubKey = ((DHPublicKey)kp.getPublic()).getY();
-    priKey = kp.getPrivate();
+    this.pubKey = ((DHPublicKey)kp.getPublic()).getY().toByteArray();
+
+    try {
+      this.ka = KeyAgreement.getInstance("DH");
+      this.ka.init(kp.getPrivate());
+    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+      e.printStackTrace();
+    }
   }
 
   public BigInteger getP() {
@@ -48,33 +55,23 @@ public class DH extends KeyExchange {
 
   @Override
   public byte[] getSecretKey() {
-    KeyAgreement ka;
     try {
       KeyFactory kf = KeyFactory.getInstance("DH");
       DHPublicKeySpec spec = new DHPublicKeySpec(new BigInteger(receivedPubKey), p, g);
 
-      ka = KeyAgreement.getInstance("DH");
-      ka.init(priKey);
       ka.doPhase(kf.generatePublic(spec), true);
     } catch (NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException e) {
       e.printStackTrace();
       return null;
     }
 
-    byte[] x = Objects.requireNonNull(ka.generateSecret());
+    byte[] k = Objects.requireNonNull(ka.generateSecret());
 
     int i = 0;
-    while (x[i] == 0) {
+    while (k[i] == 0) {
       i++;
     }
 
-    if (i == 0) {
-      return x;
-    }
-
-    byte[] secretKey = new byte[x.length - i];
-    System.arraycopy(x, i, secretKey, 0, secretKey.length);
-
-    return secretKey;
+    return Bytes.last(k, k.length - i);
   }
 }

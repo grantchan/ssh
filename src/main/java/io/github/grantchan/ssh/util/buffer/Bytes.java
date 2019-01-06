@@ -1,5 +1,6 @@
 package io.github.grantchan.ssh.util.buffer;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 public final class Bytes {
@@ -11,12 +12,12 @@ public final class Bytes {
    * If the {@code newSize} is bigger than or equal to the {@code array} size, just return the
    * {@code array}</p>
    *
-   * @param   array the array to be resized
-   * @param   newSize new size of the array to be resized to
-   * @return  a new resized array or the original array.
+   * @param array the array to be resized
+   * @param newSize new size of the array to be resized to
+   * @return a new resized array or the original array.
    */
   public static byte[] resize(byte[] array, int newSize) {
-    if (array.length > newSize) {
+    if (Objects.requireNonNull(array).length > newSize) {
       byte[] tmp = new byte[newSize];
       System.arraycopy(array, 0, tmp, 0, newSize);
       array = tmp;
@@ -28,9 +29,9 @@ public final class Bytes {
    * Convert the unsigned integer {@code i} from little-endian(host byte order) to big-endian
    * (network byte order) byte array
    *
-   * @param   i the unsigned integer in host byte order
-   * @return  the network byte order byte array of {@code i}
-   * @see     <a href="https://en.wikipedia.org/wiki/Endianness">Endianness</a>
+   * @param i the unsigned integer in host byte order
+   * @return the network byte order byte array of {@code i}
+   * @see <a href="https://en.wikipedia.org/wiki/Endianness">Endianness</a>
    */
   public static byte[] htonl(long i) {
     byte[] n = new byte[4];
@@ -47,7 +48,7 @@ public final class Bytes {
    * @param buf  the buffer has the integer in network byte order.
    *             <p><b>Note:</b> When {@code buf} contains more than {@code Integer.BYTES} bytes,
    *             only the first {@code Integer.BYTES} will be used.</p>
-   * @return     the unsigned {@code long} integer
+   * @return the unsigned {@code long} integer
    * @throws IllegalArgumentException if {@code buf} contains less than {@code Integer.BYTES} bytes
    */
   public static long nl(byte[] buf) {
@@ -61,7 +62,7 @@ public final class Bytes {
    *             only the first {@code Integer.BYTES} will be used.</p>
    * @param off  The offset in {@code buf}
    * @param len  Length of data in {@code buf} to use to read
-   * @return     the unsigned {@code long} integer
+   * @return the unsigned {@code long} integer
    * @throws IllegalArgumentException if {@code buf} contains less than {@code Integer.BYTES} bytes
    */
   public static long nl(byte[] buf, int off, int len) {
@@ -78,6 +79,17 @@ public final class Bytes {
     }
 
     return n;
+  }
+
+  /**
+   * Returns the last N bytes of data in {@code buf}
+   */
+  public static byte[] last(byte[] buf, int len) {
+    if (Objects.requireNonNull(buf).length <= len) {
+      return buf;
+    }
+
+    return Arrays.copyOfRange(buf, buf.length - len, buf.length);
   }
 
   /* Private constructor to prevent this class from being explicitly instantiated */
