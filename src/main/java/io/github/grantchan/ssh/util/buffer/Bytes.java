@@ -82,6 +82,40 @@ public final class Bytes {
   }
 
   /**
+   * Concatenate byte arrays
+   * @param bufs byte arrays to concatenate, from left to right
+   * @return the newly constructed byte array with its value being the concatenation of {@code bufs}
+   */
+  public static byte[] concat(byte[]... bufs) {
+    if (bufs == null) {
+      return null;
+    }
+
+    // sum up the total length
+    int len = 0;
+    for (byte[] buf : bufs) {
+      if (buf != null) {
+        len += buf.length;
+      }
+    }
+
+    if (len == 0) {
+      return null;
+    }
+
+    byte[] result = new byte[len];
+    int cnt = 0;
+    for (byte[] buf : bufs) {
+      if (buf != null) {
+        System.arraycopy(buf, 0, result, cnt, buf.length);
+        cnt += buf.length;
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * Returns the last N bytes of data in {@code buf}
    */
   public static byte[] last(byte[] buf, int len) {
