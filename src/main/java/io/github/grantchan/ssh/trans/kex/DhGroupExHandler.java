@@ -47,8 +47,6 @@ public class DhGroupExHandler extends KexHandler {
       handleDhGexInit(msg);
 
       expect = SshMessage.SSH_MSG_NEWKEYS;
-    } else if (cmd == SshMessage.SSH_MSG_NEWKEYS && cmd == expect) {
-      handleNewKeys(msg);
     } else {
       throw new IOException("Invalid key exchange message, expect: " + SshMessage.from(expect) +
                             ", actual: " + SshMessage.from(cmd));

@@ -46,24 +46,13 @@ public class ECDH extends KeyExchange {
   }
 
   @Override
-  byte[] getSecretKey() {
-    try {
-      KeyFactory kf = KeyFactory.getInstance("EC");
-      ECPublicKeySpec ecpks = new ECPublicKeySpec(toECPoint(receivedPubKey), spec);
-      ka.doPhase(kf.generatePublic(ecpks), true);
-    } catch (NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException e) {
-      e.printStackTrace();
-      return null;
-    }
+  public String getName() {
+    return "EC";
+  }
 
-    byte[] k = Objects.requireNonNull(ka.generateSecret());
-
-    int i = 0;
-    while (k[i] == 0) {
-      i++;
-    }
-
-    return Bytes.last(k, k.length - i);
+  @Override
+  KeySpec getKeySpec() {
+    return new ECPublicKeySpec(toECPoint(receivedPubKey), spec);
   }
 
   /**

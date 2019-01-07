@@ -1,14 +1,12 @@
 package io.github.grantchan.ssh.trans.kex;
 
-import io.github.grantchan.ssh.util.buffer.Bytes;
-
 import javax.crypto.KeyAgreement;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.DHPublicKeySpec;
 import java.math.BigInteger;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.util.Objects;
 
 public class DH extends KeyExchange {
@@ -54,24 +52,12 @@ public class DH extends KeyExchange {
   }
 
   @Override
-  public byte[] getSecretKey() {
-    try {
-      KeyFactory kf = KeyFactory.getInstance("DH");
-      DHPublicKeySpec spec = new DHPublicKeySpec(new BigInteger(receivedPubKey), p, g);
+  public String getName() {
+    return "DH";
+  }
 
-      ka.doPhase(kf.generatePublic(spec), true);
-    } catch (NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException e) {
-      e.printStackTrace();
-      return null;
-    }
-
-    byte[] k = Objects.requireNonNull(ka.generateSecret());
-
-    int i = 0;
-    while (k[i] == 0) {
-      i++;
-    }
-
-    return Bytes.last(k, k.length - i);
+  @Override
+  KeySpec getKeySpec() {
+    return new DHPublicKeySpec(new BigInteger(receivedPubKey), p, g);
   }
 }
