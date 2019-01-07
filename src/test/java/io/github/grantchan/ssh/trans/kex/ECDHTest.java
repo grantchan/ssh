@@ -17,7 +17,7 @@ public class ECDHTest {
     );
 
     assertArrayEquals(
-        ECDH.toBytes(pt, ECurve.nistp256.ParamSpec().getCurve()),
+        ECDH.toBytes(pt, ECurve.nistp256.value().getCurve()),
         new byte[] {
             (byte) 0x04,
             (byte) 0x93, (byte) 0x84, (byte) 0x41, (byte) 0x77, (byte) 0x89, (byte) 0x99, (byte) 0xC9, (byte) 0x47,

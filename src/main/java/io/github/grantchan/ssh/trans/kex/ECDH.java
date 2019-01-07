@@ -16,7 +16,7 @@ public class ECDH extends KeyExchange {
   private ECParameterSpec spec;
 
   public ECDH(final ECurve curve) {
-    this(Objects.requireNonNull(curve).ParamSpec());
+    this(Objects.requireNonNull(curve).value());
   }
 
   public ECDH(final ECParameterSpec spec) {

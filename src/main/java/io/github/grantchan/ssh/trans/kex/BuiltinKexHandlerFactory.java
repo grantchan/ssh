@@ -31,7 +31,7 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
 
   /**
    * This set of ephemerally generated key exchange groups uses SHA2-256 as defined in [RFC4419].
-   * 
+   *
    * [I-D.ietf-curdle-ssh-dh-group-exchange] mandates implementations avoid any MODP group with
    * less than 2048 bits.
    *
@@ -208,8 +208,47 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
     public KexHandler create(Session s) {
       return new DhGroupHandler(BuiltinDigestFactory.sha256.create(), new ECDH(ECurve.nistp256), s);
     }
+  },
+
+  /**
+   * This ECDH method should be implemented because it is smaller and faster than using large FFC
+   * primes with traditional Diffie-Hellman (DH).
+   *
+   * Given [CNSA-SUITE], it is considered good enough for TOP SECRET.
+   *
+   * If traditional ECDH key exchange methods are implemented, then this method SHOULD be
+   * implemented.
+   *
+   * @see
+   * <a href="https://tools.ietf.org/id/draft-ietf-curdle-ssh-kex-sha2-09.html#rfc.section.3.13">
+   *   ecdh-sha2-nistp384</a>
+   */
+  ecdhp384sha256("ecdh-sha2-nistp384") {
+    @Override
+    public KexHandler create(Session s) {
+      return new DhGroupHandler(BuiltinDigestFactory.sha256.create(), new ECDH(ECurve.nistp384), s);
+    }
+  },
+
+  /**
+   * This ECDH method may be implemented because it is smaller and faster than using large FFC
+   * primes with traditional Diffie-Hellman (DH).
+   *
+   * It is not listed in [CNSA-SUITE], so it is not currently appropriate for TOP SECRET.
+   *
+   * This method MAY be implemented.
+   *
+   * @see
+   * <a href="https://tools.ietf.org/id/draft-ietf-curdle-ssh-kex-sha2-09.html#rfc.section.3.14">
+   *   ecdh-sha2-nistp521</a>
+   */
+  ecdhp521sha256("ecdh-sha2-nistp521") {
+    @Override
+    public KexHandler create(Session s) {
+      return new DhGroupHandler(BuiltinDigestFactory.sha256.create(), new ECDH(ECurve.nistp521), s);
+    }
   }
-  ;
+;
 
 
   public static final Set<BuiltinKexHandlerFactory> values =
