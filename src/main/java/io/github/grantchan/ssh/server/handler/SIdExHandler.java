@@ -1,13 +1,8 @@
 package io.github.grantchan.ssh.server.handler;
 
-import io.github.grantchan.ssh.common.transport.cipher.CipherFactories;
-import io.github.grantchan.ssh.common.transport.compression.CompressionFactories;
+import io.github.grantchan.ssh.common.transport.handler.IdExHandler;
 import io.github.grantchan.ssh.common.transport.handler.PacketDecoder;
 import io.github.grantchan.ssh.common.transport.handler.PacketEncoder;
-import io.github.grantchan.ssh.common.transport.mac.MacFactories;
-import io.github.grantchan.ssh.trans.kex.BuiltinKexHandlerFactory;
-import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
-import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,17 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 
-import static io.github.grantchan.ssh.arch.SshConstant.MSG_KEX_COOKIE_SIZE;
 import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
-import static io.github.grantchan.ssh.arch.SshMessage.SSH_MSG_KEXINIT;
 
-public class IdExHandler extends io.github.grantchan.ssh.common.transport.handler.IdExHandler {
+public class SIdExHandler extends IdExHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
-
-  private final SecureRandom rand = new SecureRandom();
 
   @Override
   public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -90,37 +80,5 @@ public class IdExHandler extends io.github.grantchan.ssh.common.transport.handle
       }
     }
     ReferenceCountUtil.release(msg);
-  }
-
-
-  /*
-   * Construct the key exchange initialization packet.
-   */
-  private ByteBuf kexInit() {
-    ByteBuf buf = session.createBuffer();
-
-    buf.writerIndex(SSH_PACKET_HEADER_LENGTH);
-    buf.readerIndex(SSH_PACKET_HEADER_LENGTH);
-    buf.writeByte(SSH_MSG_KEXINIT);
-
-    byte[] cookie = new byte[MSG_KEX_COOKIE_SIZE];
-    rand.nextBytes(cookie);
-    buf.writeBytes(cookie);
-
-    ByteBufUtil.writeUtf8(buf, BuiltinKexHandlerFactory.getNames());
-    ByteBufUtil.writeUtf8(buf, BuiltinSignatureFactory.getNames());
-    ByteBufUtil.writeUtf8(buf, CipherFactories.getNames());
-    ByteBufUtil.writeUtf8(buf, CipherFactories.getNames());
-    ByteBufUtil.writeUtf8(buf, MacFactories.getNames());
-    ByteBufUtil.writeUtf8(buf, MacFactories.getNames());
-    ByteBufUtil.writeUtf8(buf, CompressionFactories.getNames());
-    ByteBufUtil.writeUtf8(buf, CompressionFactories.getNames());
-    ByteBufUtil.writeUtf8(buf, "");
-    ByteBufUtil.writeUtf8(buf, "");
-
-    buf.writeBoolean(false); // first factory packet follows
-    buf.writeInt(0); // reserved (FFU)
-
-    return buf;
   }
 }

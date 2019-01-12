@@ -1,6 +1,6 @@
 package io.github.grantchan.ssh.common.transport.handler;
 
-import io.github.grantchan.ssh.server.handler.IdExHandler;
+import io.github.grantchan.ssh.server.handler.SIdExHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.junit.Before;
@@ -51,7 +51,7 @@ public class IdExHandlerTest {
   }
 
 
-  private class MyIdExHandler extends IdExHandler {
+  private class MyIdExHandler extends SIdExHandler {
     void setBuf(ByteBuf buf) {
       this.accuBuf = buf;
     }

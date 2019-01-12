@@ -1,12 +1,23 @@
 package io.github.grantchan.ssh.common.transport.handler;
 
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.transport.cipher.CipherFactories;
+import io.github.grantchan.ssh.common.transport.compression.CompressionFactories;
+import io.github.grantchan.ssh.common.transport.mac.MacFactories;
+import io.github.grantchan.ssh.trans.kex.BuiltinKexHandlerFactory;
+import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
+import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ByteProcessor;
 
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+
+import static io.github.grantchan.ssh.arch.SshConstant.MSG_KEX_COOKIE_SIZE;
+import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
+import static io.github.grantchan.ssh.arch.SshMessage.SSH_MSG_KEXINIT;
 
 public class IdExHandler extends ChannelInboundHandlerAdapter {
 
@@ -15,6 +26,8 @@ public class IdExHandler extends ChannelInboundHandlerAdapter {
    * including the Carriage Return and Line Feed.
    */
   private final int MAX_IDENTIFICATION_LINE_LENGTH = 255;
+
+  private final SecureRandom rand = new SecureRandom();
 
   protected Session session;
   protected ByteBuf accuBuf;
@@ -110,4 +123,34 @@ public class IdExHandler extends ChannelInboundHandlerAdapter {
     return id[0];
   }
 
+  /*
+   * Construct the key exchange initialization packet.
+   */
+  protected ByteBuf kexInit() {
+    ByteBuf buf = session.createBuffer();
+
+    buf.writerIndex(SSH_PACKET_HEADER_LENGTH);
+    buf.readerIndex(SSH_PACKET_HEADER_LENGTH);
+    buf.writeByte(SSH_MSG_KEXINIT);
+
+    byte[] cookie = new byte[MSG_KEX_COOKIE_SIZE];
+    rand.nextBytes(cookie);
+    buf.writeBytes(cookie);
+
+    ByteBufUtil.writeUtf8(buf, BuiltinKexHandlerFactory.getNames());
+    ByteBufUtil.writeUtf8(buf, BuiltinSignatureFactory.getNames());
+    ByteBufUtil.writeUtf8(buf, CipherFactories.getNames());
+    ByteBufUtil.writeUtf8(buf, CipherFactories.getNames());
+    ByteBufUtil.writeUtf8(buf, MacFactories.getNames());
+    ByteBufUtil.writeUtf8(buf, MacFactories.getNames());
+    ByteBufUtil.writeUtf8(buf, CompressionFactories.getNames());
+    ByteBufUtil.writeUtf8(buf, CompressionFactories.getNames());
+    ByteBufUtil.writeUtf8(buf, "");
+    ByteBufUtil.writeUtf8(buf, "");
+
+    buf.writeBoolean(false); // first factory packet follows
+    buf.writeInt(0); // reserved (FFU)
+
+    return buf;
+  }
 }
