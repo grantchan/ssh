@@ -207,8 +207,8 @@ public class DhGroupExHandler extends KexHandler {
      *   mpint   f, exchange value sent by the server
      *   mpint   K, the shared secret
      */
-    byte[] v_c = session.getClientVer().getBytes(StandardCharsets.UTF_8);
-    byte[] v_s = session.getServerVer().getBytes(StandardCharsets.UTF_8);
+    byte[] v_c = session.getClientId().getBytes(StandardCharsets.UTF_8);
+    byte[] v_s = session.getServerId().getBytes(StandardCharsets.UTF_8);
     byte[] i_c = session.getC2sKex();
     byte[] i_s = session.getS2cKex();
 

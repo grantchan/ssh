@@ -2,7 +2,7 @@ package io.github.grantchan.ssh.trans.kex;
 
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.trans.digest.BuiltinDigestFactory;
+import io.github.grantchan.ssh.common.transport.digest.DigestFactories;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -25,7 +25,7 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
   dhgexsha1("diffie-hellman-group-exchange-sha1") {
     @Override
     public KexHandler create(Session s) {
-      return new DhGroupExHandler(BuiltinDigestFactory.sha1.create(), s);
+      return new DhGroupExHandler(DigestFactories.sha1.create(), s);
     }
   },
 
@@ -44,7 +44,7 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
   dhgexsha256("diffie-hellman-group-exchange-sha256") {
     @Override
     public KexHandler create(Session s) {
-      return new DhGroupExHandler(BuiltinDigestFactory.sha256.create(), s);
+      return new DhGroupExHandler(DigestFactories.sha256.create(), s);
     }
   },
 
@@ -66,7 +66,7 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
   dhg1sha1("diffie-hellman-group1-sha1") {
     @Override
     public KexHandler create(Session s) {
-      return new DhGroupHandler(BuiltinDigestFactory.sha1.create(), new DH(DhGroup.P1), s);
+      return new DhGroupHandler(DigestFactories.sha1.create(), new DH(DhGroup.P1), s);
     }
   },
 
@@ -86,7 +86,7 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
   dhg14sha1("diffie-hellman-group14-sha1") {
     @Override
     public KexHandler create(Session s) {
-      return new DhGroupHandler(BuiltinDigestFactory.sha1.create(), new DH(DhGroup.P14), s);
+      return new DhGroupHandler(DigestFactories.sha1.create(), new DH(DhGroup.P14), s);
     }
   },
 
@@ -106,7 +106,7 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
   dhg14sha256("diffie-hellman-group14-sha256") {
     @Override
     public KexHandler create(Session s) {
-      return new DhGroupHandler(BuiltinDigestFactory.sha256.create(), new DH(DhGroup.P14), s);
+      return new DhGroupHandler(DigestFactories.sha256.create(), new DH(DhGroup.P14), s);
     }
   },
 
@@ -127,7 +127,7 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
   dhg15sha512("diffie-hellman-group15-sha512") {
     @Override
     public KexHandler create(Session s) {
-      return new DhGroupHandler(BuiltinDigestFactory.sha512.create(), new DH(DhGroup.P15), s);
+      return new DhGroupHandler(DigestFactories.sha512.create(), new DH(DhGroup.P15), s);
     }
   },
 
@@ -148,7 +148,7 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
   dhg16sha512("diffie-hellman-group16-sha512") {
     @Override
     public KexHandler create(Session s) {
-      return new DhGroupHandler(BuiltinDigestFactory.sha512.create(), new DH(DhGroup.P16), s);
+      return new DhGroupHandler(DigestFactories.sha512.create(), new DH(DhGroup.P16), s);
     }
   },
 
@@ -166,7 +166,7 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
   dhg17sha512("diffie-hellman-group17-sha512") {
     @Override
     public KexHandler create(Session s) {
-      return new DhGroupHandler(BuiltinDigestFactory.sha512.create(), new DH(DhGroup.P17), s);
+      return new DhGroupHandler(DigestFactories.sha512.create(), new DH(DhGroup.P17), s);
     }
   },
 
@@ -184,7 +184,7 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
   dhg18sha512("diffie-hellman-group18-sha512") {
     @Override
     public KexHandler create(Session s) {
-      return new DhGroupHandler(BuiltinDigestFactory.sha512.create(), new DH(DhGroup.P18), s);
+      return new DhGroupHandler(DigestFactories.sha512.create(), new DH(DhGroup.P18), s);
     }
   },
 
@@ -206,7 +206,7 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
   ecdhp256sha256("ecdh-sha2-nistp256") {
     @Override
     public KexHandler create(Session s) {
-      return new DhGroupHandler(BuiltinDigestFactory.sha256.create(), new ECDH(ECurve.nistp256), s);
+      return new DhGroupHandler(DigestFactories.sha256.create(), new ECDH(ECurve.nistp256), s);
     }
   },
 
@@ -226,7 +226,7 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
   ecdhp384sha256("ecdh-sha2-nistp384") {
     @Override
     public KexHandler create(Session s) {
-      return new DhGroupHandler(BuiltinDigestFactory.sha256.create(), new ECDH(ECurve.nistp384), s);
+      return new DhGroupHandler(DigestFactories.sha256.create(), new ECDH(ECurve.nistp384), s);
     }
   },
 
@@ -245,7 +245,7 @@ public enum BuiltinKexHandlerFactory implements NamedObject, KexHandlerFactory {
   ecdhp521sha256("ecdh-sha2-nistp521") {
     @Override
     public KexHandler create(Session s) {
-      return new DhGroupHandler(BuiltinDigestFactory.sha256.create(), new ECDH(ECurve.nistp521), s);
+      return new DhGroupHandler(DigestFactories.sha256.create(), new ECDH(ECurve.nistp521), s);
     }
   }
 ;

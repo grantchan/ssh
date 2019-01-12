@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.trans.cipher;
+package io.github.grantchan.ssh.common.transport.cipher;
 
 import javax.crypto.Cipher;
 

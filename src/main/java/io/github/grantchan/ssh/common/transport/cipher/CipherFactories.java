@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.trans.cipher;
+package io.github.grantchan.ssh.common.transport.cipher;
 
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.util.buffer.Bytes;
@@ -15,13 +15,13 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
 
-public enum BuiltinCipherFactory implements NamedObject, CipherFactory {
+public enum CipherFactories implements NamedObject, CipherFactory {
 
   aes256cbc("aes256-cbc", "AES", "AES/CBC/NoPadding", 16, 32),
   aes256ctr("aes256-ctr", "AES", "AES/CTR/NoPadding", 16, 32);
 
-  private static final Set<BuiltinCipherFactory> values =
-      Collections.unmodifiableSet(EnumSet.allOf(BuiltinCipherFactory.class));
+  private static final Set<CipherFactories> values =
+      Collections.unmodifiableSet(EnumSet.allOf(CipherFactories.class));
 
   private final String name;
   private final String algorithm;
@@ -29,7 +29,7 @@ public enum BuiltinCipherFactory implements NamedObject, CipherFactory {
   private final int ivSize;
   private final int blkSize;
 
-  BuiltinCipherFactory(String name, String algorithm, String transformation, int ivSize, int blkSize) {
+  CipherFactories(String name, String algorithm, String transformation, int ivSize, int blkSize) {
     this.name = name;
     this.algorithm = algorithm;
     this.transformation = transformation;
@@ -79,7 +79,7 @@ public enum BuiltinCipherFactory implements NamedObject, CipherFactory {
     return NamedObject.getNames(values);
   }
 
-  public static BuiltinCipherFactory from(String name) {
+  public static CipherFactories from(String name) {
     return NamedObject.find(name, values, String.CASE_INSENSITIVE_ORDER);
   }
 }

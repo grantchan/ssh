@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.trans.handler;
+package io.github.grantchan.ssh.common.transport.handler;
 
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
@@ -32,12 +32,12 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
   }
 
   @Override
-  public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-    accuBuf = ctx.alloc().buffer();
+  public void handlerAdded(ChannelHandlerContext ctx) {
+    accuBuf = session.createBuffer();
   }
 
   @Override
-  public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+  public void handlerRemoved(ChannelHandlerContext ctx) {
     ReferenceCountUtil.release(accuBuf);
     accuBuf = null;
   }

@@ -1,11 +1,11 @@
-package io.github.grantchan.ssh.trans.digest;
+package io.github.grantchan.ssh.common.transport.digest;
 
 import io.github.grantchan.ssh.common.NamedFactory;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public enum BuiltinDigestFactory implements NamedFactory<MessageDigest> {
+public enum DigestFactories implements NamedFactory<MessageDigest> {
 
   sha1("SHA-1"),
   sha256("SHA-256"),
@@ -14,7 +14,7 @@ public enum BuiltinDigestFactory implements NamedFactory<MessageDigest> {
 
   private String name;
 
-  BuiltinDigestFactory(String name) {
+  DigestFactories(String name) {
     this.name = name;
   }
 

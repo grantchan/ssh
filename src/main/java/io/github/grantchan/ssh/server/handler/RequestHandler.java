@@ -1,15 +1,15 @@
-package io.github.grantchan.ssh.trans.handler;
+package io.github.grantchan.ssh.server.handler;
 
 import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.trans.cipher.BuiltinCipherFactory;
-import io.github.grantchan.ssh.trans.compression.BuiltinCompressionFactory;
+import io.github.grantchan.ssh.common.transport.cipher.CipherFactories;
+import io.github.grantchan.ssh.common.transport.compression.CompressionFactories;
+import io.github.grantchan.ssh.common.transport.mac.MacFactories;
 import io.github.grantchan.ssh.trans.kex.BuiltinKexHandlerFactory;
 import io.github.grantchan.ssh.trans.kex.KexHandler;
 import io.github.grantchan.ssh.trans.kex.KexInitParam;
-import io.github.grantchan.ssh.trans.mac.BuiltinMacFactory;
 import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
 import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
@@ -172,7 +172,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // encryption c2s
     c2s = ByteBufUtil.readUtf8(buf);
-    s2c = BuiltinCipherFactory.getNames();
+    s2c = CipherFactories.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexInitParam.ENCRYPTION_C2S, negotiate(c2s, s2c));
@@ -180,7 +180,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // encryption s2c
     c2s = ByteBufUtil.readUtf8(buf);
-    s2c = BuiltinCipherFactory.getNames();
+    s2c = CipherFactories.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexInitParam.ENCRYPTION_S2C, negotiate(c2s, s2c));
@@ -188,7 +188,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // mac c2s
     c2s = ByteBufUtil.readUtf8(buf);
-    s2c = BuiltinMacFactory.getNames();
+    s2c = MacFactories.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexInitParam.MAC_C2S, negotiate(c2s, s2c));
@@ -196,7 +196,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // mac s2c
     c2s = ByteBufUtil.readUtf8(buf);
-    s2c = BuiltinMacFactory.getNames();
+    s2c = MacFactories.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexInitParam.MAC_S2C, negotiate(c2s, s2c));
@@ -204,7 +204,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // compression c2s
     c2s = ByteBufUtil.readUtf8(buf);
-    s2c = BuiltinCompressionFactory.getNames();
+    s2c = CompressionFactories.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexInitParam.COMPRESSION_C2S, negotiate(c2s, s2c));
@@ -212,7 +212,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // compression s2c
     c2s = ByteBufUtil.readUtf8(buf);
-    s2c = BuiltinCompressionFactory.getNames();
+    s2c = CompressionFactories.getNames();
     logger.debug("server said: {}", s2c);
     logger.debug("client said: {}", c2s);
     result.add(KexInitParam.COMPRESSION_S2C, negotiate(c2s, s2c));

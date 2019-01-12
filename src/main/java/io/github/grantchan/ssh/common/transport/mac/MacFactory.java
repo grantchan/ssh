@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.trans.mac;
+package io.github.grantchan.ssh.common.transport.mac;
 
 import javax.crypto.Mac;
 

@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.trans.mac;
+package io.github.grantchan.ssh.common.transport.mac;
 
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.util.buffer.Bytes;
@@ -13,19 +13,19 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
 
-public enum BuiltinMacFactory implements NamedObject, MacFactory {
+public enum MacFactories implements NamedObject, MacFactory {
 
   hmacsha1("hmac-sha1", "HmacSHA1", 20, 20);
 
-  private static final Set<BuiltinMacFactory> values =
-      Collections.unmodifiableSet(EnumSet.allOf(BuiltinMacFactory.class));
+  private static final Set<MacFactories> values =
+      Collections.unmodifiableSet(EnumSet.allOf(MacFactories.class));
 
   private String name;
   private String transformation;
   private int blkSize;
   private int defBlkSize;
 
-  BuiltinMacFactory(String name, String transformation, int blkSize, int defBlkSize) {
+  MacFactories(String name, String transformation, int blkSize, int defBlkSize) {
     this.name = name;
     this.transformation = transformation;
     this.blkSize = blkSize;
@@ -68,7 +68,7 @@ public enum BuiltinMacFactory implements NamedObject, MacFactory {
     return NamedObject.getNames(values);
   }
 
-  public static BuiltinMacFactory from(String name) {
+  public static MacFactories from(String name) {
     return NamedObject.find(name, values, String.CASE_INSENSITIVE_ORDER);
   }
 }

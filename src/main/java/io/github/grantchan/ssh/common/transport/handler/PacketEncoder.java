@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.trans.handler;
+package io.github.grantchan.ssh.common.transport.handler;
 
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.util.buffer.Bytes;
@@ -29,8 +29,7 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
   }
 
   @Override
-  public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise)
-      throws Exception {
+  public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
     ByteBuf buf = (ByteBuf) msg;
 
     int len = buf.readableBytes();

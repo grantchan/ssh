@@ -31,8 +31,8 @@ public class Session {
    * printable US-ASCII characters, with the exception of whitespace
    * characters and the minus sign (-).
    */
-  private       String clientVer = null;            // client identification
-  private final String serverVer = "SSH-2.0-DEMO";  // server identification
+  private String clientId = null;  // client identification
+  private String serverId = null;  // server identification
 
   private byte[] c2sKex = null; // the payload of the client's SSH_MSG_KEXINIT
   private byte[] s2cKex = null; // the payload of the server's SSH_MSG_KEXINIT
@@ -60,16 +60,20 @@ public class Session {
     this.id = id;
   }
 
-  public String getClientVer() {
-    return clientVer;
+  public String getClientId() {
+    return clientId;
   }
 
-  public void setClientVer(String clientVer) {
-    this.clientVer = clientVer;
+  public void setClientId(String clientId) {
+    this.clientId = clientId;
   }
 
-  public String getServerVer() {
-    return serverVer;
+  public String getServerId() {
+    return serverId;
+  }
+
+  public void setServerId(String serverId) {
+    this.serverId = serverId;
   }
 
   public byte[] getC2sKex() {
