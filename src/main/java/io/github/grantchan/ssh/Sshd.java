@@ -1,6 +1,6 @@
 package io.github.grantchan.ssh;
 
-import io.github.grantchan.ssh.server.handler.SIdExHandler;
+import io.github.grantchan.ssh.server.transport.handler.SIdExHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;

@@ -2,9 +2,10 @@ package io.github.grantchan.ssh.userauth.method;
 
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
-import io.github.grantchan.ssh.trans.signature.Signature;
-import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
+import io.github.grantchan.ssh.common.transport.signature.Signature;
+import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
+import io.github.grantchan.ssh.common.userauth.method.Method;
+import io.github.grantchan.ssh.util.buffer.SshByteBuf;
 import io.github.grantchan.ssh.util.key.KeyComparator;
 import io.github.grantchan.ssh.util.key.decoder.DSAPublicKeyDecoder;
 import io.github.grantchan.ssh.util.key.decoder.PublicKeyDecoder;
@@ -50,7 +51,7 @@ public class PublicKeyAuth implements Method {
      * string    public key blob
      */
     boolean hasSig = buf.readBoolean();
-    String keyType = ByteBufUtil.readUtf8(buf);
+    String keyType = SshByteBuf.readUtf8(buf);
 
     // save the start position of blob
     int blobPos = buf.readerIndex();
@@ -95,9 +96,9 @@ public class PublicKeyAuth implements Method {
      * ....      (fields already consumed before getting here)
      * string    signature
      */
-    byte[] sig = ByteBufUtil.readBytes(buf);
+    byte[] sig = SshByteBuf.readBytes(buf);
 
-    Signature verifier = Objects.requireNonNull(BuiltinSignatureFactory.create(keyType, publicKey));
+    Signature verifier = Objects.requireNonNull(SignatureFactories.create(keyType, publicKey));
 
     /*
      * The value of 'signature' is a signature by the corresponding private
@@ -117,13 +118,13 @@ public class PublicKeyAuth implements Method {
      * check whether the signature is correct.
      */
     ByteBuf val = session.createBuffer();
-    ByteBufUtil.writeBytes(val, session.getId());
+    SshByteBuf.writeBytes(val, session.getId());
     val.writeByte(SshMessage.SSH_MSG_USERAUTH_REQUEST);
-    ByteBufUtil.writeUtf8(val, user);
-    ByteBufUtil.writeUtf8(val, service);
-    ByteBufUtil.writeUtf8(val, "publickey");
+    SshByteBuf.writeUtf8(val, user);
+    SshByteBuf.writeUtf8(val, service);
+    SshByteBuf.writeUtf8(val, "publickey");
     val.writeBoolean(true);
-    ByteBufUtil.writeUtf8(val, keyType);
+    SshByteBuf.writeUtf8(val, keyType);
     val.writeBytes(buf, blobPos, 4 + blobLen);
 
     verifier.update(val);

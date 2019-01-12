@@ -2,8 +2,9 @@ package io.github.grantchan.ssh.common;
 
 import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.arch.SshMessage;
-import io.github.grantchan.ssh.userauth.service.BuiltinServiceFactory;
-import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
+import io.github.grantchan.ssh.common.userauth.service.Service;
+import io.github.grantchan.ssh.userauth.service.ServiceFactories;
+import io.github.grantchan.ssh.util.buffer.SshByteBuf;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -197,8 +198,8 @@ public class Session {
     ByteBuf buf = createMessage(SshMessage.SSH_MSG_DISCONNECT);
 
     buf.writeInt(reason);
-    ByteBufUtil.writeUtf8(buf, message);
-    ByteBufUtil.writeUtf8(buf, "");
+    SshByteBuf.writeUtf8(buf, message);
+    SshByteBuf.writeUtf8(buf, "");
 
     ctx.channel().writeAndFlush(buf).addListener((ChannelFuture f) -> {
       if (f.isDone()) {
@@ -218,7 +219,7 @@ public class Session {
   public void replyAccept(String svcName) {
     ByteBuf buf = createMessage(SshMessage.SSH_MSG_SERVICE_ACCEPT);
 
-    ByteBufUtil.writeUtf8(buf, svcName);
+    SshByteBuf.writeUtf8(buf, svcName);
 
     ctx.channel().writeAndFlush(buf);
   }
@@ -240,8 +241,8 @@ public class Session {
   public void replyDhGexGroup(BigInteger p, BigInteger g) {
     ByteBuf pg = createMessage(SshMessage.SSH_MSG_KEX_DH_GEX_GROUP);
 
-    ByteBufUtil.writeMpInt(pg, p);
-    ByteBufUtil.writeMpInt(pg, g);
+    SshByteBuf.writeMpInt(pg, p);
+    SshByteBuf.writeMpInt(pg, g);
 
     logger.debug("Replying SSH_MSG_KEX_DH_GEX_GROUP...");
     ctx.channel().writeAndFlush(pg);
@@ -338,7 +339,7 @@ public class Session {
   public void replyUserAuthFailure(String remainMethods, boolean partialSuccess) {
     ByteBuf uaf = createMessage(SshMessage.SSH_MSG_USERAUTH_FAILURE);
 
-    ByteBufUtil.writeUtf8(uaf, remainMethods);
+    SshByteBuf.writeUtf8(uaf, remainMethods);
     uaf.writeBoolean(partialSuccess);
 
     logger.debug("Replying SSH_MSG_USERAUTH_FAILURE...");
@@ -356,8 +357,8 @@ public class Session {
   public void replyUserAuthPkOk(String algorithm, byte[] blob) {
     ByteBuf uapo = createMessage(SshMessage.SSH_MSG_USERAUTH_PK_OK);
 
-    ByteBufUtil.writeUtf8(uapo, algorithm);
-    ByteBufUtil.writeBytes(uapo, blob);
+    SshByteBuf.writeUtf8(uapo, algorithm);
+    SshByteBuf.writeBytes(uapo, blob);
 
     logger.debug("Replying SSH_MSG_USERAUTH_PK_OK...");
     ctx.channel().writeAndFlush(uapo);
@@ -366,9 +367,9 @@ public class Session {
   public void replyKexDhReply(byte[] k_s, byte[] f, byte[] sigH) {
     ByteBuf reply = createMessage(SshMessage.SSH_MSG_KEXDH_REPLY);
 
-    ByteBufUtil.writeBytes(reply, k_s);
-    ByteBufUtil.writeBytes(reply, f);
-    ByteBufUtil.writeBytes(reply, sigH);
+    SshByteBuf.writeBytes(reply, k_s);
+    SshByteBuf.writeBytes(reply, f);
+    SshByteBuf.writeBytes(reply, sigH);
 
     logger.debug("Replying SSH_MSG_KEXDH_REPLY...");
     ctx.channel().writeAndFlush(reply);
@@ -387,9 +388,9 @@ public class Session {
   public void replyKexDhGexReply(byte[] k_s, byte[] f, byte[] sigH) {
     ByteBuf reply = createMessage(SshMessage.SSH_MSG_KEX_DH_GEX_REPLY);
 
-    ByteBufUtil.writeBytes(reply, k_s);
-    ByteBufUtil.writeBytes(reply, f);
-    ByteBufUtil.writeBytes(reply, sigH);
+    SshByteBuf.writeBytes(reply, k_s);
+    SshByteBuf.writeBytes(reply, f);
+    SshByteBuf.writeBytes(reply, sigH);
 
     logger.debug("Replying SSH_MSG_KEX_DH_GEX_REPLY...");
     ctx.channel().writeAndFlush(reply);
@@ -413,7 +414,7 @@ public class Session {
    * @throws IOException  if the given name of service is not supported
    */
   public void acceptService(String name) throws IOException {
-    service = BuiltinServiceFactory.create(name, this);
+    service = ServiceFactories.create(name, this);
     if (service == null) {
       throw new IOException("Unknown service: " + name);
     }

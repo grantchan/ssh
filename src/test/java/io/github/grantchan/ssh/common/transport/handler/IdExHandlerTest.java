@@ -1,16 +1,24 @@
 package io.github.grantchan.ssh.common.transport.handler;
 
-import io.github.grantchan.ssh.server.handler.SIdExHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertEquals;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class IdExHandlerTest {
+
+  private class MyIdExHandler extends IdExHandler {
+    void setBuf(ByteBuf buf) {
+      this.accuBuf = buf;
+    }
+  }
 
   private MyIdExHandler handler;
 
@@ -48,12 +56,5 @@ public class IdExHandlerTest {
     handler.setBuf(Unpooled.wrappedBuffer(id.getBytes(StandardCharsets.UTF_8)));
     String actual = handler.getId();
     assertEquals("SSH-2.0-softwareversion", actual);
-  }
-
-
-  private class MyIdExHandler extends SIdExHandler {
-    void setBuf(ByteBuf buf) {
-      this.accuBuf = buf;
-    }
   }
 }

@@ -33,6 +33,6 @@ public class RSAPublicKeyDecoder implements PublicKeyDecoder<RSAPublicKey> {
     BigInteger n = Reader.readMpInt(key);
 
     KeyFactory kf = KeyFactory.getInstance("RSA");
-    return RSAPublicKey.class.cast(kf.generatePublic(new RSAPublicKeySpec(n, e)));
+    return (RSAPublicKey) kf.generatePublic(new RSAPublicKeySpec(n, e));
   }
 }

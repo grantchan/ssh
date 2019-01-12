@@ -28,11 +28,11 @@ public final class KeyComparator {
    */
   public static boolean compare(PublicKey a, PublicKey b) {
     if ((a instanceof DSAPublicKey) && (b instanceof DSAPublicKey)) {
-      return compare(DSAPublicKey.class.cast(a), DSAPublicKey.class.cast(b));
+      return compare((DSAPublicKey) a, (DSAPublicKey) b);
     } else if ((a instanceof RSAPublicKey) && (b instanceof RSAPublicKey)) {
-      return compare(RSAPublicKey.class.cast(a), RSAPublicKey.class.cast(b));
+      return compare((RSAPublicKey) a, (RSAPublicKey) b);
     } else if ((a instanceof ECPublicKey) && (b instanceof ECPublicKey)) {
-      return compare(ECPublicKey.class.cast(a), ECPublicKey.class.cast(b));
+      return compare((ECPublicKey) a, (ECPublicKey) b);
     }
     return false;
   }

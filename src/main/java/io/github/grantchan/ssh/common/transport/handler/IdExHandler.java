@@ -3,10 +3,10 @@ package io.github.grantchan.ssh.common.transport.handler;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.cipher.CipherFactories;
 import io.github.grantchan.ssh.common.transport.compression.CompressionFactories;
+import io.github.grantchan.ssh.common.transport.kex.KexHandlerFactories;
 import io.github.grantchan.ssh.common.transport.mac.MacFactories;
-import io.github.grantchan.ssh.trans.kex.BuiltinKexHandlerFactory;
-import io.github.grantchan.ssh.trans.signature.BuiltinSignatureFactory;
-import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
+import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
+import io.github.grantchan.ssh.util.buffer.SshByteBuf;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -137,16 +137,16 @@ public class IdExHandler extends ChannelInboundHandlerAdapter {
     rand.nextBytes(cookie);
     buf.writeBytes(cookie);
 
-    ByteBufUtil.writeUtf8(buf, BuiltinKexHandlerFactory.getNames());
-    ByteBufUtil.writeUtf8(buf, BuiltinSignatureFactory.getNames());
-    ByteBufUtil.writeUtf8(buf, CipherFactories.getNames());
-    ByteBufUtil.writeUtf8(buf, CipherFactories.getNames());
-    ByteBufUtil.writeUtf8(buf, MacFactories.getNames());
-    ByteBufUtil.writeUtf8(buf, MacFactories.getNames());
-    ByteBufUtil.writeUtf8(buf, CompressionFactories.getNames());
-    ByteBufUtil.writeUtf8(buf, CompressionFactories.getNames());
-    ByteBufUtil.writeUtf8(buf, "");
-    ByteBufUtil.writeUtf8(buf, "");
+    SshByteBuf.writeUtf8(buf, KexHandlerFactories.getNames());
+    SshByteBuf.writeUtf8(buf, SignatureFactories.getNames());
+    SshByteBuf.writeUtf8(buf, CipherFactories.getNames());
+    SshByteBuf.writeUtf8(buf, CipherFactories.getNames());
+    SshByteBuf.writeUtf8(buf, MacFactories.getNames());
+    SshByteBuf.writeUtf8(buf, MacFactories.getNames());
+    SshByteBuf.writeUtf8(buf, CompressionFactories.getNames());
+    SshByteBuf.writeUtf8(buf, CompressionFactories.getNames());
+    SshByteBuf.writeUtf8(buf, "");
+    SshByteBuf.writeUtf8(buf, "");
 
     buf.writeBoolean(false); // first factory packet follows
     buf.writeInt(0); // reserved (FFU)

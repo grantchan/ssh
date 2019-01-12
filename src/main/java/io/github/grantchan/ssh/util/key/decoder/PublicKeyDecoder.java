@@ -11,7 +11,6 @@ import java.security.GeneralSecurityException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 public interface PublicKeyDecoder<T extends PublicKey> {
 
@@ -32,7 +31,7 @@ public interface PublicKeyDecoder<T extends PublicKey> {
     Collection<String> types = supportKeyTypes();
     if (!types.contains(type)) {
       throw new InvalidKeySpecException("Invalid key type: " + type + ", expected: " +
-          types.stream().collect(Collectors.joining(",")));
+                                        String.join(",", types));
     }
 
     return decode0(key);

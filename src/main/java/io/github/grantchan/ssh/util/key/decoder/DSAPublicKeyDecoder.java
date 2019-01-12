@@ -35,6 +35,6 @@ public class DSAPublicKeyDecoder implements PublicKeyDecoder<DSAPublicKey> {
     BigInteger y = Reader.readMpInt(key);
 
     KeyFactory kf = KeyFactory.getInstance("DSA");
-    return DSAPublicKey.class.cast(kf.generatePublic(new DSAPublicKeySpec(y, p, q, g)));
+    return (DSAPublicKey) kf.generatePublic(new DSAPublicKeySpec(y, p, q, g));
   }
 }

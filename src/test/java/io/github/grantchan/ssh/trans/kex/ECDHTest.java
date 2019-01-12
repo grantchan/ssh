@@ -1,5 +1,7 @@
 package io.github.grantchan.ssh.trans.kex;
 
+import io.github.grantchan.ssh.common.transport.kex.ECDH;
+import io.github.grantchan.ssh.common.transport.kex.ECurve;
 import org.junit.Test;
 
 import java.math.BigInteger;

@@ -1,12 +1,12 @@
 package io.github.grantchan.ssh.userauth.service;
 
 import io.github.grantchan.ssh.arch.SshMessage;
-import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.userauth.method.BuiltinMethodFactory;
-import io.github.grantchan.ssh.userauth.method.Method;
+import io.github.grantchan.ssh.common.userauth.method.Method;
+import io.github.grantchan.ssh.common.userauth.service.Service;
+import io.github.grantchan.ssh.userauth.method.MethodFactories;
 import io.github.grantchan.ssh.userauth.method.SshAuthInProgressException;
-import io.github.grantchan.ssh.util.buffer.ByteBufUtil;
+import io.github.grantchan.ssh.util.buffer.SshByteBuf;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +38,9 @@ public class UserAuthService implements Service {
        *
        * @see <a href="https://tools.ietf.org/html/rfc4252#section-5">Authentication Requests</a>
        */
-      String user = ByteBufUtil.readUtf8(req);
-      String service = ByteBufUtil.readUtf8(req);
-      String method = ByteBufUtil.readUtf8(req);
+      String user = SshByteBuf.readUtf8(req);
+      String service = SshByteBuf.readUtf8(req);
+      String method = SshByteBuf.readUtf8(req);
 
       String remoteAddr = session.getRemoteAddress();
 
@@ -58,7 +58,7 @@ public class UserAuthService implements Service {
        *
        * @see <a href="https://tools.ietf.org/html/rfc4252#section-5">Authentication Requests</a>
        */
-      ServiceFactory factory = BuiltinServiceFactory.from(service);
+      ServiceFactory factory = ServiceFactories.from(service);
       if (factory == null){
         logger.debug("[{}@{}] Unsupported service - '{}'", user, remoteAddr, service);
 
@@ -97,7 +97,7 @@ public class UserAuthService implements Service {
         return;
       }
 
-      Method auth = BuiltinMethodFactory.create(method);
+      Method auth = MethodFactories.create(method);
 
       boolean result = false;
       if (auth == null) {
@@ -121,7 +121,7 @@ public class UserAuthService implements Service {
         session.acceptService(service);
         session.replyUserAuthSuccess();
       } else {
-        session.replyUserAuthFailure(BuiltinMethodFactory.getNames(), false);
+        session.replyUserAuthFailure(MethodFactories.getNames(), false);
       }
     }
   }

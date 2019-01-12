@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.userauth.service;
 
-import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

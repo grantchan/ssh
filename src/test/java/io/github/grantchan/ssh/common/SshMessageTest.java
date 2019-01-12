@@ -1,14 +1,17 @@
 package io.github.grantchan.ssh.common;
 
 import io.github.grantchan.ssh.arch.SshMessage;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class SshMessageTest {
 
   @Test
-  public void testMessageName() throws Exception {
+  public void testMessageName() {
     assertEquals("SSH_MSG_DISCONNECT", SshMessage.from(SshMessage.SSH_MSG_DISCONNECT));
     assertEquals("SSH_MSG_SERVICE_REQUEST", SshMessage.from(SshMessage.SSH_MSG_SERVICE_REQUEST));
     assertEquals("SSH_MSG_SERVICE_ACCEPT", SshMessage.from(SshMessage.SSH_MSG_SERVICE_ACCEPT));
@@ -22,7 +25,7 @@ public class SshMessageTest {
   }
 
   @Test
-  public void testDisconnectReason() throws Exception {
+  public void testDisconnectReason() {
     assertEquals("SSH_DISCONNECT_HOST_NOT_ALLOWED_TO_CONNECT", SshMessage.disconnectReason(SshMessage.SSH_DISCONNECT_HOST_NOT_ALLOWED_TO_CONNECT   ));
     assertEquals("SSH_DISCONNECT_PROTOCOL_ERROR", SshMessage.disconnectReason(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR                ));
     assertEquals("SSH_DISCONNECT_KEY_EXCHANGE_FAILED", SshMessage.disconnectReason(SshMessage.SSH_DISCONNECT_KEY_EXCHANGE_FAILED           ));
