@@ -3,7 +3,7 @@ package io.github.grantchan.ssh.common;
 import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.userauth.service.Service;
-import io.github.grantchan.ssh.userauth.service.ServiceFactories;
+import io.github.grantchan.ssh.server.userauth.service.ServiceFactories;
 import io.github.grantchan.ssh.util.buffer.SshByteBuf;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;

@@ -1,11 +1,11 @@
-package io.github.grantchan.ssh.userauth.service;
+package io.github.grantchan.ssh.server.userauth.service;
 
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.userauth.method.Method;
 import io.github.grantchan.ssh.common.userauth.service.Service;
-import io.github.grantchan.ssh.userauth.method.MethodFactories;
-import io.github.grantchan.ssh.userauth.method.SshAuthInProgressException;
+import io.github.grantchan.ssh.server.userauth.method.MethodFactories;
+import io.github.grantchan.ssh.server.userauth.method.SshAuthInProgressException;
 import io.github.grantchan.ssh.util.buffer.SshByteBuf;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;

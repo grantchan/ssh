@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.userauth.service;
+package io.github.grantchan.ssh.server.userauth.service;
 
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.common.Session;

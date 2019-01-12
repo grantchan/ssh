@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.userauth.method;
+package io.github.grantchan.ssh.server.userauth.method;
 
 import java.io.IOException;
 

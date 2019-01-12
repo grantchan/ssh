@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.userauth.method;
+package io.github.grantchan.ssh.server.userauth.method;
 
 import io.github.grantchan.ssh.util.key.decoder.PublicKeyDecoder;
 import io.netty.util.internal.StringUtil;
