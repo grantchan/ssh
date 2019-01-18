@@ -64,7 +64,7 @@ public class SIdExHandler extends IdExHandler {
       session.setClientId(id);
 
       ctx.pipeline().addLast(new PacketDecoder(session),
-                             new RequestHandler(session),
+                             new SRequestHandler(session),
                              new PacketEncoder(session));
       ctx.pipeline().remove(this);
 
