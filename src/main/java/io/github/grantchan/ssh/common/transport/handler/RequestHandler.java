@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RequestHandler extends ChannelInboundHandlerAdapter {
+public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -155,101 +155,91 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     List<String> result = new ArrayList<>(10);
 
     // factory
-    String c2s = SshByteBuf.readUtf8(buf);
-    String s2c = KexHandlerFactories.getNames();
-    logger.debug("server said: {}", s2c);
-    logger.debug("client said: {}", c2s);
-    result.add(KexInitParam.KEX, negotiate(c2s, s2c));
+    String thisSide = SshByteBuf.readUtf8(buf);
+    String thatSide = KexHandlerFactories.getNames();
+    logger.debug("supported by this side: {}", thatSide);
+    logger.debug("supported by other side: {}", thisSide);
+    result.add(KexInitParam.KEX, negotiate(thisSide, thatSide));
     logger.debug("negotiated: {}", result.get(KexInitParam.KEX));
 
     // server host key
-    c2s = SshByteBuf.readUtf8(buf);
-    s2c = SignatureFactories.getNames();
-    logger.debug("server said: {}", s2c);
-    logger.debug("client said: {}", c2s);
-    result.add(KexInitParam.SERVER_HOST_KEY, negotiate(c2s, s2c));
+    thisSide = SshByteBuf.readUtf8(buf);
+    thatSide = SignatureFactories.getNames();
+    logger.debug("supported by this side: {}", thatSide);
+    logger.debug("supported by other side: {}", thisSide);
+    result.add(KexInitParam.SERVER_HOST_KEY, negotiate(thisSide, thatSide));
     logger.debug("negotiated: {}", result.get(KexInitParam.SERVER_HOST_KEY));
 
     // encryption c2s
-    c2s = SshByteBuf.readUtf8(buf);
-    s2c = CipherFactories.getNames();
-    logger.debug("server said: {}", s2c);
-    logger.debug("client said: {}", c2s);
-    result.add(KexInitParam.ENCRYPTION_C2S, negotiate(c2s, s2c));
+    thisSide = SshByteBuf.readUtf8(buf);
+    thatSide = CipherFactories.getNames();
+    logger.debug("supported by this side: {}", thatSide);
+    logger.debug("supported by other side: {}", thisSide);
+    result.add(KexInitParam.ENCRYPTION_C2S, negotiate(thisSide, thatSide));
     logger.debug("negotiated: {}", result.get(KexInitParam.ENCRYPTION_C2S));
 
     // encryption s2c
-    c2s = SshByteBuf.readUtf8(buf);
-    s2c = CipherFactories.getNames();
-    logger.debug("server said: {}", s2c);
-    logger.debug("client said: {}", c2s);
-    result.add(KexInitParam.ENCRYPTION_S2C, negotiate(c2s, s2c));
+    thisSide = SshByteBuf.readUtf8(buf);
+    thatSide = CipherFactories.getNames();
+    logger.debug("supported by this side: {}", thatSide);
+    logger.debug("supported by other side: {}", thisSide);
+    result.add(KexInitParam.ENCRYPTION_S2C, negotiate(thisSide, thatSide));
     logger.debug("negotiated: {}", result.get(KexInitParam.ENCRYPTION_S2C));
 
     // mac c2s
-    c2s = SshByteBuf.readUtf8(buf);
-    s2c = MacFactories.getNames();
-    logger.debug("server said: {}", s2c);
-    logger.debug("client said: {}", c2s);
-    result.add(KexInitParam.MAC_C2S, negotiate(c2s, s2c));
+    thisSide = SshByteBuf.readUtf8(buf);
+    thatSide = MacFactories.getNames();
+    logger.debug("supported by this side: {}", thatSide);
+    logger.debug("supported by other side: {}", thisSide);
+    result.add(KexInitParam.MAC_C2S, negotiate(thisSide, thatSide));
     logger.debug("negotiated: {}", result.get(KexInitParam.MAC_C2S));
 
     // mac s2c
-    c2s = SshByteBuf.readUtf8(buf);
-    s2c = MacFactories.getNames();
-    logger.debug("server said: {}", s2c);
-    logger.debug("client said: {}", c2s);
-    result.add(KexInitParam.MAC_S2C, negotiate(c2s, s2c));
+    thisSide = SshByteBuf.readUtf8(buf);
+    thatSide = MacFactories.getNames();
+    logger.debug("supported by this side: {}", thatSide);
+    logger.debug("supported by other side: {}", thisSide);
+    result.add(KexInitParam.MAC_S2C, negotiate(thisSide, thatSide));
     logger.debug("negotiated: {}", result.get(KexInitParam.MAC_S2C));
 
     // compression c2s
-    c2s = SshByteBuf.readUtf8(buf);
-    s2c = CompressionFactories.getNames();
-    logger.debug("server said: {}", s2c);
-    logger.debug("client said: {}", c2s);
-    result.add(KexInitParam.COMPRESSION_C2S, negotiate(c2s, s2c));
+    thisSide = SshByteBuf.readUtf8(buf);
+    thatSide = CompressionFactories.getNames();
+    logger.debug("supported by this side: {}", thatSide);
+    logger.debug("supported by other side: {}", thisSide);
+    result.add(KexInitParam.COMPRESSION_C2S, negotiate(thisSide, thatSide));
     logger.debug("negotiated: {}", result.get(KexInitParam.COMPRESSION_C2S));
 
     // compression s2c
-    c2s = SshByteBuf.readUtf8(buf);
-    s2c = CompressionFactories.getNames();
-    logger.debug("server said: {}", s2c);
-    logger.debug("client said: {}", c2s);
-    result.add(KexInitParam.COMPRESSION_S2C, negotiate(c2s, s2c));
+    thisSide = SshByteBuf.readUtf8(buf);
+    thatSide = CompressionFactories.getNames();
+    logger.debug("supported by this side: {}", thatSide);
+    logger.debug("supported by other side: {}", thisSide);
+    result.add(KexInitParam.COMPRESSION_S2C, negotiate(thisSide, thatSide));
     logger.debug("negotiated: {}", result.get(KexInitParam.COMPRESSION_S2C));
 
     // language c2s
-    c2s = SshByteBuf.readUtf8(buf);
-    s2c = "";
-    logger.debug("server said: {}", s2c);
-    logger.debug("client said: {}", c2s);
-    result.add(KexInitParam.LANGUAGE_C2S, negotiate(c2s, s2c));
+    thisSide = SshByteBuf.readUtf8(buf);
+    thatSide = "";
+    logger.debug("supported by this side: {}", thatSide);
+    logger.debug("supported by other side: {}", thisSide);
+    result.add(KexInitParam.LANGUAGE_C2S, negotiate(thisSide, thatSide));
     logger.debug("negotiated: {}", result.get(KexInitParam.LANGUAGE_C2S));
 
     // language s2c
-    c2s = SshByteBuf.readUtf8(buf);
-    s2c = "";
-    logger.debug("server said: {}", s2c);
-    logger.debug("client said: {}", c2s);
-    result.add(KexInitParam.LANGUAGE_S2C, negotiate(c2s, s2c));
+    thisSide = SshByteBuf.readUtf8(buf);
+    thatSide = "";
+    logger.debug("supported by this side: {}", thatSide);
+    logger.debug("supported by other side: {}", thisSide);
+    result.add(KexInitParam.LANGUAGE_S2C, negotiate(thisSide, thatSide));
     logger.debug("negotiated: {}", result.get(KexInitParam.LANGUAGE_S2C));
 
     return result;
   }
 
-  private String negotiate(String c2s, String s2c) {
-    String[] c = c2s.split(",");
-    for (String ci : c) {
-      if (s2c.contains(ci)) {
-        return ci;
-      }
-    }
-    return null;
-  }
+  protected abstract String negotiate(String thatSide, String thisSide);
 
-  protected void handleServiceRequest(ByteBuf req) {
-
-  }
+  protected abstract void handleServiceRequest(ByteBuf req);
 
   private void handleNewKeys(ByteBuf req) {
     /*
