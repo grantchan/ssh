@@ -46,7 +46,7 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
     len += pad - 4;
 
     // Write 5 header bytes
-    buf.readerIndex(off);
+    buf.readerIndex(0);
     buf.writerIndex(off);
     buf.writeInt(len);
     buf.writeByte(pad);

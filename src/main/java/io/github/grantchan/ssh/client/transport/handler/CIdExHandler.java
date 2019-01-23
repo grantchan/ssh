@@ -3,9 +3,7 @@ package io.github.grantchan.ssh.client.transport.handler;
 import io.github.grantchan.ssh.common.transport.handler.IdExHandler;
 import io.github.grantchan.ssh.common.transport.handler.PacketDecoder;
 import io.github.grantchan.ssh.common.transport.handler.PacketEncoder;
-import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
@@ -59,7 +57,7 @@ public class CIdExHandler extends IdExHandler {
         return;
       }
 
-      logger.debug("received identification: {}", id);
+      logger.debug("Received identification: {}", id);
       session.setServerId(id);
 
       ctx.pipeline().addLast(new PacketDecoder(session),
@@ -67,13 +65,20 @@ public class CIdExHandler extends IdExHandler {
                              new PacketEncoder(session));
       ctx.pipeline().remove(this);
 
-      ByteBuf clientKexInit = kexInit();
-      byte[] buf = new byte[clientKexInit.readableBytes()];
-      clientKexInit.getBytes(SSH_PACKET_HEADER_LENGTH, buf);
+      ByteBuf ki = kexInit();
+      byte[] buf = new byte[ki.readableBytes()];
+      ki.getBytes(SSH_PACKET_HEADER_LENGTH, buf);
       session.setS2cKex(buf);
 
-      byte[] cid = (session.getClientId() + "\r\n").getBytes(StandardCharsets.UTF_8);
-      ctx.writeAndFlush(Unpooled.wrappedBuffer(Bytes.concat(cid, buf)));
+      ki.readerIndex(0);
+
+      ByteBuf composite = session.createBuffer();
+      composite.writeBytes((session.getClientId() + "\r\n").getBytes(StandardCharsets.UTF_8));
+      int idx = composite.writerIndex();
+      composite.writeBytes(ki);
+      composite.readerIndex(idx + SSH_PACKET_HEADER_LENGTH);
+
+      ctx.channel().writeAndFlush(composite);
     }
 
     ReferenceCountUtil.release(msg);

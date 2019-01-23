@@ -155,83 +155,83 @@ public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
     List<String> result = new ArrayList<>(10);
 
     // factory
-    String thisSide = SshByteBuf.readUtf8(buf);
-    String thatSide = KexHandlerFactories.getNames();
-    logger.debug("supported by this side: {}", thatSide);
-    logger.debug("supported by other side: {}", thisSide);
-    result.add(KexInitParam.KEX, negotiate(thisSide, thatSide));
+    String they = SshByteBuf.readUtf8(buf);
+    String we = KexHandlerFactories.getNames();
+    logger.debug("we say: {}", we);
+    logger.debug("they say: {}", they);
+    result.add(KexInitParam.KEX, negotiate(they, we));
     logger.debug("negotiated: {}", result.get(KexInitParam.KEX));
 
     // server host key
-    thisSide = SshByteBuf.readUtf8(buf);
-    thatSide = SignatureFactories.getNames();
-    logger.debug("supported by this side: {}", thatSide);
-    logger.debug("supported by other side: {}", thisSide);
-    result.add(KexInitParam.SERVER_HOST_KEY, negotiate(thisSide, thatSide));
+    they = SshByteBuf.readUtf8(buf);
+    we = SignatureFactories.getNames();
+    logger.debug("we say: {}", we);
+    logger.debug("they say: {}", they);
+    result.add(KexInitParam.SERVER_HOST_KEY, negotiate(they, we));
     logger.debug("negotiated: {}", result.get(KexInitParam.SERVER_HOST_KEY));
 
     // encryption c2s
-    thisSide = SshByteBuf.readUtf8(buf);
-    thatSide = CipherFactories.getNames();
-    logger.debug("supported by this side: {}", thatSide);
-    logger.debug("supported by other side: {}", thisSide);
-    result.add(KexInitParam.ENCRYPTION_C2S, negotiate(thisSide, thatSide));
+    they = SshByteBuf.readUtf8(buf);
+    we = CipherFactories.getNames();
+    logger.debug("we say: {}", we);
+    logger.debug("they say: {}", they);
+    result.add(KexInitParam.ENCRYPTION_C2S, negotiate(they, we));
     logger.debug("negotiated: {}", result.get(KexInitParam.ENCRYPTION_C2S));
 
     // encryption s2c
-    thisSide = SshByteBuf.readUtf8(buf);
-    thatSide = CipherFactories.getNames();
-    logger.debug("supported by this side: {}", thatSide);
-    logger.debug("supported by other side: {}", thisSide);
-    result.add(KexInitParam.ENCRYPTION_S2C, negotiate(thisSide, thatSide));
+    they = SshByteBuf.readUtf8(buf);
+    we = CipherFactories.getNames();
+    logger.debug("we say: {}", we);
+    logger.debug("they say: {}", they);
+    result.add(KexInitParam.ENCRYPTION_S2C, negotiate(they, we));
     logger.debug("negotiated: {}", result.get(KexInitParam.ENCRYPTION_S2C));
 
     // mac c2s
-    thisSide = SshByteBuf.readUtf8(buf);
-    thatSide = MacFactories.getNames();
-    logger.debug("supported by this side: {}", thatSide);
-    logger.debug("supported by other side: {}", thisSide);
-    result.add(KexInitParam.MAC_C2S, negotiate(thisSide, thatSide));
+    they = SshByteBuf.readUtf8(buf);
+    we = MacFactories.getNames();
+    logger.debug("we say: {}", we);
+    logger.debug("they say: {}", they);
+    result.add(KexInitParam.MAC_C2S, negotiate(they, we));
     logger.debug("negotiated: {}", result.get(KexInitParam.MAC_C2S));
 
     // mac s2c
-    thisSide = SshByteBuf.readUtf8(buf);
-    thatSide = MacFactories.getNames();
-    logger.debug("supported by this side: {}", thatSide);
-    logger.debug("supported by other side: {}", thisSide);
-    result.add(KexInitParam.MAC_S2C, negotiate(thisSide, thatSide));
+    they = SshByteBuf.readUtf8(buf);
+    we = MacFactories.getNames();
+    logger.debug("we say: {}", we);
+    logger.debug("they say: {}", they);
+    result.add(KexInitParam.MAC_S2C, negotiate(they, we));
     logger.debug("negotiated: {}", result.get(KexInitParam.MAC_S2C));
 
     // compression c2s
-    thisSide = SshByteBuf.readUtf8(buf);
-    thatSide = CompressionFactories.getNames();
-    logger.debug("supported by this side: {}", thatSide);
-    logger.debug("supported by other side: {}", thisSide);
-    result.add(KexInitParam.COMPRESSION_C2S, negotiate(thisSide, thatSide));
+    they = SshByteBuf.readUtf8(buf);
+    we = CompressionFactories.getNames();
+    logger.debug("we say: {}", we);
+    logger.debug("they say: {}", they);
+    result.add(KexInitParam.COMPRESSION_C2S, negotiate(they, we));
     logger.debug("negotiated: {}", result.get(KexInitParam.COMPRESSION_C2S));
 
     // compression s2c
-    thisSide = SshByteBuf.readUtf8(buf);
-    thatSide = CompressionFactories.getNames();
-    logger.debug("supported by this side: {}", thatSide);
-    logger.debug("supported by other side: {}", thisSide);
-    result.add(KexInitParam.COMPRESSION_S2C, negotiate(thisSide, thatSide));
+    they = SshByteBuf.readUtf8(buf);
+    we = CompressionFactories.getNames();
+    logger.debug("we say: {}", we);
+    logger.debug("they say: {}", they);
+    result.add(KexInitParam.COMPRESSION_S2C, negotiate(they, we));
     logger.debug("negotiated: {}", result.get(KexInitParam.COMPRESSION_S2C));
 
     // language c2s
-    thisSide = SshByteBuf.readUtf8(buf);
-    thatSide = "";
-    logger.debug("supported by this side: {}", thatSide);
-    logger.debug("supported by other side: {}", thisSide);
-    result.add(KexInitParam.LANGUAGE_C2S, negotiate(thisSide, thatSide));
+    they = SshByteBuf.readUtf8(buf);
+    we = "";
+    logger.debug("we say: {}", we);
+    logger.debug("they say: {}", they);
+    result.add(KexInitParam.LANGUAGE_C2S, negotiate(they, we));
     logger.debug("negotiated: {}", result.get(KexInitParam.LANGUAGE_C2S));
 
     // language s2c
-    thisSide = SshByteBuf.readUtf8(buf);
-    thatSide = "";
-    logger.debug("supported by this side: {}", thatSide);
-    logger.debug("supported by other side: {}", thisSide);
-    result.add(KexInitParam.LANGUAGE_S2C, negotiate(thisSide, thatSide));
+    they = SshByteBuf.readUtf8(buf);
+    we = "";
+    logger.debug("we say: {}", we);
+    logger.debug("they say: {}", they);
+    result.add(KexInitParam.LANGUAGE_S2C, negotiate(they, we));
     logger.debug("negotiated: {}", result.get(KexInitParam.LANGUAGE_S2C));
 
     return result;
