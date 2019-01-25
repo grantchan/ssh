@@ -22,15 +22,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
+public class RequestHandler extends ChannelInboundHandlerAdapter {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   // The numbers 30-49 are key exchange specific and may be redefined by other kex methods.
-  private final byte SSH_MSG_KEXDH_FIRST = 30;
-  private final byte SSH_MSG_KEXDH_LAST  = 49;
+  private static final byte SSH_MSG_KEXDH_FIRST = 30;
+  private static final byte SSH_MSG_KEXDH_LAST  = 49;
 
-  protected Session session;
+  protected final Session session;
   private KexHandler kex;
 
   public RequestHandler(Session session) {
@@ -140,10 +140,15 @@ public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
     msg.readInt();
 
     int payloadLen = msg.readerIndex() - startPos;
-    byte[] clientKexInit = new byte[payloadLen + 1];
-    clientKexInit[0] = SshMessage.SSH_MSG_KEXINIT;
-    msg.getBytes(startPos, clientKexInit, 1, payloadLen);
-    session.setC2sKex(clientKexInit);
+    byte[] kiBytes = new byte[payloadLen + 1];
+    kiBytes[0] = SshMessage.SSH_MSG_KEXINIT;
+    msg.getBytes(startPos, kiBytes, 1, payloadLen);
+
+    if (session.isServer()) {
+      session.setC2sKex(kiBytes);
+    } else {
+      session.setS2cKex(kiBytes);
+    }
 
     kex = KexHandlerFactories.create(kexInit.get(KexInitParam.KEX), session);
     if (kex == null) {
@@ -154,12 +159,14 @@ public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
   private List<String> resolveKexInit(ByteBuf buf) {
     List<String> result = new ArrayList<>(10);
 
+    boolean isServer = session.isServer();
+
     // factory
     String they = SshByteBuf.readUtf8(buf);
     String we = KexHandlerFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.KEX, negotiate(they, we));
+    result.add(KexInitParam.KEX, isServer ? negotiate(they, we) : negotiate(we, they));
     logger.debug("negotiated: {}", result.get(KexInitParam.KEX));
 
     // server host key
@@ -167,7 +174,7 @@ public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
     we = SignatureFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.SERVER_HOST_KEY, negotiate(they, we));
+    result.add(KexInitParam.SERVER_HOST_KEY, isServer ? negotiate(they, we) : negotiate(we, they));
     logger.debug("negotiated: {}", result.get(KexInitParam.SERVER_HOST_KEY));
 
     // encryption c2s
@@ -175,7 +182,7 @@ public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
     we = CipherFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.ENCRYPTION_C2S, negotiate(they, we));
+    result.add(KexInitParam.ENCRYPTION_C2S, isServer ? negotiate(they, we) : negotiate(we, they));
     logger.debug("negotiated: {}", result.get(KexInitParam.ENCRYPTION_C2S));
 
     // encryption s2c
@@ -183,7 +190,7 @@ public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
     we = CipherFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.ENCRYPTION_S2C, negotiate(they, we));
+    result.add(KexInitParam.ENCRYPTION_S2C, isServer ? negotiate(they, we) : negotiate(we, they));
     logger.debug("negotiated: {}", result.get(KexInitParam.ENCRYPTION_S2C));
 
     // mac c2s
@@ -191,7 +198,7 @@ public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
     we = MacFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.MAC_C2S, negotiate(they, we));
+    result.add(KexInitParam.MAC_C2S, isServer ? negotiate(they, we) : negotiate(we, they));
     logger.debug("negotiated: {}", result.get(KexInitParam.MAC_C2S));
 
     // mac s2c
@@ -199,7 +206,7 @@ public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
     we = MacFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.MAC_S2C, negotiate(they, we));
+    result.add(KexInitParam.MAC_S2C, isServer ? negotiate(they, we) : negotiate(we, they));
     logger.debug("negotiated: {}", result.get(KexInitParam.MAC_S2C));
 
     // compression c2s
@@ -207,7 +214,7 @@ public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
     we = CompressionFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.COMPRESSION_C2S, negotiate(they, we));
+    result.add(KexInitParam.COMPRESSION_C2S, isServer ? negotiate(they, we) : negotiate(we, they));
     logger.debug("negotiated: {}", result.get(KexInitParam.COMPRESSION_C2S));
 
     // compression s2c
@@ -215,7 +222,7 @@ public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
     we = CompressionFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.COMPRESSION_S2C, negotiate(they, we));
+    result.add(KexInitParam.COMPRESSION_S2C, isServer ? negotiate(they, we) : negotiate(we, they));
     logger.debug("negotiated: {}", result.get(KexInitParam.COMPRESSION_S2C));
 
     // language c2s
@@ -223,7 +230,7 @@ public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
     we = "";
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.LANGUAGE_C2S, negotiate(they, we));
+    result.add(KexInitParam.LANGUAGE_C2S, isServer ? negotiate(they, we) : negotiate(we, they));
     logger.debug("negotiated: {}", result.get(KexInitParam.LANGUAGE_C2S));
 
     // language s2c
@@ -231,15 +238,34 @@ public abstract class RequestHandler extends ChannelInboundHandlerAdapter {
     we = "";
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.LANGUAGE_S2C, negotiate(they, we));
+    result.add(KexInitParam.LANGUAGE_S2C, isServer ? negotiate(they, we) : negotiate(we, they));
     logger.debug("negotiated: {}", result.get(KexInitParam.LANGUAGE_S2C));
 
     return result;
   }
 
-  protected abstract String negotiate(String thatSide, String thisSide);
+  /**
+   * Negotiate the key exchange method, public key algorithm, symmetric encryption algorithm,
+   * message authentication algorithm, and hash algorithm supported by both parties.
+   *
+   * It iterates over client's kex algorithms, on at a time, choose the first algorithm that the
+   * server also supports.
+   *
+   * @param c2s kex algorithms sent by client
+   * @param s2c kex algorithms sent by server
+   * @return the negotiated result, if failed, returns null
+   */
+  protected String negotiate(String c2s, String s2c) {
+    String[] c = c2s.split(",");
+    for (String ci : c) {
+      if (s2c.contains(ci)) {
+        return ci;
+      }
+    }
+    return null;
+  }
 
-  protected abstract void handleServiceRequest(ByteBuf req);
+  protected void handleServiceRequest(ByteBuf req) {}
 
   private void handleNewKeys(ByteBuf req) {
     /*

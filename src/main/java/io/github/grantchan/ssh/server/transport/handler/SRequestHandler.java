@@ -62,15 +62,4 @@ public class SRequestHandler extends RequestHandler {
 
     // send welcome banner
   }
-
-  protected String negotiate(String c2s, String s2c) {
-    String[] c = c2s.split(",");
-    for (String ci : c) {
-      if (s2c.contains(ci)) {
-        return ci;
-      }
-    }
-    return null;
-  }
-
 }

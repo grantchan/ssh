@@ -65,7 +65,7 @@ public class SIdExHandler extends IdExHandler {
   }
 
   @Override
-  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+  public void channelRead(ChannelHandlerContext ctx, Object msg) {
     accuBuf.writeBytes((ByteBuf) msg);
 
     String id = session.getClientId();
