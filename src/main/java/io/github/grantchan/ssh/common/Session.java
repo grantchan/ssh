@@ -24,6 +24,7 @@ public class Session {
 
   private ChannelHandlerContext ctx;
 
+  private boolean isServer = false;
   private byte[] id;
 
   /*
@@ -49,8 +50,13 @@ public class Session {
   private Service service;
 
   // constructor
-  public Session(ChannelHandlerContext ctx) {
+  public Session(ChannelHandlerContext ctx, boolean isServer) {
     this.ctx = ctx;
+    this.isServer = isServer;
+  }
+
+  public boolean isServer() {
+    return this.isServer;
   }
 
   public byte[] getId() {

@@ -1,5 +1,6 @@
 package io.github.grantchan.ssh.server.transport.handler;
 
+import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.handler.IdExHandler;
 import io.github.grantchan.ssh.common.transport.handler.PacketDecoder;
 import io.github.grantchan.ssh.common.transport.handler.PacketEncoder;
@@ -18,8 +19,22 @@ public class SIdExHandler extends IdExHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
+  protected Session session;
+  protected ByteBuf accuBuf;
+
   @Override
-  public void channelActive(ChannelHandlerContext ctx) throws Exception {
+  public void handlerAdded(ChannelHandlerContext ctx) {
+    session = new Session(ctx, true);
+    accuBuf = session.createBuffer();
+  }
+
+  @Override
+  protected Session getSession() {
+    return session;
+  }
+
+  @Override
+  public void channelActive(ChannelHandlerContext ctx) {
     /*
      * RFC 4253:
      * When the connection has been established, both sides MUST send an
@@ -51,11 +66,11 @@ public class SIdExHandler extends IdExHandler {
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    super.channelRead(ctx, msg);
+    accuBuf.writeBytes((ByteBuf) msg);
 
     String id = session.getClientId();
     if (id == null) {
-      id = getId();
+      id = getId(accuBuf);
       if (id == null) {
         return;
       }

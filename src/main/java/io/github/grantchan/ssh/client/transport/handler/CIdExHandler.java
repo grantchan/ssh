@@ -1,5 +1,6 @@
 package io.github.grantchan.ssh.client.transport.handler;
 
+import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.handler.IdExHandler;
 import io.github.grantchan.ssh.common.transport.handler.PacketDecoder;
 import io.github.grantchan.ssh.common.transport.handler.PacketEncoder;
@@ -16,6 +17,20 @@ import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
 public class CIdExHandler extends IdExHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
+
+  protected Session session;
+  protected ByteBuf accuBuf;
+
+  @Override
+  public void handlerAdded(ChannelHandlerContext ctx) {
+    session = new Session(ctx, false);
+    accuBuf = session.createBuffer();
+  }
+
+  @Override
+  protected Session getSession() {
+    return session;
+  }
 
   @Override
   public void channelActive(ChannelHandlerContext ctx) {
@@ -47,12 +62,12 @@ public class CIdExHandler extends IdExHandler {
   }
 
   @Override
-  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    super.channelRead(ctx, msg);
+  public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    accuBuf.writeBytes((ByteBuf) msg);
 
     String id = session.getServerId();
     if (id == null) {
-      id = getId();
+      id = getId(accuBuf);
       if (id == null) {
         return;
       }
