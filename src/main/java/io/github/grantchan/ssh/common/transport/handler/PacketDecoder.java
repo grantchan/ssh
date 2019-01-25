@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.io.IOException;
+import java.util.Objects;
 
 import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_LENGTH;
 
@@ -23,12 +24,12 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
 
   private final Session session;
 
-  protected ByteBuf accuBuf;
+  private ByteBuf accuBuf;
   private int decodeStep = 0;
   private long seq = 0; // packet sequence number
 
   public PacketDecoder(Session session) {
-    this.session = session;
+    this.session = Objects.requireNonNull(session, "Session is not initialized");
   }
 
   @Override
@@ -46,15 +47,17 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     accuBuf.writeBytes((ByteBuf) msg);
 
-    int c2sCipSize = session.getC2sCipherSize();
-    while (accuBuf.readableBytes() > c2sCipSize) {
+    boolean isServer = session.isServer();
+
+    int cipherSize = isServer ? session.getC2sCipherSize() : session.getS2cCipherSize();
+    while (accuBuf.readableBytes() > cipherSize) {
       int wIdx = accuBuf.writerIndex();
 
       int pkLen = decode();
       if (pkLen != -1) {
         // This is important - handling the SSH_MSG_NEWKEYS will update the MAC block size,
         // we need to cache this value and use it until the message is fully process.
-        int macSize = session.getC2sMacSize();
+        int macSize = isServer ? session.getC2sMacSize() : session.getC2sMacSize();
 
         ctx.fireChannelRead(accuBuf);
 
@@ -81,28 +84,30 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
     byte[] packet = new byte[accuBuf.readableBytes()];
     accuBuf.getBytes(rIdx, packet);
 
-    Cipher c2sCip = session.getC2sCipher();
-    int c2sCipSize = session.getC2sCipherSize();
-    if (decodeStep == 0 && c2sCip != null) {
+    boolean isServer = session.isServer();
+
+    Cipher cipher = isServer ? session.getC2sCipher() : session.getS2cCipher();
+    int cipherSize = isServer ? session.getC2sCipherSize() : session.getS2cCipherSize();
+    if (decodeStep == 0 && cipher != null) {
       // decrypt the first block of the packet
-      accuBuf.setBytes(rIdx, c2sCip.update(packet, 0, c2sCipSize));
+      accuBuf.setBytes(rIdx, cipher.update(packet, 0, cipherSize));
 
       decodeStep = 1;
     }
 
     int len  = accuBuf.readInt();
 
-    int c2sMacSize = session.getC2sMacSize();
-    if (accuBuf.readableBytes() < len + c2sMacSize) {
+    int macSize = isServer ? session.getC2sMacSize() : session.getS2cMacSize();
+    if (accuBuf.readableBytes() < len + macSize) {
       // packet has not been fully received, restore the reader pointer
       accuBuf.readerIndex(rIdx);
       return -1;
     }
 
     // decrypt the remaining blocks of the packet
-    if (c2sCip != null) {
-      accuBuf.setBytes(rIdx + c2sCipSize,
-          c2sCip.update(packet, rIdx + c2sCipSize, len + SSH_PACKET_LENGTH - c2sCipSize));
+    if (cipher != null) {
+      accuBuf.setBytes(rIdx + cipherSize,
+          cipher.update(packet, rIdx + cipherSize, len + SSH_PACKET_LENGTH - cipherSize));
 
       StringBuilder sb = new StringBuilder();
       int i = accuBuf.readerIndex();
@@ -113,18 +118,18 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
     }
 
     // verify the packet by the MAC
-    Mac c2sMac = session.getC2sMac();
-    if (c2sMac != null) {
-      c2sMac.update(Bytes.htonl(seq));
+    Mac mac = isServer ? session.getC2sMac() : session.getS2cMac();
+    if (mac != null) {
+      mac.update(Bytes.htonl(seq));
 
       byte[] decryptedPacket = new byte[len + SSH_PACKET_LENGTH];
       accuBuf.getBytes(rIdx, decryptedPacket);
-      c2sMac.update(decryptedPacket, 0, len + SSH_PACKET_LENGTH);
-      byte[] blk = new byte[c2sMacSize];
-      c2sMac.doFinal(blk, 0);
+      mac.update(decryptedPacket, 0, len + SSH_PACKET_LENGTH);
+      byte[] blk = new byte[macSize];
+      mac.doFinal(blk, 0);
 
       int i = 0, j = len + SSH_PACKET_LENGTH;
-      while (c2sMacSize-- > 0) {
+      while (macSize-- > 0) {
         if (blk[i++] != packet[j++]) {
           throw new IOException(SshMessage.disconnectReason(SshMessage.SSH_DISCONNECT_MAC_ERROR));
         }

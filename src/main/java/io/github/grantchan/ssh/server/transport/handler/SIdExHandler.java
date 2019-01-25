@@ -20,7 +20,8 @@ public class SIdExHandler extends IdExHandler {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   protected Session session;
-  protected ByteBuf accuBuf;
+
+  private ByteBuf accuBuf;
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) {

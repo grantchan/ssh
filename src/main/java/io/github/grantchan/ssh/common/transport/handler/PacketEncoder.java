@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.security.SecureRandom;
+import java.util.Objects;
 
 import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
@@ -25,7 +26,7 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
   private long seq = 0;
 
   public PacketEncoder(Session session) {
-    this.session = session;
+    this.session = Objects.requireNonNull(session, "Session is not initialized");
   }
 
   @Override
@@ -35,8 +36,10 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
     int len = buf.readableBytes();
     int off = buf.readerIndex() - SSH_PACKET_HEADER_LENGTH;
 
+    boolean isServer = session.isServer();
+
     // Calculate padding length
-    int bsize  = session.getS2cCipherSize();
+    int bsize  = isServer ? session.getS2cCipherSize() : session.getC2sCipherSize();
     int oldLen = len;
     len += SSH_PACKET_HEADER_LENGTH;
     int pad = (-len) & (bsize - 1);
@@ -60,21 +63,21 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
     byte[] packet = new byte[buf.readableBytes()];
     buf.getBytes(off, packet);
 
-    Mac s2cMac = session.getS2cMac();
-    if (s2cMac != null) {
-      int macSize = session.getS2cMacSize();
-      s2cMac.update(Bytes.htonl(seq));
-      s2cMac.update(packet);
-      byte[] tmp = s2cMac.doFinal();
-      if (macSize != session.getS2cDefMacSize()) {
+    Mac mac = isServer ? session.getS2cMac() : session.getC2sMac();
+    if (mac != null) {
+      int macSize = isServer ? session.getS2cMacSize() : session.getC2sMacSize();
+      mac.update(Bytes.htonl(seq));
+      mac.update(packet);
+      byte[] tmp = mac.doFinal();
+      if (macSize != (isServer ? session.getS2cDefMacSize() : session.getC2sDefMacSize())) {
         buf.writeBytes(tmp, 0, macSize);
       } else {
         buf.writeBytes(tmp);
       }
     }
 
-    Cipher s2cCipher = session.getS2cCipher();
-    if (s2cCipher != null) {
+    Cipher cipher = isServer ? session.getS2cCipher() : session.getC2sCipher();
+    if (cipher != null) {
       StringBuilder sb = new StringBuilder();
       ByteBufUtil.appendPrettyHexDump(sb, buf);
       logger.debug("Packet before encryption: \n{}", sb.toString());
@@ -82,7 +85,7 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
       byte[] tmp = new byte[len + 4 - off];
       buf.getBytes(off, tmp);
 
-      buf.setBytes(off, s2cCipher.update(tmp));
+      buf.setBytes(off, cipher.update(tmp));
     }
 
     seq = ++seq & 0xffffffffL;
