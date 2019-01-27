@@ -4,6 +4,7 @@ import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.handler.IdExHandler;
 import io.github.grantchan.ssh.common.transport.handler.PacketDecoder;
 import io.github.grantchan.ssh.common.transport.handler.PacketEncoder;
+import io.github.grantchan.ssh.common.transport.handler.RequestHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;
@@ -77,7 +78,7 @@ public class CIdExHandler extends IdExHandler {
       session.setServerId(id);
 
       ctx.pipeline().addLast(new PacketDecoder(session),
-                             new CRequestHandler(session),
+                             new RequestHandler(session),
                              new PacketEncoder(session));
       ctx.pipeline().remove(this);
 

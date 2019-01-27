@@ -144,15 +144,17 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     kiBytes[0] = SshMessage.SSH_MSG_KEXINIT;
     msg.getBytes(startPos, kiBytes, 1, payloadLen);
 
+    kex = KexHandlerFactories.create(kexInit.get(KexInitParam.KEX), session);
+    if (kex == null) {
+      throw new IOException("Unknown key exchange: " + KexInitParam.KEX);
+    }
+
     if (session.isServer()) {
       session.setC2sKex(kiBytes);
     } else {
       session.setS2cKex(kiBytes);
-    }
 
-    kex = KexHandlerFactories.create(kexInit.get(KexInitParam.KEX), session);
-    if (kex == null) {
-      throw new IOException("Unknown key exchange: " + KexInitParam.KEX);
+      kex.handleMessage(SshMessage.SSH_MSG_KEXDH_INIT, null);
     }
   }
 
@@ -255,7 +257,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
    * @param s2c kex algorithms sent by server
    * @return the negotiated result, if failed, returns null
    */
-  protected String negotiate(String c2s, String s2c) {
+  String negotiate(String c2s, String s2c) {
     String[] c = c2s.split(",");
     for (String ci : c) {
       if (s2c.contains(ci)) {

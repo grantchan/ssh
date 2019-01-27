@@ -88,6 +88,11 @@ public final class SshByteBuf {
   /**
    * Read a multiple precision integer from a {@link ByteBuf}
    *
+   * mpint:
+   * @see <a href="https://tools.ietf.org/html/rfc4251#section-5">Data Type Representations Used in the SSH Protocols</a>
+   *
+   * Basically, a mpint is an integer with a length.
+   *
    * @param buf  the {@link ByteBuf} object to read from
    * @return     the {@link BigInteger} read from {@code buf}
    * @see        #writeMpInt(ByteBuf, BigInteger)

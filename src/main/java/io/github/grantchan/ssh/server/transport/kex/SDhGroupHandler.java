@@ -17,11 +17,11 @@ import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 
-public class DhGroupHandler extends KexHandler {
+public class SDhGroupHandler extends KexHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  public DhGroupHandler(MessageDigest md, KeyExchange kex, Session session) {
+  public SDhGroupHandler(MessageDigest md, KeyExchange kex, Session session) {
     super(md, kex, session);
   }
 

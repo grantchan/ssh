@@ -18,7 +18,7 @@ import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 
-public class DhGroupExHandler extends KexHandler {
+public class SDhGroupExHandler extends KexHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -28,7 +28,7 @@ public class DhGroupExHandler extends KexHandler {
 
   private byte expect = SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST;
 
-  public DhGroupExHandler(MessageDigest md, Session session) {
+  public SDhGroupExHandler(MessageDigest md, Session session) {
     super(md, null, session);
   }
 
