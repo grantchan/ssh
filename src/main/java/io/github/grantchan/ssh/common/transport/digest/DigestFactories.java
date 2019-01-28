@@ -7,6 +7,7 @@ import java.security.NoSuchAlgorithmException;
 
 public enum DigestFactories implements NamedFactory<MessageDigest> {
 
+  md5("MD5"),
   sha1("SHA-1"),
   sha256("SHA-256"),
   sha384("SHA-384"),
