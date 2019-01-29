@@ -38,38 +38,42 @@ public class SDhGroupHandler extends KexHandler {
     }
 
     /*
-     * RFC 4419:
-     * The client sends SSH_MSG_KEX_DH_GEX_INIT
-     *   byte    SSH_MSG_KEX_DH_GEX_INIT
+     * RFC 4253:
+     * First, the client sends the following:
+     *   byte    SSH_MSG_KEXDH_INIT
      *   mpint   e
      */
     byte[] e = SshByteBuf.readBytes(req);
     kex.receivedPubKey(e);
 
     /*
-     * RFC 4419:
-     * The server responds with SSH_MSG_KEX_DH_GEX_REPLY:
-     *   byte    SSH_MSG_KEX_DH_GEX_REPLY
-     *   string  server public host key and certificates (K_S)
-     *   mpint   f
-     *   string  signature of H
+     * RFC 4253:
+     * The server then responds with the following:
+     *   byte      SSH_MSG_KEXDH_REPLY
+     *   string    server public host key and certificates (K_S)
+     *   mpint     f
+     *   string    signature of H
      *
-     * The hash H is computed as the HASH hash of the concatenation of the
-     * following:
+     *  The hash H is computed as the HASH hash of the concatenation of the following:
      *
-     *   string  V_C, the client's version string (CR and NL excluded)
-     *   string  V_S, the server's version string (CR and NL excluded)
-     *   string  I_C, the payload of the client's SSH_MSG_KEXINIT
-     *   string  I_S, the payload of the server's SSH_MSG_KEXINIT
-     *   string  K_S, the host key
-     *   uint32  min, minimal size in bits of an acceptable group
-     *   uint32  n, preferred size in bits of the group the server will send
-     *   uint32  max, maximal size in bits of an acceptable group
-     *   mpint   p, safe prime
-     *   mpint   g, generator for subgroup
-     *   mpint   e, exchange value sent by the client
-     *   mpint   f, exchange value sent by the server
-     *   mpint   K, the shared secret
+     *   string    V_C, the client's identification string (CR and LF excluded)
+     *   string    V_S, the server's identification string (CR and LF excluded)
+     *   string    I_C, the payload of the client's SSH_MSG_KEXINIT
+     *   string    I_S, the payload of the server's SSH_MSG_KEXINIT
+     *   string    K_S, the host key
+     *   mpint     e, exchange value sent by the client
+     *   mpint     f, exchange value sent by the server
+     *   mpint     K, the shared secret
+     *
+     *  This value is called the exchange hash, and it is used to
+     *  authenticate the key exchange.  The exchange hash SHOULD be kept
+     *  secret.
+     *
+     *  The signature algorithm MUST be applied over H, not the original
+     *  data.  Most signature algorithms include hashing and additional
+     *  padding (e.g., "ssh-dss" specifies SHA-1 hashing).  In that case, the
+     *  data is first hashed with HASH to compute H, and H is then hashed
+     *  with SHA-1 as part of the signing operation.
      */
     byte[] v_c = session.getClientId().getBytes(StandardCharsets.UTF_8);
     byte[] v_s = session.getServerId().getBytes(StandardCharsets.UTF_8);

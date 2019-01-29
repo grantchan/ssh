@@ -264,7 +264,7 @@ public class SDhGroupExHandler extends KexHandler {
     Signature sig = SignatureFactories.create(kexParams.get(KexInitParam.SERVER_HOST_KEY),
                                                    kp.getPrivate());
     if (sig == null) {
-      throw new IOException("Unknown signature: " + KexInitParam.SERVER_HOST_KEY);
+      throw new IOException("Unknown signature: " + kexParams.get(KexInitParam.SERVER_HOST_KEY));
     }
 
     try {

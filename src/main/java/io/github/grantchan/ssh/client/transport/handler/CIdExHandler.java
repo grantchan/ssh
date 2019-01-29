@@ -85,7 +85,7 @@ public class CIdExHandler extends IdExHandler {
       ByteBuf ki = kexInit();
       byte[] buf = new byte[ki.readableBytes()];
       ki.getBytes(SSH_PACKET_HEADER_LENGTH, buf);
-      session.setS2cKex(buf);
+      session.setC2sKex(buf);
 
       ki.readerIndex(0);
 
