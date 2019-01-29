@@ -5,6 +5,7 @@ import io.github.grantchan.ssh.common.transport.cipher.CipherFactories;
 import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
 import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.mac.MacFactories;
+import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.github.grantchan.ssh.util.buffer.SshByteBuf;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -38,13 +39,7 @@ public abstract class KexHandler {
 
   public void handleNewKeys(ByteBuf msg) {
     byte[] id = h;
-    StringBuilder sb = new StringBuilder();
-    for (byte b : id) {
-      sb.append("0123456789abcdef".charAt((b >> 4) & 0x0F));
-      sb.append("0123456789abcdef".charAt(b & 0x0F));
-      sb.append(":");
-    }
-    logger.info("SSH_MSG_NEWKEYS: {}", sb.toString());
+    logger.info("SSH_MSG_NEWKEYS: {}", Bytes.hex(id));
 
     session.setId(id);
 

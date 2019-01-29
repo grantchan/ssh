@@ -126,6 +126,26 @@ public final class Bytes {
     return Arrays.copyOfRange(buf, buf.length - len, buf.length);
   }
 
+  /**
+   * Converts a byte array to hexadecimal
+   */
+  public static String hex(byte[] buf) {
+    if (buf == null) {
+      return null;
+    }
+
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < buf.length; i++) {
+      byte b = buf[i];
+      sb.append(Character.forDigit((b >> 4) & 0xF, 16));
+      sb.append(Character.forDigit((b & 0xF), 16));
+      if (i < buf.length - 1) {
+        sb.append(":");
+      }
+    }
+    return sb.toString();
+  }
+
   /* Private constructor to prevent this class from being explicitly instantiated */
   private Bytes() {}
 }

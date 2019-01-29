@@ -21,6 +21,9 @@ import java.security.PublicKey;
 import java.security.SignatureException;
 import java.util.List;
 
+import static io.github.grantchan.ssh.util.key.Comparator.md5;
+import static io.github.grantchan.ssh.util.key.Comparator.sha256;
+
 public class CDhGroupHandler extends KexHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -99,6 +102,7 @@ public class CDhGroupHandler extends KexHandler {
      *  with SHA-1 as part of the signing operation.
      */
     byte[] k_s = SshByteBuf.readBytes(msg);
+    logger.debug("Host RSA public key fingerprint MD5: {}, SHA256: {}", md5(k_s), sha256(k_s));
     // Client user needs to verify the hash value of k_s(public key) of the server here
 
     byte[] e = SshByteBuf.readBytes(msg);

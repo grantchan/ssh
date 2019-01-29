@@ -2,7 +2,6 @@ package io.github.grantchan.ssh.server.transport.kex;
 
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.common.transport.digest.DigestFactories;
 import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
 import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
@@ -16,9 +15,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
+
+import static io.github.grantchan.ssh.util.key.Comparator.md5;
+import static io.github.grantchan.ssh.util.key.Comparator.sha256;
 
 public class SDhGroupHandler extends KexHandler {
 
@@ -99,7 +99,7 @@ public class SDhGroupHandler extends KexHandler {
     byte[] k_s = new byte[reply.readableBytes()];
     reply.readBytes(k_s);
 
-    logger.debug("Host RSA public key fingerprint MD5:{}, SHA256:{}", md5(k_s), sha256(k_s));
+    logger.debug("Host RSA public key fingerprint MD5: {}, SHA256: {}", md5(k_s), sha256(k_s));
 
     reply.clear();
     SshByteBuf.writeBytes(reply, v_c);
@@ -140,49 +140,5 @@ public class SDhGroupHandler extends KexHandler {
 
     session.replyKexDhReply(k_s, kex.getPubKey(), sigH);
     session.requestKexNewKeys();
-  }
-
-  private byte[] fingerPrint(byte[] data, MessageDigest md) {
-    if (data == null) {
-      throw new IllegalArgumentException("Invalid parameter - data is null");
-    }
-    if (md == null) {
-      throw new IllegalArgumentException("Invalid parameter - message digest is null");
-    }
-
-    md.update(data);
-
-    return md.digest();
-  }
-
-  private String md5(byte[] key) {
-    if (key == null) {
-      throw new IllegalArgumentException("Invalid key parameter - key is null");
-    }
-
-    byte[] data = fingerPrint(key, Objects.requireNonNull(DigestFactories.md5.create()));
-
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < data.length; i++) {
-      byte b = data[i];
-      sb.append("0123456789abcdef".charAt((b >> 4) & 0x0F));
-      sb.append("0123456789abcdef".charAt(b & 0x0F));
-      if (i < data.length - 1) {
-        sb.append(":");
-      }
-    }
-    return sb.toString();
-  }
-
-  private String sha256(byte[] key) {
-    if (key == null) {
-      throw new IllegalArgumentException("Invalid key parameter - key is null");
-    }
-
-    byte[] data = fingerPrint(key, Objects.requireNonNull(DigestFactories.sha256.create()));
-
-    Base64.Encoder base64 = Base64.getEncoder();
-
-    return base64.encodeToString(data).replaceAll("=", "");
   }
 }

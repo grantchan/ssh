@@ -6,7 +6,7 @@ import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.common.userauth.method.Method;
 import io.github.grantchan.ssh.util.buffer.SshByteBuf;
-import io.github.grantchan.ssh.util.key.KeyComparator;
+import io.github.grantchan.ssh.util.key.Comparator;
 import io.github.grantchan.ssh.util.key.decoder.DSAPublicKeyDecoder;
 import io.github.grantchan.ssh.util.key.decoder.PublicKeyDecoder;
 import io.github.grantchan.ssh.util.key.decoder.RSAPublicKeyDecoder;
@@ -68,7 +68,7 @@ public class PublicKeyAuth implements Method {
 
     boolean match = false;
     for (PublicKey key : keys) {
-      if (KeyComparator.compare(key, publicKey)) {
+      if (Comparator.compare(key, publicKey)) {
         match = true;
       }
     }
