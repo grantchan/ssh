@@ -1,8 +1,8 @@
 package io.github.grantchan.ssh.common.transport.signature;
 
 import com.sun.xml.internal.txw2.IllegalSignatureException;
+import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.github.grantchan.ssh.util.buffer.Bytes;
-import io.github.grantchan.ssh.util.buffer.SshByteBuf;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
@@ -43,13 +43,13 @@ public class DSASignature extends Signature {
      */
     if (sig.length != DSA_SIGNATURE_LENGTH) {
       ByteBuf buf = Unpooled.wrappedBuffer(sig);
-      String keyType = SshByteBuf.readUtf8(buf);
+      String keyType = ByteBufIo.readUtf8(buf);
       if (!keyType.equals("ssh-dss")) {
         throw new IllegalArgumentException("Key type mismatched, expected: ssh-dss, actual: " +
             keyType);
       }
 
-      sig = SshByteBuf.readBytes(buf);
+      sig = ByteBufIo.readBytes(buf);
       if (sig.length != DSA_SIGNATURE_LENGTH) {
         throw new SignatureException("Invalid signature length, expected: " + DSA_SIGNATURE_LENGTH +
             ", actual: " + sig.length);

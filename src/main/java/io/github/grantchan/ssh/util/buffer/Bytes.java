@@ -127,9 +127,9 @@ public final class Bytes {
   }
 
   /**
-   * Converts a byte array to hexadecimal
+   * Converts a byte array to hexadecimal string
    */
-  public static String hex(byte[] buf) {
+  public static String hex(byte[] buf, String sep) {
     if (buf == null) {
       return null;
     }
@@ -139,8 +139,8 @@ public final class Bytes {
       byte b = buf[i];
       sb.append(Character.forDigit((b >> 4) & 0xF, 16));
       sb.append(Character.forDigit((b & 0xF), 16));
-      if (i < buf.length - 1) {
-        sb.append(":");
+      if (sep != null && i < buf.length - 1) {
+        sb.append(sep);
       }
     }
     return sb.toString();

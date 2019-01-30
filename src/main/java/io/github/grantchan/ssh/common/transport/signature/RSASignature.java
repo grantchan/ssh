@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.common.transport.signature;
 
 import com.sun.xml.internal.txw2.IllegalSignatureException;
-import io.github.grantchan.ssh.util.buffer.SshByteBuf;
+import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
@@ -53,13 +53,13 @@ public class RSASignature extends Signature {
      * @see <a href="https://tools.ietf.org/html/rfc4253#section-6.6">Public Key Algorithms</a>
      */
     ByteBuf buf = Unpooled.wrappedBuffer(sig);
-    String keyType = SshByteBuf.readUtf8(buf);
+    String keyType = ByteBufIo.readUtf8(buf);
     if (!keyType.equals("ssh-rsa")) {
       throw new IllegalArgumentException("Key type mismatched, expected: ssh-rsa, actual: " +
           keyType);
     }
 
-    byte[] sigData = SshByteBuf.readBytes(buf);
+    byte[] sigData = ByteBufIo.readBytes(buf);
 
     if (sigData.length < signatureSize) {
       // if not enough signature data, fill with zero padding at the beginning

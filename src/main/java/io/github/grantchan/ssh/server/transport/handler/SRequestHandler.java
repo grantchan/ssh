@@ -3,7 +3,7 @@ package io.github.grantchan.ssh.server.transport.handler;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.handler.RequestHandler;
-import io.github.grantchan.ssh.util.buffer.SshByteBuf;
+import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public class SRequestHandler extends RequestHandler {
      *
      * @see <a href="https://tools.ietf.org/html/rfc4253#section-10">Service Request</a>
      */
-    String svcName = SshByteBuf.readUtf8(req);
+    String svcName = ByteBufIo.readUtf8(req);
     logger.info(svcName);
 
     try {

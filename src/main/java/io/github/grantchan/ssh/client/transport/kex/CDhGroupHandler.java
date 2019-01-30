@@ -7,7 +7,7 @@ import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.server.transport.kex.KexHandler;
-import io.github.grantchan.ssh.util.buffer.SshByteBuf;
+import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.github.grantchan.ssh.util.key.decoder.RSAPublicKeyDecoder;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
@@ -101,14 +101,14 @@ public class CDhGroupHandler extends KexHandler {
      *  data is first hashed with HASH to compute H, and H is then hashed
      *  with SHA-1 as part of the signing operation.
      */
-    byte[] k_s = SshByteBuf.readBytes(msg);
+    byte[] k_s = ByteBufIo.readBytes(msg);
     logger.debug("Host RSA public key fingerprint MD5: {}, SHA256: {}", md5(k_s), sha256(k_s));
     // Client user needs to verify the hash value of k_s(public key) of the server here
 
-    byte[] e = SshByteBuf.readBytes(msg);
+    byte[] e = ByteBufIo.readBytes(msg);
     kex.receivedPubKey(e);
 
-    byte[] sigH = SshByteBuf.readBytes(msg);
+    byte[] sigH = ByteBufIo.readBytes(msg);
 
     byte[] v_c = session.getClientId().getBytes(StandardCharsets.UTF_8);
     byte[] v_s = session.getServerId().getBytes(StandardCharsets.UTF_8);
@@ -124,14 +124,14 @@ public class CDhGroupHandler extends KexHandler {
 
     ByteBuf buf = session.createBuffer();
 
-    SshByteBuf.writeBytes(buf, v_c);
-    SshByteBuf.writeBytes(buf, v_s);
-    SshByteBuf.writeBytes(buf, i_c);
-    SshByteBuf.writeBytes(buf, i_s);
-    SshByteBuf.writeBytes(buf, k_s);
-    SshByteBuf.writeMpInt(buf, kex.getPubKey());
-    SshByteBuf.writeMpInt(buf, e);
-    SshByteBuf.writeMpInt(buf, kex.getSecretKey());
+    ByteBufIo.writeBytes(buf, v_c);
+    ByteBufIo.writeBytes(buf, v_s);
+    ByteBufIo.writeBytes(buf, i_c);
+    ByteBufIo.writeBytes(buf, i_s);
+    ByteBufIo.writeBytes(buf, k_s);
+    ByteBufIo.writeMpInt(buf, kex.getPubKey());
+    ByteBufIo.writeMpInt(buf, e);
+    ByteBufIo.writeMpInt(buf, kex.getSecretKey());
     byte[] h_s = new byte[buf.readableBytes()];
     buf.readBytes(h_s);
 

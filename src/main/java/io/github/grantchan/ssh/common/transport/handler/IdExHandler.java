@@ -6,7 +6,7 @@ import io.github.grantchan.ssh.common.transport.compression.CompressionFactories
 import io.github.grantchan.ssh.common.transport.kex.KexHandlerFactories;
 import io.github.grantchan.ssh.common.transport.mac.MacFactories;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
-import io.github.grantchan.ssh.util.buffer.SshByteBuf;
+import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ByteProcessor;
@@ -128,16 +128,16 @@ public abstract class IdExHandler extends ChannelInboundHandlerAdapter {
     rand.nextBytes(cookie);
     buf.writeBytes(cookie);
 
-    SshByteBuf.writeUtf8(buf, KexHandlerFactories.getNames());
-    SshByteBuf.writeUtf8(buf, SignatureFactories.getNames());
-    SshByteBuf.writeUtf8(buf, CipherFactories.getNames());
-    SshByteBuf.writeUtf8(buf, CipherFactories.getNames());
-    SshByteBuf.writeUtf8(buf, MacFactories.getNames());
-    SshByteBuf.writeUtf8(buf, MacFactories.getNames());
-    SshByteBuf.writeUtf8(buf, CompressionFactories.getNames());
-    SshByteBuf.writeUtf8(buf, CompressionFactories.getNames());
-    SshByteBuf.writeUtf8(buf, "");
-    SshByteBuf.writeUtf8(buf, "");
+    ByteBufIo.writeUtf8(buf, KexHandlerFactories.getNames());
+    ByteBufIo.writeUtf8(buf, SignatureFactories.getNames());
+    ByteBufIo.writeUtf8(buf, CipherFactories.getNames());
+    ByteBufIo.writeUtf8(buf, CipherFactories.getNames());
+    ByteBufIo.writeUtf8(buf, MacFactories.getNames());
+    ByteBufIo.writeUtf8(buf, MacFactories.getNames());
+    ByteBufIo.writeUtf8(buf, CompressionFactories.getNames());
+    ByteBufIo.writeUtf8(buf, CompressionFactories.getNames());
+    ByteBufIo.writeUtf8(buf, "");
+    ByteBufIo.writeUtf8(buf, "");
 
     buf.writeBoolean(false); // first factory packet follows
     buf.writeInt(0); // reserved (FFU)

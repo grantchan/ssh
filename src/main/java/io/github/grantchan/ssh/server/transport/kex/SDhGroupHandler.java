@@ -6,7 +6,7 @@ import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
 import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
-import io.github.grantchan.ssh.util.buffer.SshByteBuf;
+import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public class SDhGroupHandler extends KexHandler {
      *   byte    SSH_MSG_KEXDH_INIT
      *   mpint   e
      */
-    byte[] e = SshByteBuf.readBytes(req);
+    byte[] e = ByteBufIo.readBytes(req);
     kex.receivedPubKey(e);
 
     /*
@@ -91,10 +91,10 @@ public class SDhGroupHandler extends KexHandler {
 
     ByteBuf reply = session.createBuffer();
 
-    SshByteBuf.writeUtf8(reply, "ssh-rsa");
+    ByteBufIo.writeUtf8(reply, "ssh-rsa");
     RSAPublicKey pubKey = ((RSAPublicKey) kp.getPublic());
-    SshByteBuf.writeMpInt(reply, pubKey.getPublicExponent());
-    SshByteBuf.writeMpInt(reply, pubKey.getModulus());
+    ByteBufIo.writeMpInt(reply, pubKey.getPublicExponent());
+    ByteBufIo.writeMpInt(reply, pubKey.getModulus());
 
     byte[] k_s = new byte[reply.readableBytes()];
     reply.readBytes(k_s);
@@ -102,14 +102,14 @@ public class SDhGroupHandler extends KexHandler {
     logger.debug("Host RSA public key fingerprint MD5: {}, SHA256: {}", md5(k_s), sha256(k_s));
 
     reply.clear();
-    SshByteBuf.writeBytes(reply, v_c);
-    SshByteBuf.writeBytes(reply, v_s);
-    SshByteBuf.writeBytes(reply, i_c);
-    SshByteBuf.writeBytes(reply, i_s);
-    SshByteBuf.writeBytes(reply, k_s);
-    SshByteBuf.writeMpInt(reply, e);
-    SshByteBuf.writeMpInt(reply, kex.getPubKey());
-    SshByteBuf.writeMpInt(reply, kex.getSecretKey());
+    ByteBufIo.writeBytes(reply, v_c);
+    ByteBufIo.writeBytes(reply, v_s);
+    ByteBufIo.writeBytes(reply, i_c);
+    ByteBufIo.writeBytes(reply, i_s);
+    ByteBufIo.writeBytes(reply, k_s);
+    ByteBufIo.writeMpInt(reply, e);
+    ByteBufIo.writeMpInt(reply, kex.getPubKey());
+    ByteBufIo.writeMpInt(reply, kex.getSecretKey());
 
     byte[] h_s = new byte[reply.readableBytes()];
     reply.readBytes(h_s);
@@ -129,8 +129,8 @@ public class SDhGroupHandler extends KexHandler {
       sig.update(h);
 
       reply.clear();
-      SshByteBuf.writeUtf8(reply, kexParams.get(KexInitParam.SERVER_HOST_KEY));
-      SshByteBuf.writeBytes(reply, sig.sign());
+      ByteBufIo.writeUtf8(reply, kexParams.get(KexInitParam.SERVER_HOST_KEY));
+      ByteBufIo.writeBytes(reply, sig.sign());
     } catch (SignatureException ex) {
       ex.printStackTrace();
     }

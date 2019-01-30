@@ -5,7 +5,7 @@ import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.common.userauth.method.Method;
-import io.github.grantchan.ssh.util.buffer.SshByteBuf;
+import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.github.grantchan.ssh.util.key.Comparator;
 import io.github.grantchan.ssh.util.key.decoder.DSAPublicKeyDecoder;
 import io.github.grantchan.ssh.util.key.decoder.PublicKeyDecoder;
@@ -51,7 +51,7 @@ public class PublicKeyAuth implements Method {
      * string    public key blob
      */
     boolean hasSig = buf.readBoolean();
-    String keyType = SshByteBuf.readUtf8(buf);
+    String keyType = ByteBufIo.readUtf8(buf);
 
     // save the start position of blob
     int blobPos = buf.readerIndex();
@@ -96,7 +96,7 @@ public class PublicKeyAuth implements Method {
      * ....      (fields already consumed before getting here)
      * string    signature
      */
-    byte[] sig = SshByteBuf.readBytes(buf);
+    byte[] sig = ByteBufIo.readBytes(buf);
 
     Signature verifier = Objects.requireNonNull(SignatureFactories.create(keyType, publicKey));
 
@@ -118,13 +118,13 @@ public class PublicKeyAuth implements Method {
      * check whether the signature is correct.
      */
     ByteBuf val = session.createBuffer();
-    SshByteBuf.writeBytes(val, session.getId());
+    ByteBufIo.writeBytes(val, session.getId());
     val.writeByte(SshMessage.SSH_MSG_USERAUTH_REQUEST);
-    SshByteBuf.writeUtf8(val, user);
-    SshByteBuf.writeUtf8(val, service);
-    SshByteBuf.writeUtf8(val, "publickey");
+    ByteBufIo.writeUtf8(val, user);
+    ByteBufIo.writeUtf8(val, service);
+    ByteBufIo.writeUtf8(val, "publickey");
     val.writeBoolean(true);
-    SshByteBuf.writeUtf8(val, keyType);
+    ByteBufIo.writeUtf8(val, keyType);
     val.writeBytes(buf, blobPos, 4 + blobLen);
 
     verifier.update(val);

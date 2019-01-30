@@ -4,7 +4,7 @@ import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.server.userauth.service.ServiceFactories;
-import io.github.grantchan.ssh.util.buffer.SshByteBuf;
+import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -204,8 +204,8 @@ public class Session {
     ByteBuf buf = createMessage(SshMessage.SSH_MSG_DISCONNECT);
 
     buf.writeInt(reason);
-    SshByteBuf.writeUtf8(buf, message);
-    SshByteBuf.writeUtf8(buf, "");
+    ByteBufIo.writeUtf8(buf, message);
+    ByteBufIo.writeUtf8(buf, "");
 
     ctx.channel().writeAndFlush(buf).addListener((ChannelFuture f) -> {
       if (f.isDone()) {
@@ -225,7 +225,7 @@ public class Session {
   public void replyAccept(String svcName) {
     ByteBuf buf = createMessage(SshMessage.SSH_MSG_SERVICE_ACCEPT);
 
-    SshByteBuf.writeUtf8(buf, svcName);
+    ByteBufIo.writeUtf8(buf, svcName);
 
     ctx.channel().writeAndFlush(buf);
   }
@@ -247,8 +247,8 @@ public class Session {
   public void replyDhGexGroup(BigInteger p, BigInteger g) {
     ByteBuf pg = createMessage(SshMessage.SSH_MSG_KEX_DH_GEX_GROUP);
 
-    SshByteBuf.writeMpInt(pg, p);
-    SshByteBuf.writeMpInt(pg, g);
+    ByteBufIo.writeMpInt(pg, p);
+    ByteBufIo.writeMpInt(pg, g);
 
     logger.debug("Replying SSH_MSG_KEX_DH_GEX_GROUP...");
     ctx.channel().writeAndFlush(pg);
@@ -345,7 +345,7 @@ public class Session {
   public void replyUserAuthFailure(String remainMethods, boolean partialSuccess) {
     ByteBuf uaf = createMessage(SshMessage.SSH_MSG_USERAUTH_FAILURE);
 
-    SshByteBuf.writeUtf8(uaf, remainMethods);
+    ByteBufIo.writeUtf8(uaf, remainMethods);
     uaf.writeBoolean(partialSuccess);
 
     logger.debug("Replying SSH_MSG_USERAUTH_FAILURE...");
@@ -363,8 +363,8 @@ public class Session {
   public void replyUserAuthPkOk(String algorithm, byte[] blob) {
     ByteBuf uapo = createMessage(SshMessage.SSH_MSG_USERAUTH_PK_OK);
 
-    SshByteBuf.writeUtf8(uapo, algorithm);
-    SshByteBuf.writeBytes(uapo, blob);
+    ByteBufIo.writeUtf8(uapo, algorithm);
+    ByteBufIo.writeBytes(uapo, blob);
 
     logger.debug("Replying SSH_MSG_USERAUTH_PK_OK...");
     ctx.channel().writeAndFlush(uapo);
@@ -373,9 +373,9 @@ public class Session {
   public void replyKexDhReply(byte[] k_s, byte[] f, byte[] sigH) {
     ByteBuf reply = createMessage(SshMessage.SSH_MSG_KEXDH_REPLY);
 
-    SshByteBuf.writeBytes(reply, k_s);
-    SshByteBuf.writeBytes(reply, f);
-    SshByteBuf.writeBytes(reply, sigH);
+    ByteBufIo.writeBytes(reply, k_s);
+    ByteBufIo.writeBytes(reply, f);
+    ByteBufIo.writeBytes(reply, sigH);
 
     logger.debug("Replying SSH_MSG_KEXDH_REPLY...");
     ctx.channel().writeAndFlush(reply);
@@ -394,9 +394,9 @@ public class Session {
   public void replyKexDhGexReply(byte[] k_s, byte[] f, byte[] sigH) {
     ByteBuf reply = createMessage(SshMessage.SSH_MSG_KEX_DH_GEX_REPLY);
 
-    SshByteBuf.writeBytes(reply, k_s);
-    SshByteBuf.writeBytes(reply, f);
-    SshByteBuf.writeBytes(reply, sigH);
+    ByteBufIo.writeBytes(reply, k_s);
+    ByteBufIo.writeBytes(reply, f);
+    ByteBufIo.writeBytes(reply, sigH);
 
     logger.debug("Replying SSH_MSG_KEX_DH_GEX_REPLY...");
     ctx.channel().writeAndFlush(reply);
@@ -438,7 +438,7 @@ public class Session {
   public void requestKexDhInit(byte[] e) {
     ByteBuf req = createMessage(SshMessage.SSH_MSG_KEXDH_INIT);
 
-    SshByteBuf.writeMpInt(req, e);
+    ByteBufIo.writeMpInt(req, e);
 
     logger.debug("Requesting SSH_MSG_KEXDH_INIT...");
     ctx.channel().writeAndFlush(req);

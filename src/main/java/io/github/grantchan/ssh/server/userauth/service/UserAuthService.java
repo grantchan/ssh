@@ -6,7 +6,7 @@ import io.github.grantchan.ssh.common.userauth.method.Method;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.server.userauth.method.MethodFactories;
 import io.github.grantchan.ssh.server.userauth.method.SshAuthInProgressException;
-import io.github.grantchan.ssh.util.buffer.SshByteBuf;
+import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +38,9 @@ public class UserAuthService implements Service {
        *
        * @see <a href="https://tools.ietf.org/html/rfc4252#section-5">Authentication Requests</a>
        */
-      String user = SshByteBuf.readUtf8(req);
-      String service = SshByteBuf.readUtf8(req);
-      String method = SshByteBuf.readUtf8(req);
+      String user = ByteBufIo.readUtf8(req);
+      String service = ByteBufIo.readUtf8(req);
+      String method = ByteBufIo.readUtf8(req);
 
       String remoteAddr = session.getRemoteAddress();
 

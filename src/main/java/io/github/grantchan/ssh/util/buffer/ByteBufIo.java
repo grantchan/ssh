@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-public final class SshByteBuf {
+public final class ByteBufIo {
 
   /**
    * Read a byte array from a {@link ByteBuf}
@@ -154,5 +154,5 @@ public final class SshByteBuf {
   }
 
   /* Private constructor to prevent this class from being explicitly instantiated */
-  private SshByteBuf() {}
+  private ByteBufIo() {}
 }

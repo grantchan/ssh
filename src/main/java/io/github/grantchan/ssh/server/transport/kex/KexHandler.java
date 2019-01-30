@@ -5,8 +5,8 @@ import io.github.grantchan.ssh.common.transport.cipher.CipherFactories;
 import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
 import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.mac.MacFactories;
+import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.github.grantchan.ssh.util.buffer.Bytes;
-import io.github.grantchan.ssh.util.buffer.SshByteBuf;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
@@ -39,14 +39,14 @@ public abstract class KexHandler {
 
   public void handleNewKeys(ByteBuf msg) {
     byte[] id = h;
-    logger.info("SSH_MSG_NEWKEYS: {}", Bytes.hex(id));
+    logger.info("SSH_MSG_NEWKEYS: {}", Bytes.hex(id, ":"));
 
     session.setId(id);
 
     ByteBuf buf = session.createBuffer();
 
     byte[] k = kex.getSecretKey();
-    SshByteBuf.writeMpInt(buf, k);
+    ByteBufIo.writeMpInt(buf, k);
     buf.writeBytes(id);
     buf.writeByte((byte) 0x41);
     buf.writeBytes(id);
@@ -119,7 +119,7 @@ public abstract class KexHandler {
 
   private byte[] hashKey(byte[] e, int blockSize, byte[] k) {
     for (ByteBuf b = Unpooled.buffer(); e.length < blockSize; b.clear()) {
-      SshByteBuf.writeMpInt(b, k);
+      ByteBufIo.writeMpInt(b, k);
       b.writeBytes(h);
       b.writeBytes(e);
       byte[] a = new byte[b.readableBytes()];

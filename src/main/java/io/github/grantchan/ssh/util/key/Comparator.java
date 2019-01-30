@@ -184,7 +184,7 @@ public final class Comparator {
 
     byte[] data = fingerPrint(key, Objects.requireNonNull(DigestFactories.md5.create()));
 
-    return Bytes.hex(data);
+    return Bytes.hex(data, ":");
   }
 
   public static String sha256(byte[] key) {

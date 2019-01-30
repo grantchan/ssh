@@ -12,6 +12,7 @@ public class SshAuthInProgressException extends IOException {
 
   public SshAuthInProgressException(String message, Throwable cause) {
     super(message);
+
     if (cause != null) {
       initCause(cause);
     }
