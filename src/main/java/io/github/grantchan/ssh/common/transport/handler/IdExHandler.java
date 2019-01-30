@@ -8,7 +8,6 @@ import io.github.grantchan.ssh.common.transport.mac.MacFactories;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ByteProcessor;
 
 import java.nio.charset.StandardCharsets;
@@ -19,21 +18,21 @@ import static io.github.grantchan.ssh.arch.SshConstant.MSG_KEX_COOKIE_SIZE;
 import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
 import static io.github.grantchan.ssh.arch.SshMessage.SSH_MSG_KEXINIT;
 
-public abstract class IdExHandler extends ChannelInboundHandlerAdapter {
+public interface IdExHandler {
 
   /*
    * RFC 4253: The maximum length of the string is 255 characters,
    * including the Carriage Return and Line Feed.
    */
-  private static final int MAX_IDENTIFICATION_LINE_LENGTH = 255;
+  int MAX_IDENTIFICATION_LINE_LENGTH = 255;
 
-  private final SecureRandom rand = new SecureRandom();
+  SecureRandom rand = new SecureRandom();
 
   /*
    * Get the remote peer's identification
    * @return the identification if successful, otherwise null.
    */
-  protected static String getId(ByteBuf buf) {
+  static String getId(ByteBuf buf) {
     Objects.requireNonNull(buf, "Parameter cannot be null");
 
     int rIdx = buf.readerIndex();
@@ -111,12 +110,12 @@ public abstract class IdExHandler extends ChannelInboundHandlerAdapter {
     return id[0];
   }
 
-  protected abstract Session getSession();
+  Session getSession();
 
   /*
    * Construct the key exchange initialization packet.
    */
-  protected ByteBuf kexInit() {
+  default ByteBuf kexInit() {
     ByteBuf buf = Objects.requireNonNull(getSession(),
         "Session is null, this object is not initialized").createBuffer();
 

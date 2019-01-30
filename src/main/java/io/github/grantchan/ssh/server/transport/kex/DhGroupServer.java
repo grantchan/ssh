@@ -20,12 +20,28 @@ import java.util.List;
 import static io.github.grantchan.ssh.util.key.Comparator.md5;
 import static io.github.grantchan.ssh.util.key.Comparator.sha256;
 
-public class SDhGroupHandler extends KexHandler {
+public class DhGroupServer implements KexHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  public SDhGroupHandler(MessageDigest md, KeyExchange kex, Session session) {
-    super(md, kex, session);
+  protected final MessageDigest md;
+  protected final KeyExchange kex;
+  protected final Session session;
+
+  public DhGroupServer(MessageDigest md, KeyExchange kex, Session session) {
+    this.md = md;
+    this.kex = kex;
+    this.session = session;
+  }
+
+  @Override
+  public MessageDigest getMd() {
+    return md;
+  }
+
+  @Override
+  public KeyExchange getKex() {
+    return kex;
   }
 
   @Override
@@ -115,7 +131,8 @@ public class SDhGroupHandler extends KexHandler {
     reply.readBytes(h_s);
 
     md.update(h_s, 0, h_s.length);
-    h = md.digest();
+    byte[] h = md.digest();
+    session.setId(h);
 
     List<String> kexParams = session.getKexInit();
 

@@ -24,14 +24,30 @@ import java.util.List;
 import static io.github.grantchan.ssh.util.key.Comparator.md5;
 import static io.github.grantchan.ssh.util.key.Comparator.sha256;
 
-public class CDhGroupHandler extends KexHandler {
+public class DhGroupClient implements KexHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
+  protected final MessageDigest md;
+  protected final KeyExchange kex;
+  protected final Session session;
+
   private byte expect = SshMessage.SSH_MSG_KEXDH_INIT;
 
-  public CDhGroupHandler(MessageDigest md, KeyExchange kex, Session session) {
-    super(md, kex, session);
+  public DhGroupClient(MessageDigest md, KeyExchange kex, Session session) {
+    this.md = md;
+    this.kex = kex;
+    this.session = session;
+  }
+
+  @Override
+  public MessageDigest getMd() {
+    return md;
+  }
+
+  @Override
+  public KeyExchange getKex() {
+    return kex;
   }
 
   @Override

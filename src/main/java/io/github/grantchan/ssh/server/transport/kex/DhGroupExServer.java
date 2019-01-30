@@ -4,6 +4,7 @@ import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.kex.DH;
 import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
+import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
@@ -18,9 +19,13 @@ import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 
-public class SDhGroupExHandler extends KexHandler {
+public class DhGroupExServer implements KexHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
+
+  private final MessageDigest md;
+  protected KeyExchange kex;
+  protected final Session session;
 
   private int min; // minimal size in bits of an acceptable group
   private int n;   // preferred size in bits of the group the server will send
@@ -28,10 +33,22 @@ public class SDhGroupExHandler extends KexHandler {
 
   private byte expect = SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST;
 
-  public SDhGroupExHandler(MessageDigest md, Session session) {
-    super(md, null, session);
+  public DhGroupExServer(MessageDigest md, Session session) {
+    this.md = md;
+    this.session = session;
   }
 
+  @Override
+  public MessageDigest getMd() {
+    return md;
+  }
+
+  @Override
+  public KeyExchange getKex() {
+    return kex;
+  }
+
+  @Override
   public void handleMessage(int cmd, ByteBuf msg) throws IOException {
     logger.debug("Handling key exchange message - {} ...", SshMessage.from(cmd));
 
@@ -257,7 +274,7 @@ public class SDhGroupExHandler extends KexHandler {
     reply.readBytes(h_s);
 
     md.update(h_s, 0, h_s.length);
-    h = md.digest();
+    byte[] h = md.digest();
 
     List<String> kexParams = session.getKexInit();
 

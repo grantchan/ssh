@@ -7,6 +7,7 @@ import io.github.grantchan.ssh.common.transport.handler.PacketEncoder;
 import io.github.grantchan.ssh.common.transport.handler.RequestHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 
 import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
-public class CIdExHandler extends IdExHandler {
+public class IdExClient extends ChannelInboundHandlerAdapter implements IdExHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -30,7 +31,7 @@ public class CIdExHandler extends IdExHandler {
   }
 
   @Override
-  protected Session getSession() {
+  public Session getSession() {
     return session;
   }
 
@@ -69,7 +70,7 @@ public class CIdExHandler extends IdExHandler {
 
     String id = session.getServerId();
     if (id == null) {
-      id = getId(accuBuf);
+      id = IdExHandler.getId(accuBuf);
       if (id == null) {
         return;
       }
