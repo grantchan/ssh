@@ -153,6 +153,7 @@ public class DhGroupClient implements KexHandler {
 
     md.update(h_s);
     byte[] h = md.digest();
+    session.setId(h);
 
     List<String> kexParams = session.getKexInit();
 

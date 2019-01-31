@@ -13,7 +13,6 @@ import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.server.transport.kex.KexHandler;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
-import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -296,7 +295,6 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
      * @see <a href="https://tools.ietf.org/html/rfc4253#section-7.3">Taking Keys Into Use</a>
      */
     byte[] id = session.getId();
-    logger.info("SSH_MSG_NEWKEYS: {}", Bytes.hex(id, ":"));
 
     ByteBuf buf = session.createBuffer();
 
@@ -340,11 +338,14 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     List<String> kp = session.getKexInit();
 
+    boolean isServer = session.isServer();
+
     // server to client cipher
     CipherFactories cf;
     cf = Objects.requireNonNull(CipherFactories.from(kp.get(KexInitParam.ENCRYPTION_S2C)));
     e_s2c = hashKey(e_s2c, cf.getBlkSize(), k);
-    Cipher s2cCip = Objects.requireNonNull(cf.create(e_s2c, iv_s2c, Cipher.ENCRYPT_MODE));
+    Cipher s2cCip = Objects.requireNonNull(cf.create(e_s2c, iv_s2c,
+        isServer ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE));
 
     session.setS2cCipher(s2cCip);
     session.setS2cCipherSize(cf.getIvSize());
@@ -352,7 +353,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     // client to server cipher
     cf = Objects.requireNonNull(CipherFactories.from(kp.get(KexInitParam.ENCRYPTION_C2S)));
     e_c2s = hashKey(e_c2s, cf.getBlkSize(), k);
-    Cipher c2sCip = Objects.requireNonNull(cf.create(e_c2s, iv_c2s, Cipher.DECRYPT_MODE));
+    Cipher c2sCip = Objects.requireNonNull(cf.create(e_c2s, iv_c2s,
+        isServer ? Cipher.DECRYPT_MODE : Cipher.ENCRYPT_MODE));
 
     session.setC2sCipher(c2sCip);
     session.setC2sCipherSize(cf.getIvSize());
@@ -373,6 +375,10 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     session.setC2sMac(c2sMac);
     session.setC2sMacSize(mf.getBlkSize());
     session.setC2sDefMacSize(mf.getDefBlkSize());
+
+    if (!session.isServer()) {
+      session.requestKexNewKeys();
+    }
   }
 
   private byte[] hashKey(byte[] e, int blockSize, byte[] k) {
