@@ -63,7 +63,7 @@ public class DhGroupClient implements KexHandler {
                expect == SshMessage.SSH_MSG_KEXDH_REPLY) {
       handleDhReply(msg);
 
-      expect = SshMessage.SSH_MSG_NEWKEYS;
+      session.requestKexNewKeys();
     } else {
       throw new IOException("Invalid key exchange message, expect: " + SshMessage.from(expect) +
                             ", actual: " + SshMessage.from(cmd));

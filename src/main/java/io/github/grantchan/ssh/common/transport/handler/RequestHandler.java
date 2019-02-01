@@ -375,10 +375,6 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     session.setC2sMac(c2sMac);
     session.setC2sMacSize(mf.getBlkSize());
     session.setC2sDefMacSize(mf.getDefBlkSize());
-
-    if (!session.isServer()) {
-      session.requestKexNewKeys();
-    }
   }
 
   private byte[] hashKey(byte[] e, int blockSize, byte[] k) {
