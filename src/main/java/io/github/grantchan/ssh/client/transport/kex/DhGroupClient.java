@@ -2,6 +2,7 @@ package io.github.grantchan.ssh.client.transport.kex;
 
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
 import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
@@ -51,7 +52,7 @@ public class DhGroupClient implements KexHandler {
   }
 
   @Override
-  public void handleMessage(int cmd, ByteBuf msg) throws IOException {
+  public void handleMessage(int cmd, ByteBuf msg) throws SshException {
     logger.debug("Handling key exchange message - {} ...", SshMessage.from(cmd));
 
     if (cmd == SshMessage.SSH_MSG_KEXDH_INIT &&
@@ -65,8 +66,9 @@ public class DhGroupClient implements KexHandler {
 
       session.requestKexNewKeys();
     } else {
-      throw new IOException("Invalid key exchange message, expect: " + SshMessage.from(expect) +
-                            ", actual: " + SshMessage.from(cmd));
+      throw new SshException(SshMessage.SSH_DISCONNECT_KEY_EXCHANGE_FAILED,
+          "Invalid key exchange message, expect: SSH_MSG_KEXDH_INIT, actual: " +
+              SshMessage.from(cmd));
     }
   }
 
@@ -86,7 +88,7 @@ public class DhGroupClient implements KexHandler {
     session.requestKexDhInit(e);
   }
 
-  private void handleDhReply(ByteBuf msg) throws IOException {
+  private void handleDhReply(ByteBuf msg) throws SshException {
 
     /*
      * RFC 4253:
@@ -159,13 +161,15 @@ public class DhGroupClient implements KexHandler {
 
     Signature verif = SignatureFactories.create(kexParams.get(KexInitParam.SERVER_HOST_KEY), pubKey);
     if (verif == null) {
-      throw new IOException("Unknown signature: " + kexParams.get(KexInitParam.SERVER_HOST_KEY));
+      throw new IllegalArgumentException("Unknown signature: " +
+          kexParams.get(KexInitParam.SERVER_HOST_KEY));
     }
 
     try {
       verif.update(h);
       if (!verif.verify(sigH)) {
-        throw new IOException("Key exchange signature verification failed.");
+        throw new SshException(SshMessage.SSH_DISCONNECT_KEY_EXCHANGE_FAILED,
+            "Failed to verify key exchange signature.");
       }
     } catch (SignatureException e1) {
       e1.printStackTrace();

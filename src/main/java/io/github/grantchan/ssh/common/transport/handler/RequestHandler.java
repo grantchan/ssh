@@ -3,6 +3,7 @@ package io.github.grantchan.ssh.common.transport.handler;
 import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.cipher.CipherFactories;
 import io.github.grantchan.ssh.common.transport.compression.CompressionFactories;
 import io.github.grantchan.ssh.common.transport.kex.KexHandlerFactories;
@@ -84,6 +85,16 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
             throw new IllegalStateException("Unknown request command - " + SshMessage.from(cmd));
           }
         }
+    }
+  }
+
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable t) {
+    if (t instanceof SshException) {
+      int reasonCode = ((SshException) t).getDisconnectReason();
+      if (reasonCode > 0) {
+        session.disconnect(reasonCode, t.getMessage());
+      }
     }
   }
 
@@ -169,12 +180,18 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     boolean isServer = session.isServer();
 
-    // factory
+    // kex
     String they = ByteBufIo.readUtf8(buf);
     String we = KexHandlerFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.KEX, isServer ? negotiate(they, we) : negotiate(we, they));
+    String kex = isServer ? negotiate(they, we) : negotiate(we, they);
+    if (kex == null) {
+      throw new IllegalStateException("Failed to negotiate the KEX key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.KEX, kex);
     logger.debug("negotiated: {}", result.get(KexInitParam.KEX));
 
     // server host key
@@ -182,7 +199,13 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     we = SignatureFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.SERVER_HOST_KEY, isServer ? negotiate(they, we) : negotiate(we, they));
+    String shk = isServer ? negotiate(they, we) : negotiate(we, they);
+    if (shk == null) {
+      throw new IllegalStateException("Failed to negotiate the Server Host Key key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.SERVER_HOST_KEY, shk);
     logger.debug("negotiated: {}", result.get(KexInitParam.SERVER_HOST_KEY));
 
     // encryption c2s
@@ -190,7 +213,13 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     we = CipherFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.ENCRYPTION_C2S, isServer ? negotiate(they, we) : negotiate(we, they));
+    String encc2s = isServer ? negotiate(they, we) : negotiate(we, they);
+    if (encc2s == null) {
+      throw new IllegalStateException("Failed to negotiate the Encryption C2S key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.ENCRYPTION_C2S, encc2s);
     logger.debug("negotiated: {}", result.get(KexInitParam.ENCRYPTION_C2S));
 
     // encryption s2c
@@ -198,7 +227,13 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     we = CipherFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.ENCRYPTION_S2C, isServer ? negotiate(they, we) : negotiate(we, they));
+    String encs2c = isServer ? negotiate(they, we) : negotiate(we, they);
+    if (encs2c == null) {
+      throw new IllegalStateException("Failed to negotiate the Encryption S2C key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.ENCRYPTION_S2C, encs2c);
     logger.debug("negotiated: {}", result.get(KexInitParam.ENCRYPTION_S2C));
 
     // mac c2s
@@ -206,7 +241,13 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     we = MacFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.MAC_C2S, isServer ? negotiate(they, we) : negotiate(we, they));
+    String macc2s = isServer ? negotiate(they, we) : negotiate(we, they);
+    if (macc2s == null) {
+      throw new IllegalStateException("Failed to negotiate the MAC C2S key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.MAC_C2S, macc2s);
     logger.debug("negotiated: {}", result.get(KexInitParam.MAC_C2S));
 
     // mac s2c
@@ -214,7 +255,13 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     we = MacFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.MAC_S2C, isServer ? negotiate(they, we) : negotiate(we, they));
+    String macs2c = isServer ? negotiate(they, we) : negotiate(we, they);
+    if (macs2c == null) {
+      throw new IllegalStateException("Failed to negotiate the MAC S2C key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.MAC_S2C, macs2c);
     logger.debug("negotiated: {}", result.get(KexInitParam.MAC_S2C));
 
     // compression c2s
@@ -222,7 +269,13 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     we = CompressionFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.COMPRESSION_C2S, isServer ? negotiate(they, we) : negotiate(we, they));
+    String compc2s = isServer ? negotiate(they, we) : negotiate(we, they);
+    if (compc2s == null) {
+      throw new IllegalStateException("Failed to negotiate the Compression C2S key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.COMPRESSION_C2S, compc2s);
     logger.debug("negotiated: {}", result.get(KexInitParam.COMPRESSION_C2S));
 
     // compression s2c
@@ -230,7 +283,13 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     we = CompressionFactories.getNames();
     logger.debug("we say: {}", we);
     logger.debug("they say: {}", they);
-    result.add(KexInitParam.COMPRESSION_S2C, isServer ? negotiate(they, we) : negotiate(we, they));
+    String comps2c = isServer ? negotiate(they, we) : negotiate(we, they);
+    if (comps2c == null) {
+      throw new IllegalStateException("Failed to negotiate the Compression S2C key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.COMPRESSION_S2C, comps2c);
     logger.debug("negotiated: {}", result.get(KexInitParam.COMPRESSION_S2C));
 
     // language c2s

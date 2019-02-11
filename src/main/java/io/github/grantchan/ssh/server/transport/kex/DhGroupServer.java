@@ -2,6 +2,7 @@ package io.github.grantchan.ssh.server.transport.kex;
 
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
 import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
@@ -11,7 +12,6 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.interfaces.RSAPublicKey;
@@ -45,12 +45,13 @@ public class DhGroupServer implements KexHandler {
   }
 
   @Override
-  public void handleMessage(int cmd, ByteBuf req) throws IOException {
+  public void handleMessage(int cmd, ByteBuf req) throws SshException {
     logger.debug("Handling key exchange message - {} ...", SshMessage.from(cmd));
 
     if (cmd != SshMessage.SSH_MSG_KEXDH_INIT) {
-      throw new IOException("Invalid key exchange stage packet, expected: SSH_MSG_KEXDH_INIT" +
-                            ", actual: " + SshMessage.from(cmd));
+      throw new SshException(SshMessage.SSH_DISCONNECT_KEY_EXCHANGE_FAILED,
+          "Invalid key exchange message, expect: SSH_MSG_KEXDH_INIT, actual: " +
+              SshMessage.from(cmd));
     }
 
     /*
@@ -139,7 +140,7 @@ public class DhGroupServer implements KexHandler {
     Signature sig = SignatureFactories.create(kexParams.get(KexInitParam.SERVER_HOST_KEY),
         kp.getPrivate());
     if (sig == null) {
-      throw new IOException("Unknown signature: " + KexInitParam.SERVER_HOST_KEY);
+      throw new IllegalArgumentException("Unknown signature: " + KexInitParam.SERVER_HOST_KEY);
     }
 
     try {

@@ -2,6 +2,7 @@ package io.github.grantchan.ssh.server.transport.kex;
 
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.kex.DH;
 import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
 import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
@@ -12,7 +13,6 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
@@ -49,7 +49,7 @@ public class DhGroupExServer implements KexHandler {
   }
 
   @Override
-  public void handleMessage(int cmd, ByteBuf msg) throws IOException {
+  public void handleMessage(int cmd, ByteBuf msg) throws SshException {
     logger.debug("Handling key exchange message - {} ...", SshMessage.from(cmd));
 
     if (cmd == SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST_OLD &&
@@ -67,8 +67,9 @@ public class DhGroupExServer implements KexHandler {
 
       expect = SshMessage.SSH_MSG_NEWKEYS;
     } else {
-      throw new IOException("Invalid key exchange message, expect: " + SshMessage.from(expect) +
-                            ", actual: " + SshMessage.from(cmd));
+      throw new SshException(SshMessage.SSH_DISCONNECT_KEY_EXCHANGE_FAILED,
+          "Invalid key exchange message, expect: " + SshMessage.from(expect) + ", actual: " +
+              SshMessage.from(cmd));
     }
   }
 
@@ -191,7 +192,7 @@ public class DhGroupExServer implements KexHandler {
     return new DH(p, g);
   }
 
-  private void handleDhGexInit(ByteBuf req) throws IOException {
+  private void handleDhGexInit(ByteBuf req) {
     /*
      * RFC 4419:
      * The client sends SSH_MSG_KEX_DH_GEX_INIT
@@ -281,7 +282,8 @@ public class DhGroupExServer implements KexHandler {
     Signature sig = SignatureFactories.create(kexParams.get(KexInitParam.SERVER_HOST_KEY),
                                                    kp.getPrivate());
     if (sig == null) {
-      throw new IOException("Unknown signature: " + kexParams.get(KexInitParam.SERVER_HOST_KEY));
+      throw new IllegalArgumentException("Unknown signature: " +
+          kexParams.get(KexInitParam.SERVER_HOST_KEY));
     }
 
     try {
