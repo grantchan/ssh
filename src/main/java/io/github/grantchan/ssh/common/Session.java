@@ -48,6 +48,7 @@ public class Session {
   private int c2sDefMacSize = 0, s2cDefMacSize = 0;
 
   private Service service;
+  private String username;
 
   // constructor
   public Session(ChannelHandlerContext ctx, boolean isServer) {
@@ -442,5 +443,22 @@ public class Session {
 
     logger.debug("Requesting SSH_MSG_KEXDH_INIT...");
     ctx.channel().writeAndFlush(req);
+  }
+
+  public void requestServiceRequest() {
+    ByteBuf req = createMessage(SshMessage.SSH_MSG_SERVICE_REQUEST);
+
+    ByteBufIo.writeUtf8(req, "ssh-userauth");
+
+    logger.debug("Requesting SSH_MSG_SERVICE_REQUEST...");
+    ctx.channel().writeAndFlush(req);
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
   }
 }

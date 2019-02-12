@@ -5,7 +5,6 @@ import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.digest.DigestFactories;
 import io.github.grantchan.ssh.server.transport.kex.DhGroupServer;
-import io.github.grantchan.ssh.server.transport.kex.KexHandler;
 
 import java.security.MessageDigest;
 import java.util.Collections;

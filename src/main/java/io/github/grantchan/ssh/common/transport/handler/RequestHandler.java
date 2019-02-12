@@ -6,13 +6,13 @@ import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.cipher.CipherFactories;
 import io.github.grantchan.ssh.common.transport.compression.CompressionFactories;
+import io.github.grantchan.ssh.common.transport.kex.KexHandler;
 import io.github.grantchan.ssh.common.transport.kex.KexHandlerFactories;
 import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
 import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.mac.MacFactories;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.common.userauth.service.Service;
-import io.github.grantchan.ssh.server.transport.kex.KexHandler;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -332,9 +332,9 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     return null;
   }
 
-  protected void handleServiceRequest(ByteBuf req) {}
+  protected void handleServiceRequest(ByteBuf req) throws IOException {}
 
-  private void handleNewKeys(ByteBuf req) {
+  private void handleNewKeys(ByteBuf req) throws SshException {
     /*
      * RFC 4253:
      * The client sends SSH_MSG_NEWKEYS:
@@ -421,7 +421,11 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     // server to client MAC
     MacFactories mf;
     mf = Objects.requireNonNull(MacFactories.from(kp.get(KexInitParam.MAC_S2C)));
-    Mac s2cMac = Objects.requireNonNull(mf.create(mac_s2c));
+    Mac s2cMac = mf.create(mac_s2c);
+    if (s2cMac == null) {
+      throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR,
+          "Unsupported S2C MAC: " + kp.get(KexInitParam.MAC_S2C));
+    }
 
     session.setS2cMac(s2cMac);
     session.setS2cMacSize(mf.getBlkSize());
@@ -429,7 +433,11 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     // client to server MAC
     mf = Objects.requireNonNull(MacFactories.from(kp.get(KexInitParam.MAC_C2S)));
-    Mac c2sMac = Objects.requireNonNull(mf.create(mac_c2s));
+    Mac c2sMac = mf.create(mac_c2s);
+    if (c2sMac == null) {
+      throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR,
+          "Unsupported C2S MAC: " + kp.get(KexInitParam.MAC_C2S));
+    }
 
     session.setC2sMac(c2sMac);
     session.setC2sMacSize(mf.getBlkSize());

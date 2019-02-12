@@ -2,13 +2,16 @@ package io.github.grantchan.ssh.trans.kex;
 
 import io.github.grantchan.ssh.common.transport.kex.ECDH;
 import io.github.grantchan.ssh.common.transport.kex.ECurve;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import java.math.BigInteger;
 import java.security.spec.ECPoint;
 
 import static org.junit.Assert.assertArrayEquals;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ECDHTest {
 
   @Test

@@ -1,7 +1,9 @@
 package io.github.grantchan.ssh.common.transport.handler;
 
+import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -13,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
-import java.io.IOException;
 import java.util.Objects;
 
 import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_LENGTH;
@@ -96,6 +97,13 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
     }
 
     int len  = accuBuf.readInt();
+    if (len < SshConstant.SSH_PACKET_HEADER_LENGTH || len > SshConstant.SSH_PACKET_MAX_LENGTH) {
+      logger.error("[{}@{}] Illegal packet to decode - invalid packet length: {}",
+          session.getUsername(), session.getRemoteAddress(), len);
+
+      throw new SshException(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
+          "Invalid packet length: " + len);
+    }
 
     int macSize = isServer ? session.getC2sMacSize() : session.getS2cMacSize();
     if (accuBuf.readableBytes() < len + macSize) {
@@ -131,7 +139,10 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
       int i = 0, j = len + SSH_PACKET_LENGTH;
       while (macSize-- > 0) {
         if (blk[i++] != packet[j++]) {
-          throw new IOException(SshMessage.disconnectReason(SshMessage.SSH_DISCONNECT_MAC_ERROR));
+          logger.error("[{}@{}] Failed to verify the packet at position: {}",
+              session.getUsername(), session.getRemoteAddress(), j - 1);
+
+          throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR, "MAC Error");
         }
       }
     }

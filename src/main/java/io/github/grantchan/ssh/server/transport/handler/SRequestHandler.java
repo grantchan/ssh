@@ -2,11 +2,14 @@ package io.github.grantchan.ssh.server.transport.handler;
 
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.handler.RequestHandler;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 public class SRequestHandler extends RequestHandler {
 
@@ -16,7 +19,7 @@ public class SRequestHandler extends RequestHandler {
     super(session);
   }
 
-  protected void handleServiceRequest(ByteBuf req) {
+  protected void handleServiceRequest(ByteBuf req) throws IOException {
     /*
      * RFC 4253:
      * The client sends SSH_MSG_SERVICE_REQUEST:
@@ -53,10 +56,8 @@ public class SRequestHandler extends RequestHandler {
       logger.info("Requested service ({}) from {} is unavailable, rejected.",
           svcName, session.getRemoteAddress());
 
-      // disconnect
-      session.disconnect(SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE,
-          "Bad service requested - '" + svcName + "'");
-      return;
+      throw new SshException(SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE,
+          "Bad service requested - '" + svcName + "'", e);
     }
     session.replyAccept(svcName);
 

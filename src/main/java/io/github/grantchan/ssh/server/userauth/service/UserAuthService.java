@@ -2,6 +2,7 @@ package io.github.grantchan.ssh.server.userauth.service;
 
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.userauth.method.Method;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.server.userauth.method.MethodFactories;
@@ -16,7 +17,7 @@ public class UserAuthService implements Service {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private Session session;
-  private String user, service;
+  private String service;
   private int retryCnt, maxRetryCnt;
 
   public UserAuthService(Session session) {
@@ -62,24 +63,21 @@ public class UserAuthService implements Service {
       if (factory == null){
         logger.debug("[{}@{}] Unsupported service - '{}'", user, remoteAddr, service);
 
-        session.disconnect(SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE,
-                           "Unknown service - '" + service + "'");
-
-        return;
+        throw new SshException(SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE,
+            "Unknown service - '" + service + "'");
       }
 
-      if (this.user == null || this.service == null) {
-        this.user = user;
+      if (session.getUsername() == null || this.service == null) {
+        session.setUsername(user);
         this.service = service;
-      } else if (this.user.equals(user) && this.service.equals(service)) {
+      } else if (session.getUsername().equals(user) && this.service.equals(service)) {
         retryCnt++;
 
         if (retryCnt >= maxRetryCnt) {
           logger.debug("[{}@{}] Too many login attemps", user, remoteAddr);
 
-          session.disconnect(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR, "Too many login attempts.");
-
-          return;
+          throw new SshException(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
+              "Too many login attempts.");
         }
       } else {
         // The 'user name' and 'service name' are repeated in every new
@@ -91,10 +89,8 @@ public class UserAuthService implements Service {
         logger.debug("[{}@{}] User name or service name differs in one authentication session",
                      user, remoteAddr);
 
-        session.disconnect(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
+        throw new SshException(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
             "It's not allowed to change user name or service in one authentication session");
-
-        return;
       }
 
       Method auth = MethodFactories.create(method);

@@ -3,6 +3,7 @@ package io.github.grantchan.ssh.server.transport.kex;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
+import io.github.grantchan.ssh.common.transport.kex.KexHandler;
 import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
 import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
