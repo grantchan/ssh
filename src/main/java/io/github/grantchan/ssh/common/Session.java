@@ -6,7 +6,6 @@ import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.server.userauth.service.ServiceFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -208,11 +207,7 @@ public class Session {
     ByteBufIo.writeUtf8(buf, message);
     ByteBufIo.writeUtf8(buf, "");
 
-    ctx.channel().writeAndFlush(buf).addListener((ChannelFuture f) -> {
-      if (f.isDone()) {
-        f.channel().close().sync();
-      }
-    });
+    ctx.channel().writeAndFlush(buf);
   }
 
   /**

@@ -90,12 +90,16 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable t) {
+    logger.debug("[" + session.getUsername() + "@" + session.getRemoteAddress() +
+        "] exceptionCaught details", t);
+
     if (t instanceof SshException) {
       int reasonCode = ((SshException) t).getDisconnectReason();
       if (reasonCode > 0) {
         session.disconnect(reasonCode, t.getMessage());
       }
     }
+    ctx.channel().close();
   }
 
   private void handleDisconnect(ByteBuf req) {
