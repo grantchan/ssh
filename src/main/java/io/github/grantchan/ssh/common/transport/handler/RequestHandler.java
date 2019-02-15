@@ -184,11 +184,14 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     boolean isServer = session.isServer();
 
+    String username = session.getUsername();
+    String remoteAddr = session.getRemoteAddress();
+
     // kex
     String they = ByteBufIo.readUtf8(buf);
     String we = KexHandlerFactories.getNames();
-    logger.debug("we say: {}", we);
-    logger.debug("they say: {}", they);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Server" : "Client", we);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Client" : "Server", they);
     String kex = isServer ? negotiate(they, we) : negotiate(we, they);
     if (kex == null) {
       throw new IllegalStateException("Failed to negotiate the KEX key exchange " +
@@ -201,8 +204,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     // server host key
     they = ByteBufIo.readUtf8(buf);
     we = SignatureFactories.getNames();
-    logger.debug("we say: {}", we);
-    logger.debug("they say: {}", they);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Server" : "Client", we);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Client" : "Server", they);
     String shk = isServer ? negotiate(they, we) : negotiate(we, they);
     if (shk == null) {
       throw new IllegalStateException("Failed to negotiate the Server Host Key key exchange " +
@@ -215,8 +218,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     // encryption c2s
     they = ByteBufIo.readUtf8(buf);
     we = CipherFactories.getNames();
-    logger.debug("we say: {}", we);
-    logger.debug("they say: {}", they);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Server" : "Client", we);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Client" : "Server", they);
     String encc2s = isServer ? negotiate(they, we) : negotiate(we, they);
     if (encc2s == null) {
       throw new IllegalStateException("Failed to negotiate the Encryption C2S key exchange " +
@@ -229,8 +232,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     // encryption s2c
     they = ByteBufIo.readUtf8(buf);
     we = CipherFactories.getNames();
-    logger.debug("we say: {}", we);
-    logger.debug("they say: {}", they);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Server" : "Client", we);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Client" : "Server", they);
     String encs2c = isServer ? negotiate(they, we) : negotiate(we, they);
     if (encs2c == null) {
       throw new IllegalStateException("Failed to negotiate the Encryption S2C key exchange " +
@@ -243,8 +246,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     // mac c2s
     they = ByteBufIo.readUtf8(buf);
     we = MacFactories.getNames();
-    logger.debug("we say: {}", we);
-    logger.debug("they say: {}", they);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Server" : "Client", we);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Client" : "Server", they);
     String macc2s = isServer ? negotiate(they, we) : negotiate(we, they);
     if (macc2s == null) {
       throw new IllegalStateException("Failed to negotiate the MAC C2S key exchange " +
@@ -257,8 +260,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     // mac s2c
     they = ByteBufIo.readUtf8(buf);
     we = MacFactories.getNames();
-    logger.debug("we say: {}", we);
-    logger.debug("they say: {}", they);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Server" : "Client", we);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Client" : "Server", they);
     String macs2c = isServer ? negotiate(they, we) : negotiate(we, they);
     if (macs2c == null) {
       throw new IllegalStateException("Failed to negotiate the MAC S2C key exchange " +
@@ -271,8 +274,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     // compression c2s
     they = ByteBufIo.readUtf8(buf);
     we = CompressionFactories.getNames();
-    logger.debug("we say: {}", we);
-    logger.debug("they say: {}", they);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Server" : "Client", we);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Client" : "Server", they);
     String compc2s = isServer ? negotiate(they, we) : negotiate(we, they);
     if (compc2s == null) {
       throw new IllegalStateException("Failed to negotiate the Compression C2S key exchange " +
@@ -285,8 +288,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     // compression s2c
     they = ByteBufIo.readUtf8(buf);
     we = CompressionFactories.getNames();
-    logger.debug("we say: {}", we);
-    logger.debug("they say: {}", they);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Server" : "Client", we);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Client" : "Server", they);
     String comps2c = isServer ? negotiate(they, we) : negotiate(we, they);
     if (comps2c == null) {
       throw new IllegalStateException("Failed to negotiate the Compression S2C key exchange " +
@@ -299,16 +302,16 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     // language c2s
     they = ByteBufIo.readUtf8(buf);
     we = "";
-    logger.debug("we say: {}", we);
-    logger.debug("they say: {}", they);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Server" : "Client", we);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Client" : "Server", they);
     result.add(KexInitParam.LANGUAGE_C2S, isServer ? negotiate(they, we) : negotiate(we, they));
     logger.debug("negotiated: {}", result.get(KexInitParam.LANGUAGE_C2S));
 
     // language s2c
     they = ByteBufIo.readUtf8(buf);
     we = "";
-    logger.debug("we say: {}", we);
-    logger.debug("they say: {}", they);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Server" : "Client", we);
+    logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Client" : "Server", they);
     result.add(KexInitParam.LANGUAGE_S2C, isServer ? negotiate(they, we) : negotiate(we, they));
     logger.debug("negotiated: {}", result.get(KexInitParam.LANGUAGE_S2C));
 
