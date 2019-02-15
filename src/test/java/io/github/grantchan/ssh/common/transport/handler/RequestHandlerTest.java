@@ -20,4 +20,8 @@ public class RequestHandlerTest {
     assertNull(new RequestHandler(null).negotiate("a,b,d", "e,c"));
   }
 
+  @Test
+  public void whenNamesHaveSamePrefix_shouldBeAbleToDistinguish() {
+    assertNull(new RequestHandler(null).negotiate("a,b,c", "c1,d"));
+  }
 }

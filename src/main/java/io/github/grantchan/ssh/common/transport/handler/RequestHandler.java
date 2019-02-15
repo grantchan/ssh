@@ -328,9 +328,13 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
    */
   String negotiate(String c2s, String s2c) {
     String[] c = c2s.split(",");
+    String[] s = s2c.split(",");
+
     for (String ci : c) {
-      if (s2c.contains(ci)) {
-        return ci;
+      for (String si : s) {
+        if (ci.equals(si)) {
+          return ci;
+        }
       }
     }
     return null;
