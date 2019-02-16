@@ -15,7 +15,7 @@ public class SRequestHandler extends RequestHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  public SRequestHandler(Session session) {
+  SRequestHandler(Session session) {
     super(session);
   }
 

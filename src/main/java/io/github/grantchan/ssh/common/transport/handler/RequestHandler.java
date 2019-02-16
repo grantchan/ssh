@@ -130,7 +130,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     session.handleDisconnect(code, msg);
   }
 
-  protected void handleKexInit(ByteBuf msg) throws IOException {
+  private void handleKexInit(ByteBuf msg) throws IOException {
     /*
      * RFC 4253:
      * The client sends SSH_MSG_KEXINIT:
@@ -345,7 +345,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
   protected void handleServiceRequest(ByteBuf req) throws IOException {}
 
-  private void handleNewKeys(ByteBuf req) throws SshException {
+  protected void handleNewKeys(ByteBuf req) throws SshException {
     /*
      * RFC 4253:
      * The client sends SSH_MSG_NEWKEYS:
