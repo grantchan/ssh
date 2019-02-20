@@ -70,6 +70,10 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
         handleServiceRequest(req);
         break;
 
+      case SshMessage.SSH_MSG_SERVICE_ACCEPT:
+        handleServiceAccept(req);
+        break;
+
       case SshMessage.SSH_MSG_NEWKEYS:
         handleNewKeys(req);
         break;
@@ -344,6 +348,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
   }
 
   protected void handleServiceRequest(ByteBuf req) throws IOException {}
+
+  protected void handleServiceAccept(ByteBuf req) {}
 
   protected void handleNewKeys(ByteBuf req) throws SshException {
     /*
