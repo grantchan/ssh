@@ -82,4 +82,9 @@ public enum CipherFactories implements NamedObject, CipherFactory {
   public static CipherFactories from(String name) {
     return NamedObject.find(name, values, String.CASE_INSENSITIVE_ORDER);
   }
+
+  @Override
+  public String toString() {
+    return name + "[" + algorithm + "," + transformation + "," + ivSize + "," + blkSize + "]";
+  }
 }

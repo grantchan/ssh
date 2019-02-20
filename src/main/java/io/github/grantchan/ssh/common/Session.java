@@ -223,6 +223,7 @@ public class Session {
 
     ByteBufIo.writeUtf8(buf, svcName);
 
+    logger.debug("Replying SSH_MSG_SERVICE_ACCEPT...");
     ctx.channel().writeAndFlush(buf);
   }
 
@@ -440,6 +441,9 @@ public class Session {
     ctx.channel().writeAndFlush(req);
   }
 
+  /**
+   * Sends the {@link SshMessage#SSH_MSG_SERVICE_REQUEST} message to the server
+   */
   public void requestServiceRequest() {
     ByteBuf req = createMessage(SshMessage.SSH_MSG_SERVICE_REQUEST);
 

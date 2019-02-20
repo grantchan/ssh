@@ -71,4 +71,9 @@ public enum MacFactories implements NamedObject, MacFactory {
   public static MacFactories from(String name) {
     return NamedObject.find(name, values, String.CASE_INSENSITIVE_ORDER);
   }
+
+  @Override
+  public String toString() {
+    return name + "[" + transformation + "," + blkSize + "," + defBlkSize + "]";
+  }
 }

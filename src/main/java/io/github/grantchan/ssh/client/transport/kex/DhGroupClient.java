@@ -89,6 +89,8 @@ public class DhGroupClient implements KexHandler {
   }
 
   private void handleDhReply(ByteBuf msg) throws SshException {
+    String user = session.getUsername();
+    String remoteAddr = session.getRemoteAddress();
 
     /*
      * RFC 4253:
@@ -120,7 +122,8 @@ public class DhGroupClient implements KexHandler {
      *  with SHA-1 as part of the signing operation.
      */
     byte[] k_s = ByteBufIo.readBytes(msg);
-    logger.debug("Host RSA public key fingerprint MD5: {}, SHA256: {}", md5(k_s), sha256(k_s));
+    logger.debug("[{}@{}] Host RSA public key fingerprint MD5: {}, SHA256: {}",
+        user, remoteAddr, md5(k_s), sha256(k_s));
     // Client user needs to verify the hash value of k_s(public key) of the server here
 
     byte[] e = ByteBufIo.readBytes(msg);
@@ -174,5 +177,7 @@ public class DhGroupClient implements KexHandler {
     } catch (SignatureException e1) {
       e1.printStackTrace();
     }
+
+    logger.debug("[{}@{}] KEX process completed after SSH_MSG_KEXDH_REPLY", user, remoteAddr);
   }
 }

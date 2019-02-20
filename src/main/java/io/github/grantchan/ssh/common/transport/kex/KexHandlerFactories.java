@@ -10,7 +10,6 @@ import java.security.MessageDigest;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.function.Function;
 
 public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
 
@@ -256,12 +255,9 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
 
 
   private static KexHandler getKexHandler(MessageDigest md, KeyExchange ke, Session session) {
-    Function<Session, ? extends KexHandler> f =
-        s -> s.isServer() ?
-            new DhGroupServer(md, ke, session) :
-            new DhGroupClient(md, ke, session);
-
-    return f.apply(session);
+    return session.isServer() ?
+        new DhGroupServer(md, ke, session) :
+        new DhGroupClient(md, ke, session);
   }
 
   public static final Set<KexHandlerFactories> values =

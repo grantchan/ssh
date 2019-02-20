@@ -301,6 +301,10 @@ public class DhGroupExServer implements KexHandler {
     reply.readBytes(sigH);
 
     session.replyKexDhGexReply(k_s, kex.getPubKey(), sigH);
+
+    logger.debug("[{}@{}] KEX process completed after SSH_MSG_KEX_DH_GEX_INIT",
+        session.getUsername(), session.getRemoteAddress());
+
     session.requestKexNewKeys();
   }
 }

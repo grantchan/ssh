@@ -14,6 +14,7 @@ import io.github.grantchan.ssh.common.transport.mac.MacFactories;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
+import io.github.grantchan.ssh.util.key.Comparator;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -41,7 +42,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
   private KexHandler kexHandler;
 
   public RequestHandler(Session session) {
-    this.session = session;
+    this.session = Objects.requireNonNull(session);
   }
 
   @Override
@@ -49,7 +50,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     ByteBuf req = (ByteBuf) msg;
 
     int cmd = req.readByte() & 0xFF;
-    logger.info("Handling message - {} ...", SshMessage.from(cmd));
+    logger.info("[{}@{}] Handling message - {} ...", session.getUsername(),
+        session.getRemoteAddress(), SshMessage.from(cmd));
 
     switch (cmd) {
       case SshMessage.SSH_MSG_DISCONNECT:
@@ -203,7 +205,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
           they);
     }
     result.add(KexInitParam.KEX, kex);
-    logger.debug("negotiated: {}", result.get(KexInitParam.KEX));
+    logger.debug("[{}@{}] negotiated: {}", username, remoteAddr, result.get(KexInitParam.KEX));
 
     // server host key
     they = ByteBufIo.readUtf8(buf);
@@ -217,7 +219,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
           they);
     }
     result.add(KexInitParam.SERVER_HOST_KEY, shk);
-    logger.debug("negotiated: {}", result.get(KexInitParam.SERVER_HOST_KEY));
+    logger.debug("[{}@{}] negotiated: {}", username, remoteAddr, result.get(KexInitParam.SERVER_HOST_KEY));
 
     // encryption c2s
     they = ByteBufIo.readUtf8(buf);
@@ -231,7 +233,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
           they);
     }
     result.add(KexInitParam.ENCRYPTION_C2S, encc2s);
-    logger.debug("negotiated: {}", result.get(KexInitParam.ENCRYPTION_C2S));
+    logger.debug("[{}@{}] negotiated: {}", username, remoteAddr, result.get(KexInitParam.ENCRYPTION_C2S));
 
     // encryption s2c
     they = ByteBufIo.readUtf8(buf);
@@ -245,7 +247,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
           they);
     }
     result.add(KexInitParam.ENCRYPTION_S2C, encs2c);
-    logger.debug("negotiated: {}", result.get(KexInitParam.ENCRYPTION_S2C));
+    logger.debug("[{}@{}] negotiated: {}", username, remoteAddr, result.get(KexInitParam.ENCRYPTION_S2C));
 
     // mac c2s
     they = ByteBufIo.readUtf8(buf);
@@ -259,7 +261,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
           they);
     }
     result.add(KexInitParam.MAC_C2S, macc2s);
-    logger.debug("negotiated: {}", result.get(KexInitParam.MAC_C2S));
+    logger.debug("[{}@{}] negotiated: {}", username, remoteAddr, result.get(KexInitParam.MAC_C2S));
 
     // mac s2c
     they = ByteBufIo.readUtf8(buf);
@@ -273,7 +275,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
           they);
     }
     result.add(KexInitParam.MAC_S2C, macs2c);
-    logger.debug("negotiated: {}", result.get(KexInitParam.MAC_S2C));
+    logger.debug("[{}@{}] negotiated: {}", username, remoteAddr, result.get(KexInitParam.MAC_S2C));
 
     // compression c2s
     they = ByteBufIo.readUtf8(buf);
@@ -287,7 +289,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
           they);
     }
     result.add(KexInitParam.COMPRESSION_C2S, compc2s);
-    logger.debug("negotiated: {}", result.get(KexInitParam.COMPRESSION_C2S));
+    logger.debug("[{}@{}] negotiated: {}", username, remoteAddr, result.get(KexInitParam.COMPRESSION_C2S));
 
     // compression s2c
     they = ByteBufIo.readUtf8(buf);
@@ -301,7 +303,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
           they);
     }
     result.add(KexInitParam.COMPRESSION_S2C, comps2c);
-    logger.debug("negotiated: {}", result.get(KexInitParam.COMPRESSION_S2C));
+    logger.debug("[{}@{}] negotiated: {}", username, remoteAddr, result.get(KexInitParam.COMPRESSION_S2C));
 
     // language c2s
     they = ByteBufIo.readUtf8(buf);
@@ -309,7 +311,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Server" : "Client", we);
     logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Client" : "Server", they);
     result.add(KexInitParam.LANGUAGE_C2S, isServer ? negotiate(they, we) : negotiate(we, they));
-    logger.debug("negotiated: {}", result.get(KexInitParam.LANGUAGE_C2S));
+    logger.debug("[{}@{}] negotiated: {}", username, remoteAddr, result.get(KexInitParam.LANGUAGE_C2S));
 
     // language s2c
     they = ByteBufIo.readUtf8(buf);
@@ -317,7 +319,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Server" : "Client", we);
     logger.debug("[{}@{}] {}: {}", username, remoteAddr, isServer ? "Client" : "Server", they);
     result.add(KexInitParam.LANGUAGE_S2C, isServer ? negotiate(they, we) : negotiate(we, they));
-    logger.debug("negotiated: {}", result.get(KexInitParam.LANGUAGE_S2C));
+    logger.debug("[{}@{}] negotiated: {}", username, remoteAddr, result.get(KexInitParam.LANGUAGE_S2C));
 
     return result;
   }
@@ -372,6 +374,10 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
      */
     byte[] id = session.getId();
 
+    String user = session.getUsername();
+    String remoteAddr = session.getRemoteAddress();
+    logger.debug("[{}@{}] Session ID: {}", user, remoteAddr, Comparator.md5(id));
+
     ByteBuf buf = session.createBuffer();
 
     KeyExchange kex = kexHandler.getKex();
@@ -417,48 +423,56 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     boolean isServer = session.isServer();
 
     // server to client cipher
-    CipherFactories cf;
-    cf = Objects.requireNonNull(CipherFactories.from(kp.get(KexInitParam.ENCRYPTION_S2C)));
-    e_s2c = hashKey(e_s2c, cf.getBlkSize(), k);
-    Cipher s2cCip = Objects.requireNonNull(cf.create(e_s2c, iv_s2c,
+    CipherFactories s2cCf;
+    s2cCf = Objects.requireNonNull(CipherFactories.from(kp.get(KexInitParam.ENCRYPTION_S2C)));
+    e_s2c = hashKey(e_s2c, s2cCf.getBlkSize(), k);
+    Cipher s2cCip = Objects.requireNonNull(s2cCf.create(e_s2c, iv_s2c,
         isServer ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE));
 
     session.setS2cCipher(s2cCip);
-    session.setS2cCipherSize(cf.getIvSize());
+    session.setS2cCipherSize(s2cCf.getIvSize());
 
     // client to server cipher
-    cf = Objects.requireNonNull(CipherFactories.from(kp.get(KexInitParam.ENCRYPTION_C2S)));
-    e_c2s = hashKey(e_c2s, cf.getBlkSize(), k);
-    Cipher c2sCip = Objects.requireNonNull(cf.create(e_c2s, iv_c2s,
+    CipherFactories c2sCf;
+    c2sCf = Objects.requireNonNull(CipherFactories.from(kp.get(KexInitParam.ENCRYPTION_C2S)));
+    e_c2s = hashKey(e_c2s, c2sCf.getBlkSize(), k);
+    Cipher c2sCip = Objects.requireNonNull(c2sCf.create(e_c2s, iv_c2s,
         isServer ? Cipher.DECRYPT_MODE : Cipher.ENCRYPT_MODE));
 
     session.setC2sCipher(c2sCip);
-    session.setC2sCipherSize(cf.getIvSize());
+    session.setC2sCipherSize(c2sCf.getIvSize());
+
+    logger.debug("[{}@{}] Session Cipher(S2C): {}, Session Cipher(C2S): {}",
+        user, remoteAddr, s2cCf, c2sCf);
 
     // server to client MAC
-    MacFactories mf;
-    mf = Objects.requireNonNull(MacFactories.from(kp.get(KexInitParam.MAC_S2C)));
-    Mac s2cMac = mf.create(mac_s2c);
+    MacFactories s2cMf;
+    s2cMf = Objects.requireNonNull(MacFactories.from(kp.get(KexInitParam.MAC_S2C)));
+    Mac s2cMac = s2cMf.create(mac_s2c);
     if (s2cMac == null) {
       throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR,
           "Unsupported S2C MAC: " + kp.get(KexInitParam.MAC_S2C));
     }
 
     session.setS2cMac(s2cMac);
-    session.setS2cMacSize(mf.getBlkSize());
-    session.setS2cDefMacSize(mf.getDefBlkSize());
+    session.setS2cMacSize(s2cMf.getBlkSize());
+    session.setS2cDefMacSize(s2cMf.getDefBlkSize());
 
     // client to server MAC
-    mf = Objects.requireNonNull(MacFactories.from(kp.get(KexInitParam.MAC_C2S)));
-    Mac c2sMac = mf.create(mac_c2s);
+    MacFactories c2sMf;
+    c2sMf = Objects.requireNonNull(MacFactories.from(kp.get(KexInitParam.MAC_C2S)));
+    Mac c2sMac = c2sMf.create(mac_c2s);
     if (c2sMac == null) {
       throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR,
           "Unsupported C2S MAC: " + kp.get(KexInitParam.MAC_C2S));
     }
 
     session.setC2sMac(c2sMac);
-    session.setC2sMacSize(mf.getBlkSize());
-    session.setC2sDefMacSize(mf.getDefBlkSize());
+    session.setC2sMacSize(c2sMf.getBlkSize());
+    session.setC2sDefMacSize(c2sMf.getDefBlkSize());
+
+    logger.debug("[{}@{}] Session MAC(S2C): {}, Sesson MAC(C2S): {}",
+        user, remoteAddr, s2cMf, c2sMf);
   }
 
   private byte[] hashKey(byte[] e, int blockSize, byte[] k) {

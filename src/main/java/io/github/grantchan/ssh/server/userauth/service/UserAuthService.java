@@ -97,7 +97,7 @@ public class UserAuthService implements Service {
 
       boolean result = false;
       if (auth == null) {
-        logger.debug("Unsupported authentication method - '{}'", method);
+        logger.debug("[{}@{}] Unsupported authentication method - '{}'", user, remoteAddr, method);
       } else {
         logger.debug("[{}@{}] Authenticating to start service '{}' by method '{}' (attempt {} / {})",
                      user, remoteAddr, service, method, retryCnt, maxRetryCnt);
