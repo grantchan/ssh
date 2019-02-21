@@ -41,6 +41,9 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
   protected Session session;
   private KexHandler kexHandler;
 
+  public RequestHandler() {
+  }
+
   public RequestHandler(Session session) {
     this.session = Objects.requireNonNull(session);
   }

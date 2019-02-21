@@ -8,6 +8,7 @@ import io.github.grantchan.ssh.common.transport.mac.MacFactories;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.util.ByteProcessor;
 
 import java.nio.charset.StandardCharsets;
@@ -115,9 +116,8 @@ public interface IdExHandler {
   /*
    * Construct the key exchange initialization packet.
    */
-  default ByteBuf kexInit() {
-    ByteBuf buf = Objects.requireNonNull(getSession(),
-        "Session is null, this object is not initialized").createBuffer();
+  static ByteBuf kexInit() {
+    ByteBuf buf = Unpooled.buffer();
 
     buf.writerIndex(SSH_PACKET_HEADER_LENGTH);
     buf.readerIndex(SSH_PACKET_HEADER_LENGTH);

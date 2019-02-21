@@ -85,7 +85,7 @@ public class IdExServer extends ChannelInboundHandlerAdapter implements IdExHand
                              new PacketEncoder(session));
       ctx.pipeline().remove(this);
 
-      ByteBuf serverKexInit = kexInit();
+      ByteBuf serverKexInit = IdExHandler.kexInit();
       byte[] buf = new byte[serverKexInit.readableBytes()];
       serverKexInit.getBytes(SSH_PACKET_HEADER_LENGTH, buf);
       session.setS2cKex(buf);
