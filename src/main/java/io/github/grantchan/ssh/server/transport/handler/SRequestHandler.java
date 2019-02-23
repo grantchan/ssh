@@ -9,8 +9,6 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 public class SRequestHandler extends RequestHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -19,7 +17,7 @@ public class SRequestHandler extends RequestHandler {
     super(session);
   }
 
-  protected void handleServiceRequest(ByteBuf req) throws IOException {
+  protected void handleServiceRequest(ByteBuf req) throws SshException {
     /*
      * RFC 4253:
      * The client sends SSH_MSG_SERVICE_REQUEST:

@@ -352,9 +352,15 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     return null;
   }
 
-  protected void handleServiceRequest(ByteBuf req) throws IOException {}
+  protected void handleServiceRequest(ByteBuf req) throws SshException {
+    throw new SshException(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
+        "Unsupported message - SSH_MSG_SERVICE_REQUEST");
+  }
 
-  protected void handleServiceAccept(ByteBuf req) {}
+  protected void handleServiceAccept(ByteBuf req) throws SshException {
+    throw new SshException(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
+        "Unsupported message - SSH_MSG_SERVICE_ACCEPT");
+  }
 
   protected void handleNewKeys(ByteBuf req) throws SshException {
     /*
