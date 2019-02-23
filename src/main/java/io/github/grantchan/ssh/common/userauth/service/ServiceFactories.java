@@ -1,8 +1,9 @@
-package io.github.grantchan.ssh.server.userauth.service;
+package io.github.grantchan.ssh.common.userauth.service;
 
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.common.userauth.service.Service;
+import io.github.grantchan.ssh.server.userauth.service.ConnectionService;
+import io.github.grantchan.ssh.server.userauth.service.UserAuthService;
 
 import java.util.Collections;
 import java.util.EnumSet;

@@ -22,6 +22,11 @@ public class CRequestHandler extends RequestHandler {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private ByteBuf accuBuf;
+  private String username;
+
+  public CRequestHandler(String username) {
+    this.username = username;
+  }
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) {
@@ -52,6 +57,7 @@ public class CRequestHandler extends RequestHandler {
      * Key exchange will begin immediately after sending this identifier.
      */
     session.setClientId("SSH-2.0-Client DEMO");
+    session.setUsername(username);
 
     accuBuf = session.createBuffer();
   }
@@ -97,7 +103,10 @@ public class CRequestHandler extends RequestHandler {
 
   protected void handleServiceAccept(ByteBuf req) {
     String service = ByteBufIo.readUtf8(req);
+
     logger.debug("[{}@{}] Service: {}", session.getUsername(), session.getRemoteAddress(), service);
+
+    session.requestUserAuthRequest(session.getUsername(), "ssh-connection", "none");
   }
 
   protected void handleNewKeys(ByteBuf req) throws SshException {

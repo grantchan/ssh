@@ -5,6 +5,8 @@ import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.userauth.method.Method;
 import io.github.grantchan.ssh.common.userauth.service.Service;
+import io.github.grantchan.ssh.common.userauth.service.ServiceFactories;
+import io.github.grantchan.ssh.common.userauth.service.ServiceFactory;
 import io.github.grantchan.ssh.server.userauth.method.MethodFactories;
 import io.github.grantchan.ssh.server.userauth.method.SshAuthInProgressException;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;

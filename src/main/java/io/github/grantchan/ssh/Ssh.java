@@ -25,7 +25,7 @@ public class Ssh {
           @Override
           protected void initChannel(SocketChannel ch) {
             ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO),
-                                  new CRequestHandler());
+                                  new CRequestHandler("grant"));
           }
         }).connect().sync().channel().closeFuture().sync();
     } catch (InterruptedException e) {

@@ -3,7 +3,7 @@ package io.github.grantchan.ssh.common;
 import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.userauth.service.Service;
-import io.github.grantchan.ssh.server.userauth.service.ServiceFactories;
+import io.github.grantchan.ssh.common.userauth.service.ServiceFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -224,6 +224,7 @@ public class Session {
     ByteBufIo.writeUtf8(buf, svcName);
 
     logger.debug("Replying SSH_MSG_SERVICE_ACCEPT...");
+
     ctx.channel().writeAndFlush(buf);
   }
 
@@ -248,6 +249,7 @@ public class Session {
     ByteBufIo.writeMpInt(pg, g);
 
     logger.debug("Replying SSH_MSG_KEX_DH_GEX_GROUP...");
+
     ctx.channel().writeAndFlush(pg);
   }
 
@@ -270,6 +272,7 @@ public class Session {
     ByteBuf newKeys = createMessage(SshMessage.SSH_MSG_NEWKEYS);
 
     logger.debug("Requesting SSH_MSG_NEWKEYS...");
+
     ctx.channel().writeAndFlush(newKeys);
   }
 
@@ -319,6 +322,7 @@ public class Session {
     ByteBuf uas = createMessage(SshMessage.SSH_MSG_USERAUTH_SUCCESS);
 
     logger.debug("Replying SSH_MSG_USERAUTH_SUCCESS...");
+
     ctx.channel().writeAndFlush(uas);
   }
 
@@ -346,6 +350,7 @@ public class Session {
     uaf.writeBoolean(partialSuccess);
 
     logger.debug("Replying SSH_MSG_USERAUTH_FAILURE...");
+
     ctx.channel().writeAndFlush(uaf);
   }
 
@@ -364,6 +369,7 @@ public class Session {
     ByteBufIo.writeBytes(uapo, blob);
 
     logger.debug("Replying SSH_MSG_USERAUTH_PK_OK...");
+
     ctx.channel().writeAndFlush(uapo);
   }
 
@@ -375,6 +381,7 @@ public class Session {
     ByteBufIo.writeBytes(reply, sigH);
 
     logger.debug("Replying SSH_MSG_KEXDH_REPLY...");
+
     ctx.channel().writeAndFlush(reply);
   }
 
@@ -396,6 +403,7 @@ public class Session {
     ByteBufIo.writeBytes(reply, sigH);
 
     logger.debug("Replying SSH_MSG_KEX_DH_GEX_REPLY...");
+
     ctx.channel().writeAndFlush(reply);
   }
 
@@ -438,6 +446,7 @@ public class Session {
     ByteBufIo.writeMpInt(req, e);
 
     logger.debug("Requesting SSH_MSG_KEXDH_INIT...");
+
     ctx.channel().writeAndFlush(req);
   }
 
@@ -450,6 +459,19 @@ public class Session {
     ByteBufIo.writeUtf8(req, "ssh-userauth");
 
     logger.debug("Requesting SSH_MSG_SERVICE_REQUEST...");
+
+    ctx.channel().writeAndFlush(req);
+  }
+
+  public void requestUserAuthRequest(String username, String service, String method) {
+    ByteBuf req = createMessage(SshMessage.SSH_MSG_USERAUTH_REQUEST);
+
+    ByteBufIo.writeUtf8(req, username);
+    ByteBufIo.writeUtf8(req, service);
+    ByteBufIo.writeUtf8(req, method);
+
+    logger.debug("Requesting SSH_MSG_USERAUTH_REQUEST");
+
     ctx.channel().writeAndFlush(req);
   }
 

@@ -1,7 +1,6 @@
-package io.github.grantchan.ssh.server.userauth.service;
+package io.github.grantchan.ssh.common.userauth.service;
 
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.common.userauth.service.Service;
 
 public interface ServiceFactory {
 
