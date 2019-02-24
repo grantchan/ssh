@@ -4,17 +4,17 @@ import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.userauth.method.Method;
+import io.github.grantchan.ssh.common.userauth.method.MethodFactories;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.common.userauth.service.ServiceFactories;
 import io.github.grantchan.ssh.common.userauth.service.ServiceFactory;
-import io.github.grantchan.ssh.server.userauth.method.MethodFactories;
 import io.github.grantchan.ssh.server.userauth.method.SshAuthInProgressException;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UserAuthService implements Service {
+public class ServerUserAuthService implements Service {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -22,7 +22,7 @@ public class UserAuthService implements Service {
   private String service;
   private int retryCnt, maxRetryCnt;
 
-  public UserAuthService(Session session) {
+  public ServerUserAuthService(Session session) {
     this.session = session;
     this.retryCnt = 0;
     this.maxRetryCnt = 10;

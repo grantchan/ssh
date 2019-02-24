@@ -20,7 +20,7 @@ import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 
-public class DhGroupExServer implements KexHandler {
+public class ServerDhGroupEx implements KexHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -34,7 +34,7 @@ public class DhGroupExServer implements KexHandler {
 
   private byte expect = SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST;
 
-  public DhGroupExServer(MessageDigest md, Session session) {
+  public ServerDhGroupEx(MessageDigest md, Session session) {
     this.md = md;
     this.session = session;
   }

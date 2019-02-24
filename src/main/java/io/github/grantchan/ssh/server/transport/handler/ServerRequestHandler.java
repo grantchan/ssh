@@ -1,6 +1,5 @@
 package io.github.grantchan.ssh.server.transport.handler;
 
-import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.handler.RequestHandler;
@@ -9,11 +8,11 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SRequestHandler extends RequestHandler {
+public class ServerRequestHandler extends RequestHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  SRequestHandler(Session session) {
+  ServerRequestHandler(Session session) {
     super(session);
   }
 
@@ -48,15 +47,8 @@ public class SRequestHandler extends RequestHandler {
     String svcName = ByteBufIo.readUtf8(req);
     logger.info(svcName);
 
-    try {
-      session.acceptService(svcName);
-    } catch (Exception e) {
-      logger.info("Requested service ({}) from {} is unavailable, rejected.",
-          svcName, session.getRemoteAddress());
+    session.acceptService(svcName);
 
-      throw new SshException(SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE,
-          "Bad service requested - '" + svcName + "'", e);
-    }
     session.replyAccept(svcName);
 
     // send welcome banner

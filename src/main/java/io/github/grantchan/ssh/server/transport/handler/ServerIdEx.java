@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 
 import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
-public class IdExServer extends ChannelInboundHandlerAdapter implements IdExHandler {
+public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -81,7 +81,7 @@ public class IdExServer extends ChannelInboundHandlerAdapter implements IdExHand
       session.setClientId(id);
 
       ctx.pipeline().addLast(new PacketDecoder(session),
-                             new SRequestHandler(session),
+                             new ServerRequestHandler(session),
                              new PacketEncoder(session));
       ctx.pipeline().remove(this);
 

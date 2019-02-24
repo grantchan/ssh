@@ -1,10 +1,10 @@
 package io.github.grantchan.ssh.common.transport.kex;
 
-import io.github.grantchan.ssh.client.transport.kex.DhGroupClient;
+import io.github.grantchan.ssh.client.transport.kex.ClientDhGroup;
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.digest.DigestFactories;
-import io.github.grantchan.ssh.server.transport.kex.DhGroupServer;
+import io.github.grantchan.ssh.server.transport.kex.ServerDhGroup;
 
 import java.security.MessageDigest;
 import java.util.Collections;
@@ -28,7 +28,7 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
 //  dhgexsha1("diffie-hellman-group-exchange-sha1") {
 //    @Override
 //    public KexHandler create(Session s) {
-//      return new DhGroupExServer(DigestFactories.sha1.create(), s);
+//      return new ServerDhGroupEx(DigestFactories.sha1.create(), s);
 //    }
 //  },
 
@@ -47,7 +47,7 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
 //  dhgexsha256("diffie-hellman-group-exchange-sha256") {
 //    @Override
 //    public KexHandler create(Session s) {
-//      return new DhGroupExServer(DigestFactories.sha256.create(), s);
+//      return new ServerDhGroupEx(DigestFactories.sha256.create(), s);
 //    }
 //  },
 
@@ -256,8 +256,8 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
 
   private static KexHandler getKexHandler(MessageDigest md, KeyExchange ke, Session session) {
     return session.isServer() ?
-        new DhGroupServer(md, ke, session) :
-        new DhGroupClient(md, ke, session);
+        new ServerDhGroup(md, ke, session) :
+        new ClientDhGroup(md, ke, session);
   }
 
   public static final Set<KexHandlerFactories> values =

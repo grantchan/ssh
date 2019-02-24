@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -422,12 +421,16 @@ public class Session {
   /**
    * Create a {@link Service} instance by a given name
    * @param name          name of the service to create
-   * @throws IOException  if the given name of service is not supported
+   * @throws SshException  if the given name of service is not supported
    */
-  public void acceptService(String name) throws IOException {
+  public void acceptService(String name) throws SshException {
     service = ServiceFactories.create(name, this);
     if (service == null) {
-      throw new IOException("Unknown service: " + name);
+      logger.info("Requested service ({}) from {} is unavailable, rejected.",
+          name, getRemoteAddress());
+
+      throw new SshException(SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE,
+          "Bad service requested - '" + name + "'");
     }
   }
 

@@ -25,7 +25,7 @@ import java.util.List;
 import static io.github.grantchan.ssh.util.key.Comparator.md5;
 import static io.github.grantchan.ssh.util.key.Comparator.sha256;
 
-public class DhGroupClient implements KexHandler {
+public class ClientDhGroup implements KexHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -35,7 +35,7 @@ public class DhGroupClient implements KexHandler {
 
   private byte expect = SshMessage.SSH_MSG_KEXDH_INIT;
 
-  public DhGroupClient(MessageDigest md, KeyExchange kex, Session session) {
+  public ClientDhGroup(MessageDigest md, KeyExchange kex, Session session) {
     this.md = md;
     this.kex = kex;
     this.session = session;

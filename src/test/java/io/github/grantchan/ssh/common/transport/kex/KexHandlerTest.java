@@ -1,9 +1,9 @@
 package io.github.grantchan.ssh.common.transport.kex;
 
 import io.github.grantchan.ssh.arch.SshMessage;
-import io.github.grantchan.ssh.client.transport.kex.DhGroupClient;
+import io.github.grantchan.ssh.client.transport.kex.ClientDhGroup;
 import io.github.grantchan.ssh.common.SshException;
-import io.github.grantchan.ssh.server.transport.kex.DhGroupServer;
+import io.github.grantchan.ssh.server.transport.kex.ServerDhGroup;
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,8 +30,8 @@ public class KexHandlerTest {
     thrown.expect(hasProperty("disconnectReason",
         is(SshMessage.SSH_DISCONNECT_KEY_EXCHANGE_FAILED)));
 
-    new DhGroupClient(null, null, null).handleMessage(SshMessage.SSH_MSG_KEXDH_REPLY, null);
-    new DhGroupServer(null, null, null).handleMessage(SshMessage.SSH_MSG_KEXDH_REPLY, null);
+    new ClientDhGroup(null, null, null).handleMessage(SshMessage.SSH_MSG_KEXDH_REPLY, null);
+    new ServerDhGroup(null, null, null).handleMessage(SshMessage.SSH_MSG_KEXDH_REPLY, null);
   }
 
 }

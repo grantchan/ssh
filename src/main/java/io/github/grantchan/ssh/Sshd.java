@@ -1,6 +1,6 @@
 package io.github.grantchan.ssh;
 
-import io.github.grantchan.ssh.server.transport.handler.IdExServer;
+import io.github.grantchan.ssh.server.transport.handler.ServerIdEx;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
@@ -25,9 +25,9 @@ public class Sshd {
        .handler(loggingHandler)
        .childHandler(new ChannelInitializer<SocketChannel>() {
          @Override
-         protected void initChannel(SocketChannel ch) throws Exception {
+         protected void initChannel(SocketChannel ch) {
            ch.pipeline()
-             .addLast(loggingHandler, new IdExServer());
+             .addLast(loggingHandler, new ServerIdEx());
          }
        }).bind(5222).sync().channel().closeFuture().sync();
     } catch (InterruptedException e) {
