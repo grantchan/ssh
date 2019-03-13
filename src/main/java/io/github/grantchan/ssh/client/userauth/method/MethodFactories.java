@@ -1,8 +1,7 @@
-package io.github.grantchan.ssh.common.userauth.method;
+package io.github.grantchan.ssh.client.userauth.method;
 
 import io.github.grantchan.ssh.common.NamedFactory;
 import io.github.grantchan.ssh.common.NamedObject;
-import io.github.grantchan.ssh.server.userauth.method.FileBasedPublicKeyAuth;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -10,16 +9,10 @@ import java.util.Set;
 
 public enum MethodFactories implements NamedFactory<Method> {
 
-  password("password") {
-    @Override
-    public Method create() {
-      return null;
-    }
-  },
   publickey("publickey") {
     @Override
     public Method create() {
-      return FileBasedPublicKeyAuth.getInstance();
+      return new DirBasedPublicKeyAuth();
     }
   };
 

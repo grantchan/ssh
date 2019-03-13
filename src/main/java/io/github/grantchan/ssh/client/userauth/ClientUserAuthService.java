@@ -1,9 +1,10 @@
 package io.github.grantchan.ssh.client.userauth;
 
 import io.github.grantchan.ssh.arch.SshMessage;
+import io.github.grantchan.ssh.client.userauth.method.Method;
+import io.github.grantchan.ssh.client.userauth.method.MethodFactories;
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.common.userauth.method.Method;
-import io.github.grantchan.ssh.common.userauth.method.MethodFactories;
+import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
@@ -19,24 +20,24 @@ public class ClientUserAuthService implements Service {
 
   private Session session;
 
-  private String[] builtinMethods;
+  private String[] clientMethods;
   private int currentMethodIdx = 0;
   private Method auth;
 
   public ClientUserAuthService(Session session) {
     this.session = session;
 
-    builtinMethods = MethodFactories.getNames().split(",");
-    if (builtinMethods.length == 0) {
+    clientMethods = MethodFactories.getNames().split(",");
+    if (clientMethods.length == 0) {
       throw new RuntimeException("No authentication method available");
     }
 
     logger.debug("[{}@{}] Builtin authentication methods for client - {}",
-        session.getUsername(), session.getRemoteAddress(), String.join(",", builtinMethods));
+        session.getUsername(), session.getRemoteAddress(), String.join(",", clientMethods));
   }
 
   @Override
-  public void handleMessage(int cmd, ByteBuf req) throws Exception {
+  public void handleMessage(int cmd, ByteBuf rsp) throws Exception {
     String user = session.getUsername();
     String remoteAddr = session.getRemoteAddress();
 
@@ -71,7 +72,14 @@ public class ClientUserAuthService implements Service {
       logger.debug("[{}@{}] User authentication succeeded.", user, remoteAddr);
 
       session.acceptService("ssh-connection");
-    } else if (cmd == SshMessage.SSH_MSG_USERAUTH_FAILURE) {
+
+      return;
+    }
+
+    String methods = ByteBufIo.readUtf8(rsp);
+    List<String> serverMethods = Arrays.asList(methods.split(","));
+
+    if (cmd == SshMessage.SSH_MSG_USERAUTH_FAILURE) {
 
       /*
        * If the server rejects the authentication request, it MUST respond
@@ -100,47 +108,76 @@ public class ClientUserAuthService implements Service {
        *
        * @see <a href="https://tools.ietf.org/html/rfc4252#section-5.1">Responses to Authentication Requests</a>
        */
-      String methods = ByteBufIo.readUtf8(req);
-      boolean partial = req.readBoolean();
+      boolean partial = rsp.readBoolean();
 
       logger.debug("[{}@{}] Received SSH_MSG_USERAUTH_FAILURE - methods={}, partial={}",
           user, remoteAddr, methods, partial);
 
-      List<String> serverMethods = Arrays.asList(methods.split(","));
+      if (partial) {
+        logger.debug("[{}@{}] Multi-method authentication is not implemented, authentication " +
+            "failed.", user, remoteAddr);
 
-//      while(true) {
-//        if (auth == null) {
-//          logger.debug("Starting authentication process");
-//        } else if (!auth.authenticate(user, "ssh-connection", req, session)) {
-//          auth = null;
-//
-//          currentMethodIdx++;
-//        } else {
-//          logger.debug("[{}@{}] Authentication process ended successfully - method={}",
-//              user, remoteAddr, builtinMethods[currentMethodIdx]);
-//          return;
-//        }
-//
-//        String method = null;
-//        while (currentMethodIdx < builtinMethods.length) {
-//          if (serverMethods.contains(builtinMethods[currentMethodIdx])) {
-//            method = builtinMethods[currentMethodIdx];
-//            break;
-//          }
-//          currentMethodIdx++;
-//        }
-//
-//        if (method == null) {
-//          logger.debug("[{}@{}] No more authentication method available - client={}, server={}." +
-//                  " Authentication failed.", user, remoteAddr, String.join(",", builtinMethods),
-//                  methods);
-//          throw new SshException(SshMessage.SSH_DISCONNECT_NO_MORE_AUTH_METHODS_AVAILABLE,
-//              "No more authentication method available, authentication failed");
-//        }
-//
-//        auth = MethodFactories.create(method);
-//      }
+        throw new IllegalStateException("Multi-method authentication is not implemented.");
+      }
 
+      auth = null;
+
+      nextMethod(serverMethods);
+
+      return;
+    }
+
+    if (auth == null) {
+      String msg = SshMessage.from(cmd);
+
+      logger.debug("[] Illegal authentication response - {}", msg);
+
+      throw new IllegalStateException("Illegal authentication response: " + msg);
+    }
+
+//    if (!auth.submit(user, "ssh-connection", rsp, session)) {
+//      nextMethod(serverMethods);
+//    }
+  }
+
+  private void nextMethod(List<String> serverMethods) throws SshException {
+
+    while (true) {
+      if (auth == null) {
+        logger.debug("About to start authentication process - methods(Client): {}, " +
+            "method(Server): {}", clientMethods, serverMethods);
+      } else if (!auth.submit()) {
+        logger.debug("No available initial authentication request to send, trying next method");
+
+        auth = null;
+
+        currentMethodIdx++;
+      } else {
+        logger.debug("Initial authentication request is sent successfully");
+
+        return;
+      }
+
+      while (currentMethodIdx < clientMethods.length) {
+        String clientMethod = clientMethods[currentMethodIdx];
+        if (serverMethods.contains(clientMethod)) {
+          auth = MethodFactories.create(clientMethod);
+          if (auth == null) {
+            logger.debug("Failed to create authentication method - {}", clientMethod);
+
+            throw new IllegalStateException("Failed to create authentication method - " +
+                clientMethod);
+          }
+        }
+      }
+
+      if (auth == null) {
+        logger.debug("No more authentication methods available");
+
+        throw new SshException(SshMessage.SSH_DISCONNECT_NO_MORE_AUTH_METHODS_AVAILABLE,
+            "No more authentication methods available");
+      }
     }
   }
+
 }

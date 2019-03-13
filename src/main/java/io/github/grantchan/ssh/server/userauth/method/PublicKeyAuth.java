@@ -4,7 +4,6 @@ import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
-import io.github.grantchan.ssh.common.userauth.method.Method;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.github.grantchan.ssh.util.key.Comparator;
 import io.github.grantchan.ssh.util.key.decoder.DSAPublicKeyDecoder;

@@ -29,6 +29,7 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
   public static FileBasedPublicKeyAuth getInstance() {
     return instance;
   }
+
   /**
    * Deserialize the text format public key file into {@link PublicKey} array
    * @param authorizedKeysFile  public key file
@@ -40,11 +41,10 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
     List<PublicKey> keys = null;
 
     try (InputStream is = new FileInputStream(authorizedKeysFile)) {
-      Reader rdr = new InputStreamReader(is, StandardCharsets.UTF_8);
-      BufferedReader brdr = new BufferedReader(rdr);
+      BufferedReader brdr = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
 
       for (String ln = brdr.readLine(); ln != null; ln = brdr.readLine()) {
-        PublicKey k = null;
+        PublicKey k;
         try {
           k = parsePublicKeyEntry(ln);
         } catch (IOException | GeneralSecurityException e) {

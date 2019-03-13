@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.common.userauth.method;
+package io.github.grantchan.ssh.server.userauth.method;
 
 import io.github.grantchan.ssh.common.Session;
 import io.netty.buffer.ByteBuf;
