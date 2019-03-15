@@ -41,7 +41,7 @@ public class PublicKeyAuth implements Method {
   }
 
   @Override
-  public boolean authenticate(String user, String service, ByteBuf buf, Session session) throws Exception {
+  public boolean authorize(String user, String service, ByteBuf buf, Session session) throws Exception {
     /*
      * byte      SSH_MSG_USERAUTH_REQUEST
      * ....      (fields already consumed before getting here)

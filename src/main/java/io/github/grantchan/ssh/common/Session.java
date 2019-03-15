@@ -14,11 +14,12 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
+import java.security.PublicKey;
 import java.util.List;
 
 public class Session {
 
-  private Logger logger = LoggerFactory.getLogger(getClass());
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private ChannelHandlerContext ctx;
 
@@ -484,5 +485,21 @@ public class Session {
 
   public void setUsername(String username) {
     this.username = username;
+  }
+
+  public void requestUserAuthRequest(String username, String service, String method, String algo, PublicKey key) {
+    ByteBuf req = createMessage(SshMessage.SSH_MSG_USERAUTH_REQUEST);
+
+    ByteBufIo.writeUtf8(req, username);
+    ByteBufIo.writeUtf8(req, service);
+    ByteBufIo.writeUtf8(req, method);
+    req.writeBoolean(false);
+    ByteBufIo.writeUtf8(req, algo);
+
+    // writeKey()
+
+    logger.debug("Requesting SSH_MSG_SERVICE_REQUEST...");
+
+    ctx.channel().writeAndFlush(req);
   }
 }

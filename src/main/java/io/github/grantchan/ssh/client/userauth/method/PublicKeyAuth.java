@@ -1,18 +1,56 @@
 package io.github.grantchan.ssh.client.userauth.method;
 
+import io.github.grantchan.ssh.common.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.security.KeyPair;
+import java.security.PublicKey;
+import java.security.interfaces.DSAPublicKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.Objects;
 
 public class PublicKeyAuth implements Method {
 
-  private Collection<KeyPair> keyPairs;
+  private final Logger logger = LoggerFactory.getLogger(getClass());
+
+  private Iterator<KeyPair> keyPairs;
+  private KeyPair currentKeyPair;
 
   public PublicKeyAuth(Collection<KeyPair> keyPairs) {
-    this.keyPairs = keyPairs;
+    this.keyPairs = Objects.requireNonNull(keyPairs).iterator();
   }
 
   @Override
-  public boolean submit() {
+  public boolean submit(Session session) {
+    if (!keyPairs.hasNext()) {
+      logger.debug("No more available key to submit for authentication");
+
+      return false;
+    }
+
+    currentKeyPair = keyPairs.next();
+
+    PublicKey key = currentKeyPair.getPublic();
+
+    logger.debug("Sending key to authenticate, key: {}", key);
+
+    String algo = null;
+    if (key instanceof DSAPublicKey) {
+      algo = "ssh-dss";
+    } else if (key instanceof RSAPublicKey) {
+      algo = "ssh-rsa";
+    }
+
+    session.requestUserAuthRequest(session.getUsername(), "ssh-connection", "publickey", algo, key);
+
+    return true;
+  }
+
+  @Override
+  public boolean authenticate(Session session) {
     return false;
   }
 }

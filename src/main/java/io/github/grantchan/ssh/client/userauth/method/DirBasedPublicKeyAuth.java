@@ -1,5 +1,7 @@
 package io.github.grantchan.ssh.client.userauth.method;
 
+import io.github.grantchan.ssh.common.Session;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -15,7 +17,7 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
     super(loadKeyPairs(getDefaultKeysFolder()));
   }
 
-  public DirBasedPublicKeyAuth(Path keyPairFolder) {
+  public DirBasedPublicKeyAuth(Session session, Path keyPairFolder) {
     super(loadKeyPairs(keyPairFolder));
   }
 

@@ -11,29 +11,31 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class ClientUserAuthService implements Service {
 
-  private Logger logger = LoggerFactory.getLogger(getClass());
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private Session session;
 
-  private String[] clientMethods;
-  private int currentMethodIdx = 0;
+  private Iterator<String> clientMethods;
   private Method auth;
 
   public ClientUserAuthService(Session session) {
     this.session = session;
 
-    clientMethods = MethodFactories.getNames().split(",");
-    if (clientMethods.length == 0) {
+    Collection<String> methods = new LinkedList<>(
+        Arrays.asList(Objects.requireNonNull(MethodFactories.getNames()).split(",")));
+
+    clientMethods = methods.iterator();
+
+    if (methods.size() == 0) {
       throw new RuntimeException("No authentication method available");
     }
 
-    logger.debug("[{}@{}] Builtin authentication methods for client - {}",
-        session.getUsername(), session.getRemoteAddress(), String.join(",", clientMethods));
+    logger.debug("[{}@{}] Authentication methods for client - {}",
+        session.getUsername(), session.getRemoteAddress(), String.join(",", methods));
   }
 
   @Override
@@ -135,9 +137,9 @@ public class ClientUserAuthService implements Service {
       throw new IllegalStateException("Illegal authentication response: " + msg);
     }
 
-//    if (!auth.submit(user, "ssh-connection", rsp, session)) {
-//      nextMethod(serverMethods);
-//    }
+    if (!auth.authenticate()) {
+      nextMethod(serverMethods);
+    }
   }
 
   private void nextMethod(List<String> serverMethods) throws SshException {
@@ -150,18 +152,16 @@ public class ClientUserAuthService implements Service {
         logger.debug("No available initial authentication request to send, trying next method");
 
         auth = null;
-
-        currentMethodIdx++;
       } else {
         logger.debug("Initial authentication request is sent successfully");
 
         return;
       }
 
-      while (currentMethodIdx < clientMethods.length) {
-        String clientMethod = clientMethods[currentMethodIdx];
+      while (clientMethods.hasNext()) {
+        String clientMethod = clientMethods.next();
         if (serverMethods.contains(clientMethod)) {
-          auth = MethodFactories.create(clientMethod);
+          auth = MethodFactories.create(clientMethod, session);
           if (auth == null) {
             logger.debug("Failed to create authentication method - {}", clientMethod);
 

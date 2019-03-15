@@ -3,11 +3,11 @@ package io.github.grantchan.ssh.server.userauth.service;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
-import io.github.grantchan.ssh.server.userauth.method.Method;
-import io.github.grantchan.ssh.server.userauth.method.MethodFactories;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.common.userauth.service.ServiceFactories;
 import io.github.grantchan.ssh.common.userauth.service.ServiceFactory;
+import io.github.grantchan.ssh.server.userauth.method.Method;
+import io.github.grantchan.ssh.server.userauth.method.MethodFactories;
 import io.github.grantchan.ssh.server.userauth.method.SshAuthInProgressException;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
@@ -105,7 +105,7 @@ public class ServerUserAuthService implements Service {
                      user, remoteAddr, service, method, retryCnt, maxRetryCnt);
 
         try {
-          result = auth.authenticate(user, service, req, session);
+          result = auth.authorize(user, service, req, session);
         } catch (SshAuthInProgressException e) {
           logger.debug("[{}@{}] Authentication in progress...", user, remoteAddr);
 

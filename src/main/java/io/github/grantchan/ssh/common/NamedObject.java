@@ -19,7 +19,7 @@ public interface NamedObject {
    */
   static String getNames(Collection<? extends NamedObject> objects) {
     return objects.stream().map(NamedObject::getName)
-                        .collect(Collectors.joining(","));
+                           .collect(Collectors.joining(","));
   }
 
   /**
