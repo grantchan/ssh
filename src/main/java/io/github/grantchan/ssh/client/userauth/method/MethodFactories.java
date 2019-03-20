@@ -3,9 +3,9 @@ package io.github.grantchan.ssh.client.userauth.method;
 import io.github.grantchan.ssh.common.NamedFactory;
 import io.github.grantchan.ssh.common.NamedObject;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.Set;
 
 public enum MethodFactories implements NamedFactory<Method> {
 
@@ -16,8 +16,8 @@ public enum MethodFactories implements NamedFactory<Method> {
     }
   };
 
-  public static final Set<MethodFactories> values =
-      Collections.unmodifiableSet(EnumSet.allOf(MethodFactories.class));
+  public static final Collection<MethodFactories> values =
+      Collections.unmodifiableCollection(EnumSet.allOf(MethodFactories.class));
 
   private String name;
 
