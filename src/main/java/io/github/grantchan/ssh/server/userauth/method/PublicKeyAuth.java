@@ -23,20 +23,19 @@ public class PublicKeyAuth implements Method {
 
   private final Collection<PublicKey> keys;
 
-  protected static final Map<String, PublicKeyDecoder> decoders =
-      new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+  static final Map<String, PublicKeyDecoder> decoders = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
   static {
     registerPublicKeyDecoder(DSAPublicKeyDecoder.getInstance());
     registerPublicKeyDecoder(RSAPublicKeyDecoder.getInstance());
   }
 
-  public static void registerPublicKeyDecoder(PublicKeyDecoder<?> decoder) {
+  private static void registerPublicKeyDecoder(PublicKeyDecoder<?> decoder) {
     for (String type : decoder.supportKeyTypes()) {
       decoders.put(type, decoder);
     }
   }
 
-  public PublicKeyAuth(Collection<PublicKey> keys) {
+  PublicKeyAuth(Collection<PublicKey> keys) {
     this.keys = (keys == null) ? Collections.emptyList() : keys;
   }
 

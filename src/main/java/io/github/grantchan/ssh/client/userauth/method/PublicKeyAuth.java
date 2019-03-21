@@ -17,9 +17,8 @@ public class PublicKeyAuth implements Method {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private Iterator<KeyPair> keyPairs;
-  private KeyPair currentKeyPair;
 
-  public PublicKeyAuth(Collection<KeyPair> keyPairs) {
+  PublicKeyAuth(Collection<KeyPair> keyPairs) {
     this.keyPairs = Objects.requireNonNull(keyPairs).iterator();
   }
 
@@ -31,9 +30,9 @@ public class PublicKeyAuth implements Method {
       return false;
     }
 
-    currentKeyPair = keyPairs.next();
+    KeyPair current = keyPairs.next();
 
-    PublicKey key = currentKeyPair.getPublic();
+    PublicKey key = current.getPublic();
 
     logger.debug("Sending key to authenticate, key: {}", key);
 
