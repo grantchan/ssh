@@ -6,13 +6,16 @@ import io.github.grantchan.ssh.util.key.deserializer.RSAKeyPairDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Objects;
 
 public class DirBasedPublicKeyAuth extends PublicKeyAuth {
 
@@ -22,6 +25,7 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
 
   private static final Collection<KeyPairDeserializer> loaders =
       new ArrayList<>();
+
   static {
     registerKeyPairDeserializer(DSAKeyPairDeserializer.getInstance());
     registerKeyPairDeserializer(RSAKeyPairDeserializer.getInstance());
@@ -49,6 +53,7 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
 
   /**
    * Load key pairs in files inside a folder
+   *
    * @param keysFolder Folder to load key pair files from
    * @return a collection of {@link KeyPair}
    */
@@ -66,18 +71,18 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
         logger.debug("{} doesn't exist, skipped", p);
       }
 
-      try (InputStream is = Files.newInputStream(p)) {
-        List<String> lines = new BufferedReader(
-            new InputStreamReader(is, StandardCharsets.UTF_8)).lines()
-                                                              .collect(Collectors.toList());
+      KeyPair kp = null;
+      try {
+        kp = loadKeyPair(p);
+      } catch (IOException | GeneralSecurityException e) {
+        e.printStackTrace();
+      }
 
+      if (kp != null) {
         if (keyPairs == null) {
           keyPairs = new LinkedList<>();
         }
-
-        keyPairs.addAll(loadKeyPairs(lines));
-      } catch (IOException e) {
-        e.printStackTrace();
+        keyPairs.add(kp);
       }
     }
 
@@ -85,17 +90,20 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
   }
 
   /**
-   * Load key pairs from an ascii file content
-   * @param lines Lines of strings normally read from a key pair file
-   * @return a collection of {@link KeyPair}
+   * Load key pair from file
+   *
+   * @param file key pair file
+   * @return a {@link KeyPair} object loaded from {@code file}
    */
-  private static Collection<KeyPair> loadKeyPairs(List<String> lines) {
+  private static KeyPair loadKeyPair(Path file) throws IOException, GeneralSecurityException {
+    Objects.requireNonNull(file);
+
     for (KeyPairDeserializer loader : loaders) {
-      if (loader.support(lines)) {
-        return loader.unmarshal(lines);
+      if (loader.support(file)) {
+        return loader.unmarshal(file);
       }
     }
 
-    return Collections.emptyList();
+    return null;
   }
 }

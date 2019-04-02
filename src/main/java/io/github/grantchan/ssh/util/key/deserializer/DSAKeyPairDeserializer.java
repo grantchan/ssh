@@ -1,28 +1,32 @@
 package io.github.grantchan.ssh.util.key.deserializer;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
-import java.util.Collection;
-import java.util.List;
 
 public class DSAKeyPairDeserializer implements KeyPairDeserializer {
 
+  private static final String BEGIN_LINE = "-----BEGIN DSA PRIVATE KEY-----";
+  private static final String END_LINE = "-----END DSA PRIVATE KEY-----";
+
   private static final DSAKeyPairDeserializer instance = new DSAKeyPairDeserializer();
+
   public static KeyPairDeserializer getInstance() {
     return instance;
   }
 
   @Override
-  public String getType() {
-    return "DSA";
+  public String getBeginLine() {
+    return BEGIN_LINE;
   }
 
   @Override
-  public boolean support(List<String> lines) {
-    return false;
+  public String getEndLine() {
+    return END_LINE;
   }
 
   @Override
-  public Collection<KeyPair> unmarshal(List<String> lines) {
+  public KeyPair unmarshal(byte[] bytes) throws IOException, GeneralSecurityException {
     return null;
   }
 }

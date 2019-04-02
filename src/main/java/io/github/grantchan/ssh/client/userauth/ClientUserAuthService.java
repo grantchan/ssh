@@ -137,7 +137,7 @@ public class ClientUserAuthService implements Service {
       throw new IllegalStateException("Illegal authentication response: " + msg);
     }
 
-    if (!auth.authenticate()) {
+    if (!auth.authenticate(session)) {
       nextMethod(serverMethods);
     }
   }
@@ -148,7 +148,7 @@ public class ClientUserAuthService implements Service {
       if (auth == null) {
         logger.debug("About to start authentication process - methods(Client): {}, " +
             "method(Server): {}", clientMethods, serverMethods);
-      } else if (!auth.submit()) {
+      } else if (!auth.submit(session)) {
         logger.debug("No available initial authentication request to send, trying next method");
 
         auth = null;
@@ -161,7 +161,7 @@ public class ClientUserAuthService implements Service {
       while (clientMethods.hasNext()) {
         String clientMethod = clientMethods.next();
         if (serverMethods.contains(clientMethod)) {
-          auth = MethodFactories.create(clientMethod, session);
+          auth = MethodFactories.create(clientMethod);
           if (auth == null) {
             logger.debug("Failed to create authentication method - {}", clientMethod);
 
