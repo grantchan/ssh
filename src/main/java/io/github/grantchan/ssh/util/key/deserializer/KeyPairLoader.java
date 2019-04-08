@@ -15,7 +15,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public interface KeyPairDeserializer {
+public interface KeyPairLoader {
 
   String getBeginLine();
 
@@ -46,8 +46,21 @@ public interface KeyPairDeserializer {
     return false;
   }
 
-  default KeyPair unmarshal(Path file) throws IOException, GeneralSecurityException {
-    try (InputStream stream = Files.newInputStream(file)) {
+  /**
+   * Transform the private key file into {@link KeyPair} object.
+   *
+   * The file is encoded in PEM format - defined in RFCs 1421 through 1424, is a container format
+   * that may include private key. The name is from Privacy Enhanced Mail (PEM), a failed method
+   * for secure email but the container format it used lives on, and is a base64 translation of the
+   * x509 ASN.1 keys.
+   *
+   * @param pem the file in PEM format to transform from
+   * @return The {@link KeyPair} object represents the key pair
+   * @throws IOException if any error happens when reading the file
+   * @throws GeneralSecurityException if the file content is invalid
+   */
+  default KeyPair load(Path pem) throws IOException, GeneralSecurityException {
+    try (InputStream stream = Files.newInputStream(pem)) {
       List<String> lines = new BufferedReader(
           new InputStreamReader(stream, StandardCharsets.UTF_8)).lines()
                                                                 .collect(Collectors.toList());
@@ -74,9 +87,9 @@ public interface KeyPairDeserializer {
       String key = String.join("", lines.subList(++startLnIdx, endLnIdx));
       Base64.Decoder base64 = Base64.getDecoder();
 
-      return unmarshal(base64.decode(key.trim()));
+      return load(base64.decode(key.trim()));
     }
   }
 
-  KeyPair unmarshal(byte[] bytes) throws IOException, GeneralSecurityException;
+  KeyPair load(byte[] keyBytes) throws IOException, GeneralSecurityException;
 }

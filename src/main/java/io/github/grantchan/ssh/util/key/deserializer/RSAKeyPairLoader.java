@@ -1,6 +1,7 @@
 package io.github.grantchan.ssh.util.key.deserializer;
 
-import io.github.grantchan.ssh.util.AsnSequence;
+import sun.security.util.DerInputStream;
+import sun.security.util.DerValue;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -9,14 +10,14 @@ import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Objects;
 
-public class RSAKeyPairDeserializer implements KeyPairDeserializer {
+public class RSAKeyPairLoader implements KeyPairLoader {
 
   private static final String BEGIN_LINE = "-----BEGIN RSA PRIVATE KEY-----";
   private static final String END_LINE = "-----END RSA PRIVATE KEY-----";
 
-  private static final RSAKeyPairDeserializer instance = new RSAKeyPairDeserializer();
+  private static final RSAKeyPairLoader instance = new RSAKeyPairLoader();
 
-  public static KeyPairDeserializer getInstance() {
+  public static KeyPairLoader getInstance() {
     return instance;
   }
 
@@ -30,9 +31,23 @@ public class RSAKeyPairDeserializer implements KeyPairDeserializer {
     return END_LINE;
   }
 
+  /**
+   * Transform the RSA key pair bytes array into {@link KeyPair}
+   *
+   * The bytes array is encoded by DER - A way to encode ASN.1 syntax in binary, a .pem file is just
+   * a Base64 encoded .der file.
+   *
+   * OpenSSL can convert these to .pem:
+   * openssl x509 -inform der -in to-convert.der -out converted.pem
+   *
+   * @param keyBytes the key pair bytes array
+   * @return The {@link KeyPair} object represents the RSA key pair
+   * @throws IOException if any error happens when reading the array
+   * @throws GeneralSecurityException if key pair data in the array is invalid
+   */
   @Override
-  public KeyPair unmarshal(byte[] bytes) throws IOException, GeneralSecurityException {
-    Objects.requireNonNull(bytes);
+  public KeyPair load(byte[] keyBytes) throws IOException, GeneralSecurityException {
+    Objects.requireNonNull(keyBytes);
 
     /*
      * An RSA private key should be represented with the ASN.1 type
@@ -53,9 +68,11 @@ public class RSAKeyPairDeserializer implements KeyPairDeserializer {
      *
      * <a href="https://tools.ietf.org/html/rfc3447#appendix-A.1.2">A.1.2 RSA private key syntax</a>
      */
-    AsnSequence seq = new AsnSequence(bytes);
 
-    BigInteger version = seq.readInteger();
+    DerInputStream dis = new DerInputStream(keyBytes);
+    DerValue[] seq = dis.getSequence(0);
+    
+    BigInteger version = seq[0].getBigInteger();
     if (!version.equals(BigInteger.ZERO)) {
       /*
        * version is the version number, for compatibility with future
@@ -65,20 +82,20 @@ public class RSAKeyPairDeserializer implements KeyPairDeserializer {
       throw new InvalidParameterException("Invalid ASN.1 version");
     }
 
-    BigInteger n = seq.readInteger();  // the RSA modulus n
-    BigInteger e = seq.readInteger();  // the RSA public exponent e
-    BigInteger d = seq.readInteger();  // the RSA private exponent d
-    BigInteger p = seq.readInteger();  // the prime factor p of n
-    BigInteger q = seq.readInteger();  // the prime factor q of n
-    BigInteger dp = seq.readInteger(); // d mod (p - 1)
-    BigInteger dq = seq.readInteger(); // d mod (q - 1)
-    BigInteger c = seq.readInteger();  // the CRT coefficient q^(-1) mod p
+    BigInteger n  = seq[1].getBigInteger(); // the RSA modulus n
+    BigInteger e  = seq[2].getBigInteger(); // the RSA public exponent e
+    BigInteger d  = seq[3].getBigInteger(); // the RSA private exponent d
+    BigInteger p  = seq[4].getBigInteger(); // the prime factor p of n
+    BigInteger q  = seq[5].getBigInteger(); // the prime factor q of n
+    BigInteger dp = seq[6].getBigInteger(); // d mod (p - 1)
+    BigInteger dq = seq[7].getBigInteger(); // d mod (q - 1)
+    BigInteger c  = seq[8].getBigInteger(); // the CRT coefficient q^(-1) mod p
 
     KeyFactory kf = KeyFactory.getInstance("RSA");
 
     PublicKey pubKey = kf.generatePublic(new RSAPublicKeySpec(n, e));
-    PrivateKey priKey = kf.generatePrivate(new RSAPrivateCrtKeySpec(n, e, d, p, q, dp, dq, c));
+    PrivateKey prvKey = kf.generatePrivate(new RSAPrivateCrtKeySpec(n, e, d, p, q, dp, dq, c));
 
-    return new KeyPair(pubKey, priKey);
+    return new KeyPair(pubKey, prvKey);
   }
 }

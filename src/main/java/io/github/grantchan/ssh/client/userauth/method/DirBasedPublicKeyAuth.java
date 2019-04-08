@@ -1,8 +1,8 @@
 package io.github.grantchan.ssh.client.userauth.method;
 
-import io.github.grantchan.ssh.util.key.deserializer.DSAKeyPairDeserializer;
-import io.github.grantchan.ssh.util.key.deserializer.KeyPairDeserializer;
-import io.github.grantchan.ssh.util.key.deserializer.RSAKeyPairDeserializer;
+import io.github.grantchan.ssh.util.key.deserializer.DSAKeyPairLoader;
+import io.github.grantchan.ssh.util.key.deserializer.KeyPairLoader;
+import io.github.grantchan.ssh.util.key.deserializer.RSAKeyPairLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,15 +23,15 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
 
   private static final String FILE_NAME_PREFIX = "id_";
 
-  private static final Collection<KeyPairDeserializer> loaders =
+  private static final Collection<KeyPairLoader> loaders =
       new ArrayList<>();
 
   static {
-    registerKeyPairDeserializer(DSAKeyPairDeserializer.getInstance());
-    registerKeyPairDeserializer(RSAKeyPairDeserializer.getInstance());
+    registerKeyPairDeserializer(DSAKeyPairLoader.getInstance());
+    registerKeyPairDeserializer(RSAKeyPairLoader.getInstance());
   }
 
-  private static void registerKeyPairDeserializer(KeyPairDeserializer deserializer) {
+  private static void registerKeyPairDeserializer(KeyPairLoader deserializer) {
     loaders.add(deserializer);
   }
 
@@ -98,9 +98,9 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
   private static KeyPair loadKeyPair(Path file) throws IOException, GeneralSecurityException {
     Objects.requireNonNull(file);
 
-    for (KeyPairDeserializer loader : loaders) {
+    for (KeyPairLoader loader : loaders) {
       if (loader.support(file)) {
-        return loader.unmarshal(file);
+        return loader.load(file);
       }
     }
 
