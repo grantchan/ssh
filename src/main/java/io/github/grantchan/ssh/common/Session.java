@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.security.PublicKey;
@@ -487,7 +488,8 @@ public class Session {
     this.username = username;
   }
 
-  public void requestUserAuthRequest(String username, String service, String method, String algo, PublicKey key) {
+  public void requestUserAuthRequest(String username, String service, String method, String algo,
+                                     PublicKey pubKey) throws IOException {
     ByteBuf req = createMessage(SshMessage.SSH_MSG_USERAUTH_REQUEST);
 
     ByteBufIo.writeUtf8(req, username);
@@ -495,8 +497,7 @@ public class Session {
     ByteBufIo.writeUtf8(req, method);
     req.writeBoolean(false);
     ByteBufIo.writeUtf8(req, algo);
-
-    // writeKey()
+    ByteBufIo.writePublicKey(req, pubKey);
 
     logger.debug("Requesting SSH_MSG_SERVICE_REQUEST...");
 

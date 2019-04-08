@@ -69,6 +69,7 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
       Path p = keysFolder.resolve(FILE_NAME_PREFIX + type.toLowerCase());
       if (!Files.exists(p)) {
         logger.debug("{} doesn't exist, skipped", p);
+        continue;
       }
 
       KeyPair kp = null;

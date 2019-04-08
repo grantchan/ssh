@@ -4,6 +4,7 @@ import io.github.grantchan.ssh.common.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.security.interfaces.DSAPublicKey;
@@ -43,7 +44,11 @@ public class PublicKeyAuth implements Method {
       algo = "ssh-rsa";
     }
 
-    session.requestUserAuthRequest(session.getUsername(), "ssh-connection", "publickey", algo, key);
+    try {
+      session.requestUserAuthRequest(session.getUsername(), "ssh-connection", "publickey", algo, key);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
 
     return true;
   }

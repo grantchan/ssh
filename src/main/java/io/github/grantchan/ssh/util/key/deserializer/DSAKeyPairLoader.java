@@ -58,8 +58,8 @@ public class DSAKeyPairLoader implements KeyPairLoader {
      *     ASN1_SIMPLE(DSA, p, BIGNUM),
      *     ASN1_SIMPLE(DSA, q, BIGNUM),
      *     ASN1_SIMPLE(DSA, g, BIGNUM),
-     *     ASN1_SIMPLE(DSA, pub_key, BIGNUM),
-     *     ASN1_SIMPLE(DSA, priv_key, BIGNUM)
+     *     ASN1_SIMPLE(DSA, y, BIGNUM),
+     *     ASN1_SIMPLE(DSA, x, BIGNUM)
      * } ASN1_SEQUENCE_END_cb(DSA, DSAPrivateKey)
      */
 
@@ -68,16 +68,16 @@ public class DSAKeyPairLoader implements KeyPairLoader {
 
     BigInteger version = seq[0].getBigInteger();
 
-    BigInteger p    = seq[1].getBigInteger(); //
-    BigInteger q    = seq[2].getBigInteger(); //
-    BigInteger g    = seq[3].getBigInteger(); //
-    BigInteger pubK = seq[4].getBigInteger(); //
-    BigInteger prvK = seq[5].getBigInteger(); //
+    BigInteger p = seq[1].getBigInteger(); // prime number (public)
+    BigInteger q = seq[2].getBigInteger(); // 160-bit subprime, q | p - 1 (public)
+    BigInteger g = seq[3].getBigInteger(); // generator of subgroup (public)
+    BigInteger y = seq[4].getBigInteger(); // public key: y = g^x
+    BigInteger x = seq[5].getBigInteger(); // private key
 
     KeyFactory kf = KeyFactory.getInstance("DSA");
 
-    PublicKey pubKey = kf.generatePublic(new DSAPublicKeySpec(pubK, p, q, g));
-    PrivateKey prvKey = kf.generatePrivate(new DSAPrivateKeySpec(prvK, p, q, g));
+    PublicKey pubKey = kf.generatePublic(new DSAPublicKeySpec(y, p, q, g));
+    PrivateKey prvKey = kf.generatePrivate(new DSAPrivateKeySpec(x, p, q, g));
 
     return new KeyPair(pubKey, prvKey);
   }

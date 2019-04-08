@@ -2,8 +2,14 @@ package io.github.grantchan.ssh.util.buffer;
 
 import io.netty.buffer.ByteBuf;
 
+import javax.activation.UnsupportedDataTypeException;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.security.PublicKey;
+import java.security.interfaces.DSAParams;
+import java.security.interfaces.DSAPublicKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Objects;
 
 public final class ByteBufIo {
@@ -149,6 +155,41 @@ public final class ByteBufIo {
       buf.writeInt(val.length);
     }
     buf.writeBytes(val);
+
+    return buf;
+  }
+
+  public static ByteBuf writePublicKey(ByteBuf buf, PublicKey pubKey) throws IOException {
+    Objects.requireNonNull(buf, "Cannot write integer to a null ByteBuf object");
+
+    int begin = buf.writerIndex();
+    buf.writeInt(0);
+    int off = buf.writerIndex();
+
+    if (pubKey instanceof RSAPublicKey) {
+      RSAPublicKey key = (RSAPublicKey) pubKey;
+
+      writeUtf8(buf, "ssh-rsa");
+      writeMpInt(buf, key.getPublicExponent());
+      writeMpInt(buf, key.getModulus());
+    } else if (pubKey instanceof DSAPublicKey) {
+      DSAPublicKey key = (DSAPublicKey) pubKey;
+      DSAParams params = key.getParams();
+
+      writeUtf8(buf, "ssh-dsa");
+      writeMpInt(buf, params.getP());
+      writeMpInt(buf, params.getQ());
+      writeMpInt(buf, params.getG());
+      writeMpInt(buf, key.getY());
+    } else {
+      throw new UnsupportedDataTypeException("Unsupported public key type - " + pubKey.getAlgorithm());
+    }
+
+    int end = buf.writerIndex();
+
+    buf.writerIndex(begin);
+    buf.writeInt(end - off); // update length
+    buf.writerIndex(end); // reset to end
 
     return buf;
   }
