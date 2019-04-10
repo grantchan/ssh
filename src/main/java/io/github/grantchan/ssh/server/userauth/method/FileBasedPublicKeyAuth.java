@@ -1,5 +1,6 @@
 package io.github.grantchan.ssh.server.userauth.method;
 
+import io.github.grantchan.ssh.util.System;
 import io.github.grantchan.ssh.util.key.decoder.PublicKeyDecoder;
 import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
   private static final FileBasedPublicKeyAuth instance = new FileBasedPublicKeyAuth();
 
   private FileBasedPublicKeyAuth() {
-    this(new File("/home/grant/.ssh/authorized_keys"));
+    this(System.getUserHomeFolder().resolve(".ssh/authorized_keys").toFile());
   }
 
   private FileBasedPublicKeyAuth(File authorizedKeysFile) {

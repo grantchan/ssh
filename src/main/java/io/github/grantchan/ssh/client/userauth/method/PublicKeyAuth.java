@@ -1,15 +1,23 @@
 package io.github.grantchan.ssh.client.userauth.method;
 
+import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.transport.signature.Signature;
+import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
+import io.github.grantchan.ssh.util.buffer.ByteBufIo;
+import io.github.grantchan.ssh.util.key.Comparator;
+import io.github.grantchan.ssh.util.key.decoder.PublicKeyDecoder;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.security.interfaces.DSAPublicKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
@@ -61,10 +69,73 @@ public class PublicKeyAuth implements Method {
   }
 
   @Override
-  public boolean authenticate(ByteBuf buf) {
-    PublicKey currPubKey = current.getPublic();
+  public boolean authenticate(ByteBuf buf) throws GeneralSecurityException, IOException {
+    String keyType = ByteBufIo.readUtf8(buf);
 
+    int blobPos = buf.readerIndex();
+    int blobLen = buf.readInt();
+    byte[] blob = new byte[blobLen];
+    buf.readBytes(blob);
 
-    return false;
+    PublicKey recvPubKey = PublicKeyDecoder.ALL.decode(blob);
+
+    PublicKey pubKey = current.getPublic();
+    if (!Comparator.compare(pubKey, recvPubKey)) {
+      throw new InvalidKeySpecException("Public keys mismatched");
+    }
+
+    String user = session.getUsername();
+    String service = "ssh-connection";
+    String method = "publickey";
+
+    String algo = null;
+    if (pubKey instanceof DSAPublicKey) {
+      algo = "ssh-dss";
+    } else if (pubKey instanceof RSAPublicKey) {
+      algo = "ssh-rsa";
+    }
+
+    Signature signer = SignatureFactories.create(keyType, current.getPrivate());
+    Objects.requireNonNull(signer);
+
+    /*
+     * The value of 'signature' is a signature by the corresponding private
+     * key over the following data, in the following order:
+     *
+     *  string    session identifier
+     *  byte      SSH_MSG_USERAUTH_REQUEST
+     *  string    user name
+     *  string    service name
+     *  string    "publickey"
+     *  boolean   TRUE
+     *  string    public key algorithm name
+     *  string    public key to be used for authentication
+     *
+     * When the server receives this message, it MUST check whether the
+     * supplied key is acceptable for authentication, and if so, it MUST
+     * check whether the signature is correct.
+     */
+    ByteBuf val = session.createBuffer();
+    ByteBufIo.writeBytes(val, session.getId());
+    val.writeByte(SshMessage.SSH_MSG_USERAUTH_REQUEST);
+    ByteBufIo.writeUtf8(val, user);
+    ByteBufIo.writeUtf8(val, service);
+    ByteBufIo.writeUtf8(val, "publickey");
+    val.writeBoolean(true);
+    ByteBufIo.writeUtf8(val, keyType);
+    val.writeBytes(buf, blobPos, 4 + blobLen);
+
+    signer.update(val);
+
+    val.clear();
+    ByteBufIo.writeUtf8(val, algo);
+    ByteBufIo.writeBytes(val, signer.sign());
+
+    byte[] sig = new byte[val.readableBytes()];
+    val.readBytes(sig);
+
+    session.requestUserAuthRequest(user, service, method, algo, pubKey, sig);
+
+    return true;
   }
 }

@@ -111,7 +111,7 @@ public class ServerUserAuthService implements Service {
 
           return;
         } catch (Exception e) {
-          logger.debug("[{}@{}] Failed to authenticate.  method={}", user, remoteAddr, method);
+          logger.debug("[{}@{}] Failed to authenticate. method={}", user, remoteAddr, method);
         }
       }
 

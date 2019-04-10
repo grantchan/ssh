@@ -1,13 +1,13 @@
 package io.github.grantchan.ssh.client.userauth.method;
 
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.util.System;
 import io.github.grantchan.ssh.util.key.deserializer.DSAKeyPairPEMLoader;
 import io.github.grantchan.ssh.util.key.deserializer.KeyPairPEMLoader;
 import io.github.grantchan.ssh.util.key.deserializer.RSAKeyPairPEMLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,12 +44,8 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
     super(session, loadKeyPairs(keyPairFolder));
   }
 
-  private static Path getUserHomeFolder() {
-    return new File(System.getProperty("user.home")).toPath().toAbsolutePath().normalize();
-  }
-
   private static Path getDefaultKeysFolder() {
-    return getUserHomeFolder().resolve(".ssh");
+    return System.getUserHomeFolder().resolve(".ssh");
   }
 
   /**

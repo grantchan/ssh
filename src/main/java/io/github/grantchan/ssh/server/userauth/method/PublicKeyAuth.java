@@ -52,6 +52,7 @@ public class PublicKeyAuth implements Method {
     for (PublicKey key : keys) {
       if (Comparator.compare(key, publicKey)) {
         match = true;
+        break;
       }
     }
 

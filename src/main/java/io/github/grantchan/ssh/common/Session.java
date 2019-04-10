@@ -468,10 +468,10 @@ public class Session {
     ctx.channel().writeAndFlush(req);
   }
 
-  public void requestUserAuthRequest(String username, String service, String method) {
+  public void requestUserAuthRequest(String user, String service, String method) {
     ByteBuf req = createMessage(SshMessage.SSH_MSG_USERAUTH_REQUEST);
 
-    ByteBufIo.writeUtf8(req, username);
+    ByteBufIo.writeUtf8(req, user);
     ByteBufIo.writeUtf8(req, service);
     ByteBufIo.writeUtf8(req, method);
 
@@ -489,19 +489,39 @@ public class Session {
     this.username = username;
   }
 
-  public void requestUserAuthRequest(String username, String service, String method, String algo,
+  public void requestUserAuthRequest(String user, String service, String method, String algo,
                                      PublicKey pubKey) throws IOException {
     ByteBuf req = createMessage(SshMessage.SSH_MSG_USERAUTH_REQUEST);
 
-    ByteBufIo.writeUtf8(req, username);
+    ByteBufIo.writeUtf8(req, user);
     ByteBufIo.writeUtf8(req, service);
     ByteBufIo.writeUtf8(req, method);
     req.writeBoolean(false);
     ByteBufIo.writeUtf8(req, algo);
     ByteBufIo.writePublicKey(req, pubKey);
 
-    logger.debug("Requesting SSH_MSG_USERAUTH_REQUEST...");
+    logger.debug("Requesting SSH_MSG_USERAUTH_REQUEST... " +
+                 "username:{}, service:{}, method:{}, algo:{}");
 
     ctx.channel().writeAndFlush(req);
+  }
+
+  public void requestUserAuthRequest(String user, String service, String method, String algo,
+                                     PublicKey pubKey, byte[] sig) throws IOException {
+    ByteBuf req = createMessage(SshMessage.SSH_MSG_USERAUTH_REQUEST);
+
+    ByteBufIo.writeUtf8(req, user);
+    ByteBufIo.writeUtf8(req, service);
+    ByteBufIo.writeUtf8(req, method);
+    req.writeBoolean(true);
+    ByteBufIo.writeUtf8(req, algo);
+    ByteBufIo.writePublicKey(req, pubKey);
+    ByteBufIo.writeBytes(req, sig);
+
+    logger.debug("Requesting SSH_MSG_USERAUTH_REQUEST... " +
+        "username:{}, service:{}, method:{}, algo:{}");
+
+    ctx.channel().writeAndFlush(req);
+
   }
 }
