@@ -1,5 +1,6 @@
 package io.github.grantchan.ssh.client.userauth.method;
 
+import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.util.key.deserializer.DSAKeyPairLoader;
 import io.github.grantchan.ssh.util.key.deserializer.KeyPairLoader;
 import io.github.grantchan.ssh.util.key.deserializer.RSAKeyPairLoader;
@@ -35,12 +36,12 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
     loaders.add(deserializer);
   }
 
-  public DirBasedPublicKeyAuth() {
-    super(loadKeyPairs(getDefaultKeysFolder()));
+  public DirBasedPublicKeyAuth(Session session) {
+    super(session, loadKeyPairs(getDefaultKeysFolder()));
   }
 
-  public DirBasedPublicKeyAuth(Path keyPairFolder) {
-    super(loadKeyPairs(keyPairFolder));
+  public DirBasedPublicKeyAuth(Session session, Path keyPairFolder) {
+    super(session, loadKeyPairs(keyPairFolder));
   }
 
   private static Path getUserHomeFolder() {

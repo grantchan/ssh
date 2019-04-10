@@ -475,7 +475,8 @@ public class Session {
     ByteBufIo.writeUtf8(req, service);
     ByteBufIo.writeUtf8(req, method);
 
-    logger.debug("Requesting SSH_MSG_USERAUTH_REQUEST");
+    logger.debug("Requesting SSH_MSG_USERAUTH_REQUEST... username:{}, service:{}, method:{}",
+        username, service, method);
 
     ctx.channel().writeAndFlush(req);
   }
@@ -499,7 +500,7 @@ public class Session {
     ByteBufIo.writeUtf8(req, algo);
     ByteBufIo.writePublicKey(req, pubKey);
 
-    logger.debug("Requesting SSH_MSG_SERVICE_REQUEST...");
+    logger.debug("Requesting SSH_MSG_USERAUTH_REQUEST...");
 
     ctx.channel().writeAndFlush(req);
   }

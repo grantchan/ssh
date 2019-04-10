@@ -20,6 +20,7 @@ public class ClientUserAuthService implements Service {
   private Session session;
 
   private Iterator<String> clientMethods;
+  private List<String> serverMethods;
   private Method auth;
 
   public ClientUserAuthService(Session session) {
@@ -78,10 +79,9 @@ public class ClientUserAuthService implements Service {
       return;
     }
 
-    String methods = ByteBufIo.readUtf8(rsp);
-    List<String> serverMethods = Arrays.asList(methods.split(","));
-
     if (cmd == SshMessage.SSH_MSG_USERAUTH_FAILURE) {
+      String methods = ByteBufIo.readUtf8(rsp);
+      serverMethods = Arrays.asList(methods.split(","));
 
       /*
        * If the server rejects the authentication request, it MUST respond
@@ -124,31 +124,33 @@ public class ClientUserAuthService implements Service {
 
       auth = null;
 
-      nextMethod(serverMethods);
+      nextMethod();
 
       return;
     }
 
-    if (auth == null) {
-      String msg = SshMessage.from(cmd);
+    if (cmd == SshMessage.SSH_MSG_USERAUTH_PK_OK && auth != null) {
+      if (!auth.authenticate(rsp)) {
+        nextMethod();
+      }
 
-      logger.debug("[] Illegal authentication response - {}", msg);
-
-      throw new IllegalStateException("Illegal authentication response: " + msg);
+      return;
     }
 
-    if (!auth.authenticate(session)) {
-      nextMethod(serverMethods);
-    }
+    String msg = SshMessage.from(cmd);
+
+    logger.debug("[] Illegal authentication response - {}", msg);
+
+    throw new IllegalStateException("Illegal authentication response: " + msg);
   }
 
-  private void nextMethod(List<String> serverMethods) throws SshException {
+  private void nextMethod() throws SshException {
 
     while (true) {
       if (auth == null) {
         logger.debug("About to start authentication process - methods(Client): {}, " +
             "method(Server): {}", clientMethods, serverMethods);
-      } else if (!auth.submit(session)) {
+      } else if (!auth.submit()) {
         logger.debug("No available initial authentication request to send, trying next method");
 
         auth = null;
@@ -161,7 +163,7 @@ public class ClientUserAuthService implements Service {
       while (clientMethods.hasNext()) {
         String clientMethod = clientMethods.next();
         if (serverMethods.contains(clientMethod)) {
-          auth = MethodFactories.create(clientMethod);
+          auth = MethodFactories.create(clientMethod, session);
           if (auth == null) {
             logger.debug("Failed to create authentication method - {}", clientMethod);
 

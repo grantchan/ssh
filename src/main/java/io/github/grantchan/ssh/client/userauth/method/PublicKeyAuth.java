@@ -1,6 +1,7 @@
 package io.github.grantchan.ssh.client.userauth.method;
 
 import io.github.grantchan.ssh.common.Session;
+import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,22 +18,28 @@ public class PublicKeyAuth implements Method {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
+  private Session session;
   private Iterator<KeyPair> keyPairs;
+  private KeyPair current;
 
-  PublicKeyAuth(Collection<KeyPair> keyPairs) {
+  PublicKeyAuth(Session session, Collection<KeyPair> keyPairs) {
+    this.session = session;
     this.keyPairs = Objects.requireNonNull(keyPairs).iterator();
   }
 
   @Override
-  public boolean submit(Session session) {
+  public boolean submit() {
     if (!keyPairs.hasNext()) {
       logger.debug("No more available key to submit for authentication");
 
       return false;
     }
 
-    KeyPair current = keyPairs.next();
+    String user = session.getUsername();
+    String service = "ssh-connection";
+    String method = "publickey";
 
+    current = keyPairs.next();
     PublicKey key = current.getPublic();
 
     logger.debug("Sending key to authenticate, key: {}", key);
@@ -45,7 +52,7 @@ public class PublicKeyAuth implements Method {
     }
 
     try {
-      session.requestUserAuthRequest(session.getUsername(), "ssh-connection", "publickey", algo, key);
+      session.requestUserAuthRequest(user, service, method, algo, key);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -54,7 +61,10 @@ public class PublicKeyAuth implements Method {
   }
 
   @Override
-  public boolean authenticate(Session session) {
+  public boolean authenticate(ByteBuf buf) {
+    PublicKey currPubKey = current.getPublic();
+
+
     return false;
   }
 }
