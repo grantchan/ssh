@@ -9,7 +9,7 @@ import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
-import io.github.grantchan.ssh.util.key.decoder.RSAPublicKeyDecoder;
+import io.github.grantchan.ssh.util.key.decoder.PublicKeyDecoder;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,7 +138,7 @@ public class ClientDhGroup implements KexHandler {
 
     PublicKey pubKey = null;
     try {
-      pubKey = RSAPublicKeyDecoder.getInstance().decode(k_s);
+      pubKey = PublicKeyDecoder.ALL.decode(k_s);
     } catch (IOException | GeneralSecurityException e1) {
       e1.printStackTrace();
     }

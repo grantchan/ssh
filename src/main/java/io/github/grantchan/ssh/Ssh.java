@@ -20,12 +20,12 @@ public class Ssh {
     try {
       bs.group(worker)
         .channel(NioSocketChannel.class)
-        .remoteAddress("127.0.0.1", 22)
+        .remoteAddress("127.0.0.1", 5222)
         .handler(new ChannelInitializer<SocketChannel>() {
           @Override
           protected void initChannel(SocketChannel ch) {
             ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO),
-                                  new ClientRequestHandler("grant"));
+                                  new ClientRequestHandler("jiadong"));
           }
         }).connect().sync().channel().closeFuture().sync();
     } catch (InterruptedException e) {
