@@ -10,14 +10,14 @@ import java.security.spec.DSAPrivateKeySpec;
 import java.security.spec.DSAPublicKeySpec;
 import java.util.Objects;
 
-public class DSAKeyPairLoader implements KeyPairLoader {
+public class DSAKeyPairPEMLoader implements KeyPairPEMLoader {
 
   private static final String BEGIN_LINE = "-----BEGIN DSA PRIVATE KEY-----";
   private static final String END_LINE = "-----END DSA PRIVATE KEY-----";
 
-  private static final DSAKeyPairLoader instance = new DSAKeyPairLoader();
+  private static final DSAKeyPairPEMLoader instance = new DSAKeyPairPEMLoader();
 
-  public static KeyPairLoader getInstance() {
+  public static KeyPairPEMLoader getInstance() {
     return instance;
   }
 

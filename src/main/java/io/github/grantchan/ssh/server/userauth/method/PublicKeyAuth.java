@@ -6,34 +6,21 @@ import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.github.grantchan.ssh.util.key.Comparator;
-import io.github.grantchan.ssh.util.key.decoder.DSAPublicKeyDecoder;
 import io.github.grantchan.ssh.util.key.decoder.PublicKeyDecoder;
-import io.github.grantchan.ssh.util.key.decoder.RSAPublicKeyDecoder;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
 
 public class PublicKeyAuth implements Method {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final Collection<PublicKey> keys;
-
-  static final Map<String, PublicKeyDecoder> decoders = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-  static {
-    registerPublicKeyDecoder(DSAPublicKeyDecoder.getInstance());
-    registerPublicKeyDecoder(RSAPublicKeyDecoder.getInstance());
-  }
-
-  private static void registerPublicKeyDecoder(PublicKeyDecoder<?> decoder) {
-    for (String type : decoder.supportKeyTypes()) {
-      decoders.put(type, decoder);
-    }
-  }
 
   PublicKeyAuth(Collection<PublicKey> keys) {
     this.keys = (keys == null) ? Collections.emptyList() : keys;
@@ -58,10 +45,7 @@ public class PublicKeyAuth implements Method {
     buf.readBytes(blob);
 
     // read public key from blob
-    PublicKeyDecoder<?> decoder = decoders.get(keyType);
-    if (decoder == null) {
-      throw new InvalidKeySpecException("No decoder available for this key type: " + keyType);
-    }
+    PublicKeyDecoder<?> decoder = PublicKeyDecoder.ALL;
     PublicKey publicKey = decoder.decode(blob);
 
     boolean match = false;

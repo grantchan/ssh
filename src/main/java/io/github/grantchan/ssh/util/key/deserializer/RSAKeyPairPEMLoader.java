@@ -10,14 +10,14 @@ import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Objects;
 
-public class RSAKeyPairLoader implements KeyPairLoader {
+public class RSAKeyPairPEMLoader implements KeyPairPEMLoader {
 
   private static final String BEGIN_LINE = "-----BEGIN RSA PRIVATE KEY-----";
   private static final String END_LINE = "-----END RSA PRIVATE KEY-----";
 
-  private static final RSAKeyPairLoader instance = new RSAKeyPairLoader();
+  private static final RSAKeyPairPEMLoader instance = new RSAKeyPairPEMLoader();
 
-  public static KeyPairLoader getInstance() {
+  public static KeyPairPEMLoader getInstance() {
     return instance;
   }
 

@@ -23,7 +23,7 @@ public class RSAPublicKeyDecoder implements PublicKeyDecoder<RSAPublicKey> {
   }
 
   @Override
-  public Collection<String> supportKeyTypes() {
+  public Collection<String> supportTypes() {
     return supportKeyTypes;
   }
 

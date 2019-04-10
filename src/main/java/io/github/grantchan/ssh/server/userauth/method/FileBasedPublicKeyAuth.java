@@ -96,8 +96,8 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
     Base64.Decoder base64 = Base64.getDecoder();
     byte[] data = base64.decode(fields[1]);
 
-    PublicKeyDecoder<?> decoder = decoders.get(type);
-    if (decoder == null) {
+    PublicKeyDecoder<?> decoder = PublicKeyDecoder.ALL;
+    if (!decoder.support(type)) {
       throw new InvalidKeySpecException("Decoder is not available for this key type: " + type);
     }
     return decoder.decode(data);

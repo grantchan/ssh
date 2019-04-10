@@ -23,7 +23,7 @@ public class DSAPublicKeyDecoder implements PublicKeyDecoder<DSAPublicKey> {
   }
 
   @Override
-  public Collection<String> supportKeyTypes() {
+  public Collection<String> supportTypes() {
     return supportKeyTypes;
   }
 

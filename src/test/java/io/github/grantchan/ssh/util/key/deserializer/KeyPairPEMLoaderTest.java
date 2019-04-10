@@ -14,7 +14,7 @@ import java.security.KeyPair;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class KeyPairLoaderTest {
+public class KeyPairPEMLoaderTest {
 
   private Path keyPairFolder;
 
@@ -30,7 +30,7 @@ public class KeyPairLoaderTest {
     Path keyPairFile = keyPairFolder.resolve("id_dsa_test");
     assertTrue(Files.exists(keyPairFile));
 
-    KeyPair kp = DSAKeyPairLoader.getInstance().load(keyPairFile);
+    KeyPair kp = DSAKeyPairPEMLoader.getInstance().load(keyPairFile);
     assertNotNull(kp);
   }
 
@@ -39,7 +39,7 @@ public class KeyPairLoaderTest {
     Path keyPairFile = keyPairFolder.resolve("id_rsa_test");
     assertTrue(Files.exists(keyPairFile));
 
-    KeyPair kp = RSAKeyPairLoader.getInstance().load(keyPairFile);
+    KeyPair kp = RSAKeyPairPEMLoader.getInstance().load(keyPairFile);
     assertNotNull(kp);
   }
 }
