@@ -22,13 +22,15 @@ public interface PublicKeyDecoder<T extends PublicKey> {
     return supportTypes().contains(type);
   }
 
-  default T decode(byte[] key) throws IOException, GeneralSecurityException {
+  default T decode(byte[] key) throws IOException, GeneralSecurityException,
+                                      IllegalAccessException {
     try (InputStream stream = new ByteArrayInputStream(key)) {
       return decode(stream);
     }
   }
 
-  default T decode(InputStream key) throws IOException, GeneralSecurityException {
+  default T decode(InputStream key) throws IOException, GeneralSecurityException,
+                                           IllegalAccessException {
     String type = Reader.readLengthUtf8(key);
     if (StringUtil.isNullOrEmpty(type)) {
       throw new StreamCorruptedException("Incomplete key record - key type is missing");
@@ -42,7 +44,7 @@ public interface PublicKeyDecoder<T extends PublicKey> {
     return decode0(key);
   }
 
-  T decode0(InputStream key) throws IOException, GeneralSecurityException;
+  T decode0(InputStream key) throws IOException, GeneralSecurityException, IllegalAccessException;
 
   PublicKeyDecoder<? extends PublicKey> ALL = aggregate(
       Arrays.asList(
@@ -81,7 +83,8 @@ public interface PublicKeyDecoder<T extends PublicKey> {
       }
 
       @Override
-      public PublicKey decode(InputStream key) throws IOException, GeneralSecurityException {
+      public PublicKey decode(InputStream key) throws IOException, GeneralSecurityException,
+                                                      IllegalAccessException {
         String type = Reader.readLengthUtf8(key);
         if (StringUtil.isNullOrEmpty(type)) {
           throw new StreamCorruptedException("Incomplete key record - key type is missing");
@@ -97,9 +100,8 @@ public interface PublicKeyDecoder<T extends PublicKey> {
       }
 
       @Override
-      public PublicKey decode0(InputStream key) {
-        // SHOULD NOT explicitly invoke this method
-        return null;
+      public PublicKey decode0(InputStream key) throws IllegalAccessException {
+        throw new IllegalAccessException("This method SHOULD NOT BE EXPLICITLY CALLED");
       }
     };
   }

@@ -48,7 +48,7 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
         PublicKey k;
         try {
           k = parsePublicKeyEntry(ln);
-        } catch (IOException | GeneralSecurityException e) {
+        } catch (IOException | GeneralSecurityException | IllegalAccessException e) {
           logger.info("Invalid key line: '{}', ignored.", ln);
 
           continue;
@@ -80,7 +80,9 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
    * @throws IOException               if error happens while reading the key line
    * @throws GeneralSecurityException  if key type is not supported by system
    */
-  private static PublicKey parsePublicKeyEntry(String line) throws IOException, GeneralSecurityException {
+  private static PublicKey parsePublicKeyEntry(String line) throws IOException,
+                                                                   GeneralSecurityException,
+                                                                   IllegalAccessException {
     if (StringUtil.isNullOrEmpty(line)) {
       return null;
     }

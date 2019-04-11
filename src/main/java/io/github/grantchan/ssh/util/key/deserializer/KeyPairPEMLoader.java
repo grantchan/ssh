@@ -11,8 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public interface KeyPairPEMLoader {
@@ -59,7 +58,8 @@ public interface KeyPairPEMLoader {
    * @throws IOException if any error happens when reading the file
    * @throws GeneralSecurityException if the file content is invalid
    */
-  default KeyPair load(Path pem) throws IOException, GeneralSecurityException {
+  default KeyPair load(Path pem) throws IOException, GeneralSecurityException,
+                                        IllegalAccessException {
     try (InputStream stream = Files.newInputStream(pem)) {
       List<String> lines = new BufferedReader(
           new InputStreamReader(stream, StandardCharsets.UTF_8)).lines()
@@ -91,5 +91,59 @@ public interface KeyPairPEMLoader {
     }
   }
 
-  KeyPair load(byte[] keyBytes) throws IOException, GeneralSecurityException;
+  KeyPair load(byte[] keyBytes) throws IOException, GeneralSecurityException, IllegalAccessException;
+
+  KeyPairPEMLoader ALL = aggregate(
+      Arrays.asList(DSAKeyPairPEMLoader.getInstance(),
+                    RSAKeyPairPEMLoader.getInstance()
+      )
+  );
+
+  static KeyPairPEMLoader aggregate(Collection<KeyPairPEMLoader> loaders) {
+    if (loaders == null) {
+      return null;
+    }
+
+    return new KeyPairPEMLoader() {
+      @Override
+      public String getBeginLine() {
+        return null;
+      }
+
+      @Override
+      public String getEndLine() {
+        return null;
+      }
+
+      @Override
+      public boolean support(Path file) throws IOException {
+        Objects.requireNonNull(file);
+
+        for (KeyPairPEMLoader loader : loaders) {
+          if (loader.support(file)) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      @Override
+      public KeyPair load(Path pem) throws IOException, GeneralSecurityException,
+                                           IllegalAccessException {
+        Objects.requireNonNull(pem);
+
+        for (KeyPairPEMLoader loader : loaders) {
+          if (loader.support(pem)) {
+            return loader.load(pem);
+          }
+        }
+        return null;
+      }
+
+      @Override
+      public KeyPair load(byte[] keyBytes) throws IllegalAccessException {
+        throw new IllegalAccessException("This method SHOULD NOT BE EXPLICITLY CALLED");
+      }
+    };
+  }
 }

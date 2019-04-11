@@ -38,7 +38,7 @@ public class PublicKeyAuth implements Method {
   @Override
   public boolean submit() {
     if (!keyPairs.hasNext()) {
-      logger.debug("No more available key to submit for authentication");
+      logger.debug("[{}] No more available key to submit for authentication", session);
 
       return false;
     }
@@ -50,7 +50,7 @@ public class PublicKeyAuth implements Method {
     current = keyPairs.next();
     PublicKey key = current.getPublic();
 
-    logger.debug("Sending key to authenticate, key: {}", key);
+    logger.debug("[{}] Sending key to authenticate...", session);
 
     String algo = null;
     if (key instanceof DSAPublicKey) {
@@ -69,7 +69,9 @@ public class PublicKeyAuth implements Method {
   }
 
   @Override
-  public boolean authenticate(ByteBuf buf) throws GeneralSecurityException, IOException {
+  public boolean authenticate(ByteBuf buf) throws IOException,
+                                                  GeneralSecurityException,
+                                                  IllegalAccessException {
     String keyType = ByteBufIo.readUtf8(buf);
 
     int blobPos = buf.readerIndex();

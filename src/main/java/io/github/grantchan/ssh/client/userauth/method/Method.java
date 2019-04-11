@@ -9,5 +9,5 @@ public interface Method {
 
   boolean submit();
 
-  boolean authenticate(ByteBuf buf) throws GeneralSecurityException, IOException;
+  boolean authenticate(ByteBuf buf) throws GeneralSecurityException, IOException, IllegalAccessException;
 }

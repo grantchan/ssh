@@ -26,7 +26,8 @@ public class KeyPairPEMLoaderTest {
   }
 
   @Test
-  public void testLoadDSAKeyPairFromFile() throws IOException, GeneralSecurityException {
+  public void testLoadDSAKeyPairFromFile() throws IOException, GeneralSecurityException,
+                                                  IllegalAccessException {
     Path keyPairFile = keyPairFolder.resolve("id_dsa_test");
     assertTrue(Files.exists(keyPairFile));
 
@@ -35,7 +36,8 @@ public class KeyPairPEMLoaderTest {
   }
 
   @Test
-  public void testLoadRSAKeyPairFromFile() throws IOException, GeneralSecurityException {
+  public void testLoadRSAKeyPairFromFile() throws IOException, GeneralSecurityException,
+                                                  IllegalAccessException {
     Path keyPairFile = keyPairFolder.resolve("id_rsa_test");
     assertTrue(Files.exists(keyPairFile));
 
