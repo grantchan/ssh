@@ -51,7 +51,7 @@ public class ServerDhGroupEx implements KexHandler {
 
   @Override
   public void handleMessage(int cmd, ByteBuf msg) throws SshException {
-    logger.debug("Handling key exchange message - {} ...", SshMessage.from(cmd));
+    logger.debug("[{}] Handling key exchange message - {} ...", session, SshMessage.from(cmd));
 
     if (cmd == SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST_OLD &&
         expect == SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST) {
@@ -302,8 +302,7 @@ public class ServerDhGroupEx implements KexHandler {
 
     session.replyKexDhGexReply(k_s, kex.getPubKey(), sigH);
 
-    logger.debug("[{}@{}] KEX process completed after SSH_MSG_KEX_DH_GEX_INIT",
-        session.getUsername(), session.getRemoteAddress());
+    logger.debug("[{}] KEX process completed after SSH_MSG_KEX_DH_GEX_INIT", session);
 
     session.requestKexNewKeys();
   }

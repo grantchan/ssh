@@ -29,7 +29,8 @@ public class ClientDhGroup implements KexHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  protected final MessageDigest md;
+  private final MessageDigest md;
+
   protected final KeyExchange kex;
   protected final Session session;
 
@@ -53,7 +54,7 @@ public class ClientDhGroup implements KexHandler {
 
   @Override
   public void handleMessage(int cmd, ByteBuf msg) throws SshException {
-    logger.debug("Handling key exchange message - {} ...", SshMessage.from(cmd));
+    logger.debug("[{}] Handling key exchange message - {} ...", session, SshMessage.from(cmd));
 
     if (cmd == SshMessage.SSH_MSG_KEXDH_INIT &&
         expect == SshMessage.SSH_MSG_KEXDH_INIT) {
@@ -89,9 +90,6 @@ public class ClientDhGroup implements KexHandler {
   }
 
   private void handleDhReply(ByteBuf msg) throws SshException {
-    String user = session.getUsername();
-    String remoteAddr = session.getRemoteAddress();
-
     /*
      * RFC 4253:
      * The server then responds with the following:
@@ -122,8 +120,8 @@ public class ClientDhGroup implements KexHandler {
      *  with SHA-1 as part of the signing operation.
      */
     byte[] k_s = ByteBufIo.readBytes(msg);
-    logger.debug("[{}@{}] Host RSA public key fingerprint MD5: {}, SHA256: {}",
-        user, remoteAddr, md5(k_s), sha256(k_s));
+    logger.debug("[{}] Host RSA public key fingerprint MD5: {}, SHA256: {}",
+        session, md5(k_s), sha256(k_s));
     // Client user needs to verify the hash value of k_s(public key) of the server here
 
     byte[] e = ByteBufIo.readBytes(msg);
@@ -139,7 +137,7 @@ public class ClientDhGroup implements KexHandler {
     PublicKey pubKey = null;
     try {
       pubKey = PublicKeyDecoder.ALL.decode(k_s);
-    } catch (IOException | GeneralSecurityException e1) {
+    } catch (IOException | GeneralSecurityException | IllegalAccessException e1) {
       e1.printStackTrace();
     }
 
@@ -178,6 +176,6 @@ public class ClientDhGroup implements KexHandler {
       e1.printStackTrace();
     }
 
-    logger.debug("[{}@{}] KEX process completed after SSH_MSG_KEXDH_REPLY", user, remoteAddr);
+    logger.debug("[{}] KEX process completed after SSH_MSG_KEXDH_REPLY", session);
   }
 }

@@ -80,7 +80,7 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
     if (cipher != null) {
       StringBuilder sb = new StringBuilder();
       ByteBufUtil.appendPrettyHexDump(sb, buf);
-      logger.debug("Packet before encryption: \n{}", sb.toString());
+      logger.debug("[{}] Packet before encryption: \n{}", session, sb.toString());
 
       byte[] tmp = new byte[len + 4 - off];
       buf.getBytes(off, tmp);

@@ -5,6 +5,7 @@ import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.common.userauth.service.ServiceFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
+import io.github.grantchan.ssh.util.key.Comparator;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
@@ -49,6 +50,7 @@ public class Session {
 
   private Service service;
   private String username;
+  private String remoteAddr;
 
   // constructor
   public Session(ChannelHandlerContext ctx, boolean isServer) {
@@ -224,15 +226,18 @@ public class Session {
 
     ByteBufIo.writeUtf8(buf, svcName);
 
-    logger.debug("Replying SSH_MSG_SERVICE_ACCEPT...");
+    logger.debug("[{}] Replying SSH_MSG_SERVICE_ACCEPT...", this);
 
     ctx.channel().writeAndFlush(buf);
   }
 
   public String getRemoteAddress() {
-    InetSocketAddress remoteAddr = (InetSocketAddress) ctx.channel().remoteAddress();
+    if (remoteAddr == null) {
+      InetSocketAddress isa = (InetSocketAddress) ctx.channel().remoteAddress();
 
-    return remoteAddr.getAddress().getHostAddress();
+      remoteAddr = isa.getAddress().getHostAddress();
+    }
+    return remoteAddr;
   }
 
   /**
@@ -249,7 +254,7 @@ public class Session {
     ByteBufIo.writeMpInt(pg, p);
     ByteBufIo.writeMpInt(pg, g);
 
-    logger.debug("Replying SSH_MSG_KEX_DH_GEX_GROUP...");
+    logger.debug("[{}] Replying SSH_MSG_KEX_DH_GEX_GROUP...", this);
 
     ctx.channel().writeAndFlush(pg);
   }
@@ -272,7 +277,7 @@ public class Session {
   public void requestKexNewKeys() {
     ByteBuf newKeys = createMessage(SshMessage.SSH_MSG_NEWKEYS);
 
-    logger.debug("Requesting SSH_MSG_NEWKEYS...");
+    logger.debug("[{}] Requesting SSH_MSG_NEWKEYS...", this);
 
     ctx.channel().writeAndFlush(newKeys);
   }
@@ -322,7 +327,7 @@ public class Session {
   public void replyUserAuthSuccess() {
     ByteBuf uas = createMessage(SshMessage.SSH_MSG_USERAUTH_SUCCESS);
 
-    logger.debug("Replying SSH_MSG_USERAUTH_SUCCESS...");
+    logger.debug("[{}] Replying SSH_MSG_USERAUTH_SUCCESS...", this);
 
     ctx.channel().writeAndFlush(uas);
   }
@@ -350,7 +355,7 @@ public class Session {
     ByteBufIo.writeUtf8(uaf, remainMethods);
     uaf.writeBoolean(partialSuccess);
 
-    logger.debug("Replying SSH_MSG_USERAUTH_FAILURE...");
+    logger.debug("[{}] Replying SSH_MSG_USERAUTH_FAILURE...", this);
 
     ctx.channel().writeAndFlush(uaf);
   }
@@ -369,7 +374,7 @@ public class Session {
     ByteBufIo.writeUtf8(uapo, algorithm);
     ByteBufIo.writeBytes(uapo, blob);
 
-    logger.debug("Replying SSH_MSG_USERAUTH_PK_OK...");
+    logger.debug("[{}] Replying SSH_MSG_USERAUTH_PK_OK...", this);
 
     ctx.channel().writeAndFlush(uapo);
   }
@@ -381,7 +386,7 @@ public class Session {
     ByteBufIo.writeBytes(reply, f);
     ByteBufIo.writeBytes(reply, sigH);
 
-    logger.debug("Replying SSH_MSG_KEXDH_REPLY...");
+    logger.debug("[{}] Replying SSH_MSG_KEXDH_REPLY...", this);
 
     ctx.channel().writeAndFlush(reply);
   }
@@ -403,7 +408,7 @@ public class Session {
     ByteBufIo.writeBytes(reply, f);
     ByteBufIo.writeBytes(reply, sigH);
 
-    logger.debug("Replying SSH_MSG_KEX_DH_GEX_REPLY...");
+    logger.debug("[{}] Replying SSH_MSG_KEX_DH_GEX_REPLY...", this);
 
     ctx.channel().writeAndFlush(reply);
   }
@@ -450,7 +455,7 @@ public class Session {
 
     ByteBufIo.writeMpInt(req, e);
 
-    logger.debug("Requesting SSH_MSG_KEXDH_INIT...");
+    logger.debug("[{}] Requesting SSH_MSG_KEXDH_INIT...", this);
 
     ctx.channel().writeAndFlush(req);
   }
@@ -463,7 +468,7 @@ public class Session {
 
     ByteBufIo.writeUtf8(req, "ssh-userauth");
 
-    logger.debug("Requesting SSH_MSG_SERVICE_REQUEST...");
+    logger.debug("[{}] Requesting SSH_MSG_SERVICE_REQUEST...", this);
 
     ctx.channel().writeAndFlush(req);
   }
@@ -475,8 +480,8 @@ public class Session {
     ByteBufIo.writeUtf8(req, service);
     ByteBufIo.writeUtf8(req, method);
 
-    logger.debug("Requesting SSH_MSG_USERAUTH_REQUEST... username:{}, service:{}, method:{}",
-        username, service, method);
+    logger.debug("[{}] Requesting SSH_MSG_USERAUTH_REQUEST... username:{}, service:{}, method:{}",
+        this, user, service, method);
 
     ctx.channel().writeAndFlush(req);
   }
@@ -500,8 +505,8 @@ public class Session {
     ByteBufIo.writeUtf8(req, algo);
     ByteBufIo.writePublicKey(req, pubKey);
 
-    logger.debug("Requesting SSH_MSG_USERAUTH_REQUEST... " +
-                 "username:{}, service:{}, method:{}, algo:{}");
+    logger.debug("[{}] Requesting SSH_MSG_USERAUTH_REQUEST... " +
+                 "username:{}, service:{}, method:{}, algo:{}", this, user, service, method, algo);
 
     ctx.channel().writeAndFlush(req);
   }
@@ -518,10 +523,15 @@ public class Session {
     ByteBufIo.writePublicKey(req, pubKey);
     ByteBufIo.writeBytes(req, sig);
 
-    logger.debug("Requesting SSH_MSG_USERAUTH_REQUEST... " +
-        "username:{}, service:{}, method:{}, algo:{}");
+    logger.debug("[{}] Requesting SSH_MSG_USERAUTH_REQUEST... " +
+        "username:{}, service:{}, method:{}, algo:{}, sigature: {}", this, user, service, method, algo,
+        Comparator.md5(sig));
 
     ctx.channel().writeAndFlush(req);
+  }
 
+  @Override
+  public String toString() {
+    return getUsername() + "@" + getRemoteAddress();
   }
 }

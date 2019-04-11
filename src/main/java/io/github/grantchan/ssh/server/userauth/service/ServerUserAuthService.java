@@ -45,10 +45,8 @@ public class ServerUserAuthService implements Service {
       String service = ByteBufIo.readUtf8(req);
       String method = ByteBufIo.readUtf8(req);
 
-      String remoteAddr = session.getRemoteAddress();
-
-      logger.debug("[{}@{}] Received SSH_MSG_USERAUTH_REQUEST service={}, method={}",
-                   user, remoteAddr, service, method);
+      logger.debug("[{}] Received SSH_MSG_USERAUTH_REQUEST service={}, method={}",
+                   session, service, method);
 
       /*
        * RFC 4252:
@@ -63,7 +61,7 @@ public class ServerUserAuthService implements Service {
        */
       ServiceFactory factory = ServiceFactories.from(service);
       if (factory == null){
-        logger.debug("[{}@{}] Unsupported service - '{}'", user, remoteAddr, service);
+        logger.debug("[{}] Unsupported service - '{}'", session, service);
 
         throw new SshException(SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE,
             "Unknown service - '" + service + "'");
@@ -76,7 +74,7 @@ public class ServerUserAuthService implements Service {
         retryCnt++;
 
         if (retryCnt >= maxRetryCnt) {
-          logger.debug("[{}@{}] Too many login attemps", user, remoteAddr);
+          logger.debug("[{}] Too many login attemps", session);
 
           throw new SshException(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
               "Too many login attempts.");
@@ -88,8 +86,8 @@ public class ServerUserAuthService implements Service {
         // accumulated authentication states if they change.  If it is unable to
         // flush an authentication state, it MUST disconnect if the 'user name'
         // or 'service name' changes.
-        logger.debug("[{}@{}] User name or service name differs in one authentication session",
-                     user, remoteAddr);
+        logger.debug("[{}] User name or service name differs in one authentication session",
+                     session);
 
         throw new SshException(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
             "It's not allowed to change user name or service in one authentication session");
@@ -99,19 +97,19 @@ public class ServerUserAuthService implements Service {
 
       boolean result = false;
       if (auth == null) {
-        logger.debug("[{}@{}] Unsupported authentication method - '{}'", user, remoteAddr, method);
+        logger.debug("[{}] Unsupported authentication method - '{}'", session, method);
       } else {
-        logger.debug("[{}@{}] Authenticating to start service '{}' by method '{}' (attempt {} / {})",
-                     user, remoteAddr, service, method, retryCnt, maxRetryCnt);
+        logger.debug("[{}] Authenticating to start service '{}' by method '{}' (attempt {} / {})",
+                     session, service, method, retryCnt, maxRetryCnt);
 
         try {
           result = auth.authorize(user, service, req, session);
         } catch (SshAuthInProgressException e) {
-          logger.debug("[{}@{}] Authentication in progress...", user, remoteAddr);
+          logger.debug("[{}] Authentication in progress...", session);
 
           return;
         } catch (Exception e) {
-          logger.debug("[{}@{}] Failed to authenticate. method={}", user, remoteAddr, method);
+          logger.debug("[{}] Failed to authenticate. method={}", session, method);
         }
       }
 

@@ -56,9 +56,8 @@ public class PublicKeyAuth implements Method {
       }
     }
 
-    String remoteAddr = session.getRemoteAddress();
     if (!match) {
-      logger.debug("[{}@{}] Public key not found in server - '{}'", user, remoteAddr, publicKey);
+      logger.debug("[{}] Public key not found in server - '{}'", session, publicKey);
 
       return false;
     }

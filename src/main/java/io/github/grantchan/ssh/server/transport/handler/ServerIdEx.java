@@ -77,7 +77,7 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHand
         return;
       }
 
-      logger.debug("received identification: {}", id);
+      logger.debug("[{}] Received identification: {}", session, id);
       session.setClientId(id);
 
       ctx.pipeline().addLast(new PacketDecoder(session),

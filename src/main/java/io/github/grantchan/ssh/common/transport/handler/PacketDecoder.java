@@ -98,8 +98,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
 
     int len  = accuBuf.readInt();
     if (len < SshConstant.SSH_PACKET_HEADER_LENGTH || len > SshConstant.SSH_PACKET_MAX_LENGTH) {
-      logger.error("[{}@{}] Illegal packet to decode - invalid packet length: {}",
-          session.getUsername(), session.getRemoteAddress(), len);
+      logger.error("[{}] Illegal packet to decode - invalid packet length: {}", session, len);
 
       throw new SshException(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
           "Invalid packet length: " + len);
@@ -124,7 +123,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
       int i = accuBuf.readerIndex();
       accuBuf.readerIndex(i - SSH_PACKET_LENGTH);
       ByteBufUtil.appendPrettyHexDump(sb, accuBuf);
-      logger.debug("Decrypted packet: \n{}", sb.toString());
+      logger.debug("[{}] Decrypted packet: \n{}", session, sb.toString());
       accuBuf.readerIndex(i);
     }
 
@@ -142,8 +141,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
       int i = 0, j = len + SSH_PACKET_LENGTH;
       while (macSize-- > 0) {
         if (blk[i++] != packet[j++]) {
-          logger.error("[{}@{}] Failed to verify the packet at position: {}",
-              session.getUsername(), session.getRemoteAddress(), j - 1);
+          logger.error("[{}] Failed to verify the packet at position: {}", session, j - 1);
 
           throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR, "MAC Error");
         }

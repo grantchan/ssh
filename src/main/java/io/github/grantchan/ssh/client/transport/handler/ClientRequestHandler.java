@@ -78,7 +78,7 @@ public class ClientRequestHandler extends RequestHandler {
     }
     session.setServerId(id);
 
-    logger.debug("Received identification: {}", id);
+    logger.debug("[{}] Received identification: {}", session, id);
 
     ctx.pipeline().addFirst(new PacketDecoder(session));
     ctx.pipeline().addLast(new PacketEncoder(session));
@@ -104,8 +104,7 @@ public class ClientRequestHandler extends RequestHandler {
   protected void handleServiceAccept(ByteBuf req) throws SshException {
     String service = ByteBufIo.readUtf8(req);
 
-    logger.debug("[{}@{}] Service accepted: {}",
-        session.getUsername(), session.getRemoteAddress(), service);
+    logger.debug("[{}] Service accepted: {}", session, service);
 
     session.acceptService(service);
 

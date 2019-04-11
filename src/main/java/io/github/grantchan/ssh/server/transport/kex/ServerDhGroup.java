@@ -47,11 +47,8 @@ public class ServerDhGroup implements KexHandler {
 
   @Override
   public void handleMessage(int cmd, ByteBuf req) throws SshException {
-    String user = session.getUsername();
-    String remoteAddr = session.getRemoteAddress();
-
-    logger.debug("[{}@{}] Handling key exchange message - {} ...",
-        user, remoteAddr, SshMessage.from(cmd));
+    logger.debug("[{}] Handling key exchange message - {} ...",
+        session, SshMessage.from(cmd));
 
     if (cmd != SshMessage.SSH_MSG_KEXDH_INIT) {
       throw new SshException(SshMessage.SSH_DISCONNECT_KEY_EXCHANGE_FAILED,
@@ -121,8 +118,8 @@ public class ServerDhGroup implements KexHandler {
     byte[] k_s = new byte[reply.readableBytes()];
     reply.readBytes(k_s);
 
-    logger.debug("[{}@{}] Host RSA public key fingerprint MD5: {}, SHA256: {}",
-        user, remoteAddr, md5(k_s), sha256(k_s));
+    logger.debug("[{}] Host RSA public key fingerprint MD5: {}, SHA256: {}",
+        session, md5(k_s), sha256(k_s));
 
     reply.clear();
     ByteBufIo.writeBytes(reply, v_c);
@@ -163,7 +160,7 @@ public class ServerDhGroup implements KexHandler {
     reply.readBytes(sigH);
 
     session.replyKexDhReply(k_s, kex.getPubKey(), sigH);
-    logger.debug("[{}@{}] KEX process completed after SSH_MSG_KEXDH_INIT", user, remoteAddr);
+    logger.debug("[{}] KEX process completed after SSH_MSG_KEXDH_INIT", session);
 
     session.requestKexNewKeys();
   }
