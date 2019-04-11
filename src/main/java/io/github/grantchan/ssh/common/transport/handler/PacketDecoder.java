@@ -114,8 +114,11 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
 
     // decrypt the remaining blocks of the packet
     if (cipher != null) {
-      accuBuf.setBytes(rIdx + cipherSize,
-          cipher.update(packet, rIdx + cipherSize, len + SSH_PACKET_LENGTH - cipherSize));
+      int cipLen = len + SSH_PACKET_LENGTH - cipherSize;
+      if (cipLen > 0) {
+        accuBuf.setBytes(rIdx + cipherSize,
+            cipher.update(packet, rIdx + cipherSize, cipLen));
+      }
 
       StringBuilder sb = new StringBuilder();
       int i = accuBuf.readerIndex();
