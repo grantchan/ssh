@@ -1,5 +1,6 @@
 package io.github.grantchan.ssh.util.publickey;
 
+import io.github.grantchan.ssh.common.transport.kex.ECurve;
 import sun.security.provider.DSAPublicKey;
 
 import java.security.PublicKey;
@@ -158,6 +159,31 @@ public final class PublicKeyUtil {
         && Objects.equals(a.getCurve(), b.getCurve())
         && Objects.equals(a.getGenerator(), b.getGenerator())
         && Objects.equals(a.getOrder(), b.getOrder());
+  }
+
+  /**
+   * Return the type of a {@link PublicKey}
+   * <p>By far, it supports {@link DSAPublicKey}, {@link RSAPublicKey}, {@link ECPublicKey}</p>
+   *
+   * @param pubKey Input {@link PublicKey}
+   * @return the string of the type of the given {@param pubKey}
+   */
+  public static String typeOf(PublicKey pubKey) {
+    Objects.requireNonNull(pubKey, "Invalid parameter - pubKey is null");
+
+    if (pubKey instanceof DSAPublicKey) {
+      return "ssh-dss";
+    } else if (pubKey instanceof RSAPublicKey) {
+      return "ssh-rsa";
+    } else if (pubKey instanceof ECPublicKey) {
+      ECPublicKey ecPubKey = (ECPublicKey) pubKey;
+      ECurve curve = ECurve.from(ecPubKey.getParams());
+      if (curve != null) {
+        return "ecdsa-sha2-" + curve.name();
+      }
+    }
+
+    return null;
   }
 
 

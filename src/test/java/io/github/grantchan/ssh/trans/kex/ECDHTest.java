@@ -1,6 +1,5 @@
 package io.github.grantchan.ssh.trans.kex;
 
-import io.github.grantchan.ssh.common.transport.kex.ECDH;
 import io.github.grantchan.ssh.common.transport.kex.ECurve;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -22,7 +21,7 @@ public class ECDHTest {
     );
 
     assertArrayEquals(
-        ECDH.toBytes(pt, ECurve.nistp256.value().getCurve()),
+        ECurve.bytesOf(pt, ECurve.nistp256.value().getCurve()),
         new byte[] {
             (byte) 0x04,
             (byte) 0x93, (byte) 0x84, (byte) 0x41, (byte) 0x77, (byte) 0x89, (byte) 0x99, (byte) 0xC9, (byte) 0x47,

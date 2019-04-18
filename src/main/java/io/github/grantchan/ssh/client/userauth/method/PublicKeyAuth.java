@@ -15,8 +15,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.security.interfaces.DSAPublicKey;
-import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collection;
 import java.util.Iterator;
@@ -52,12 +50,7 @@ public class PublicKeyAuth implements Method {
 
     logger.debug("[{}] Sending key to authenticate...", session);
 
-    String algo = null;
-    if (key instanceof DSAPublicKey) {
-      algo = "ssh-dss";
-    } else if (key instanceof RSAPublicKey) {
-      algo = "ssh-rsa";
-    }
+    String algo = PublicKeyUtil.typeOf(key);
 
     try {
       session.requestUserAuthRequest(user, service, method, algo, key);
@@ -90,12 +83,7 @@ public class PublicKeyAuth implements Method {
     String service = "ssh-connection";
     String method = "publickey";
 
-    String algo = null;
-    if (pubKey instanceof DSAPublicKey) {
-      algo = "ssh-dss";
-    } else if (pubKey instanceof RSAPublicKey) {
-      algo = "ssh-rsa";
-    }
+    String algo = PublicKeyUtil.typeOf(pubKey);
 
     Signature signer = SignatureFactories.create(keyType, current.getPrivate());
     Objects.requireNonNull(signer);
