@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.util.key.deserializer;
+package io.github.grantchan.ssh.util.keypair.loader;
 
 import io.netty.util.internal.StringUtil;
 

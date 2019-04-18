@@ -14,7 +14,7 @@ import io.github.grantchan.ssh.common.transport.mac.MacFactories;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
-import io.github.grantchan.ssh.util.key.Comparator;
+import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -378,7 +378,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
      */
     byte[] id = session.getId();
 
-    logger.debug("[{}] Session ID: {}", session, Comparator.md5(id));
+    logger.debug("[{}] Session ID: {}", session, Bytes.md5(id));
 
     ByteBuf buf = session.createBuffer();
 

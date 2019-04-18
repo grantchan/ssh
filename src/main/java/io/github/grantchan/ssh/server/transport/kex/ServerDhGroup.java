@@ -18,8 +18,8 @@ import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 
-import static io.github.grantchan.ssh.util.key.Comparator.md5;
-import static io.github.grantchan.ssh.util.key.Comparator.sha256;
+import static io.github.grantchan.ssh.util.buffer.Bytes.md5;
+import static io.github.grantchan.ssh.util.buffer.Bytes.sha256;
 
 public class ServerDhGroup implements KexHandler {
 

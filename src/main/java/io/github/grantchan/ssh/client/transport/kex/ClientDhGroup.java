@@ -9,7 +9,7 @@ import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
-import io.github.grantchan.ssh.util.key.decoder.PublicKeyDecoder;
+import io.github.grantchan.ssh.util.publickey.decoder.PublicKeyDecoder;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +22,8 @@ import java.security.PublicKey;
 import java.security.SignatureException;
 import java.util.List;
 
-import static io.github.grantchan.ssh.util.key.Comparator.md5;
-import static io.github.grantchan.ssh.util.key.Comparator.sha256;
+import static io.github.grantchan.ssh.util.buffer.Bytes.md5;
+import static io.github.grantchan.ssh.util.buffer.Bytes.sha256;
 
 public class ClientDhGroup implements KexHandler {
 

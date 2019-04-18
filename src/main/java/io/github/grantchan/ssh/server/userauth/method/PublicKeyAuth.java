@@ -5,8 +5,8 @@ import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
-import io.github.grantchan.ssh.util.key.Comparator;
-import io.github.grantchan.ssh.util.key.decoder.PublicKeyDecoder;
+import io.github.grantchan.ssh.util.publickey.PublicKeyUtil;
+import io.github.grantchan.ssh.util.publickey.decoder.PublicKeyDecoder;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,7 @@ public class PublicKeyAuth implements Method {
 
     boolean match = false;
     for (PublicKey key : keys) {
-      if (Comparator.compare(key, publicKey)) {
+      if (PublicKeyUtil.compare(key, publicKey)) {
         match = true;
         break;
       }

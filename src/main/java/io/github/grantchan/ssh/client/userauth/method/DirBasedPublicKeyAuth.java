@@ -2,7 +2,7 @@ package io.github.grantchan.ssh.client.userauth.method;
 
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.util.System;
-import io.github.grantchan.ssh.util.key.deserializer.KeyPairPEMLoader;
+import io.github.grantchan.ssh.util.keypair.loader.KeyPairPEMLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

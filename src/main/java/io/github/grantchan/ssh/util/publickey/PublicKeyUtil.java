@@ -1,19 +1,15 @@
-package io.github.grantchan.ssh.util.key;
+package io.github.grantchan.ssh.util.publickey;
 
-import io.github.grantchan.ssh.common.transport.digest.DigestFactories;
-import io.github.grantchan.ssh.util.buffer.Bytes;
 import sun.security.provider.DSAPublicKey;
 
-import java.security.MessageDigest;
 import java.security.PublicKey;
 import java.security.interfaces.DSAParams;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.ECParameterSpec;
-import java.util.Base64;
 import java.util.Objects;
 
-public final class Comparator {
+public final class PublicKeyUtil {
 
   /**
    * Compare two public keys
@@ -164,42 +160,7 @@ public final class Comparator {
         && Objects.equals(a.getOrder(), b.getOrder());
   }
 
-  public static byte[] fingerPrint(byte[] data, MessageDigest md) {
-    if (data == null) {
-      throw new IllegalArgumentException("Invalid parameter - data is null");
-    }
-    if (md == null) {
-      throw new IllegalArgumentException("Invalid parameter - message digest is null");
-    }
-
-    md.update(data);
-
-    return md.digest();
-  }
-
-  public static String md5(byte[] key) {
-    if (key == null) {
-      throw new IllegalArgumentException("Invalid key parameter - key is null");
-    }
-
-    byte[] data = fingerPrint(key, Objects.requireNonNull(DigestFactories.md5.create()));
-
-    return Bytes.hex(data, ":");
-  }
-
-  public static String sha256(byte[] key) {
-    if (key == null) {
-      throw new IllegalArgumentException("Invalid key parameter - key is null");
-    }
-
-    byte[] data = fingerPrint(key, Objects.requireNonNull(DigestFactories.sha256.create()));
-
-    Base64.Encoder base64 = Base64.getEncoder();
-
-    return base64.encodeToString(data).replaceAll("=", "");
-  }
-
 
   /* Private constructor to prevent this class from being explicitly instantiated */
-  private Comparator() {}
+  private PublicKeyUtil() {}
 }

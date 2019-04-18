@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.server.userauth.method;
 
 import io.github.grantchan.ssh.util.System;
-import io.github.grantchan.ssh.util.key.decoder.PublicKeyDecoder;
+import io.github.grantchan.ssh.util.publickey.decoder.PublicKeyDecoder;
 import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

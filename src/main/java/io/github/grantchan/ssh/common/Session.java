@@ -5,7 +5,7 @@ import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.common.userauth.service.ServiceFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
-import io.github.grantchan.ssh.util.key.Comparator;
+import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
@@ -525,7 +525,7 @@ public class Session {
 
     logger.debug("[{}] Requesting SSH_MSG_USERAUTH_REQUEST... " +
         "username:{}, service:{}, method:{}, algo:{}, sigature: {}", this, user, service, method, algo,
-        Comparator.md5(sig));
+        Bytes.md5(sig));
 
     ctx.channel().writeAndFlush(req);
   }

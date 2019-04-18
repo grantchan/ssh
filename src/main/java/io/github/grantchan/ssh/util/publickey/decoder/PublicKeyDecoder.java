@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.util.key.decoder;
+package io.github.grantchan.ssh.util.publickey.decoder;
 
 import io.github.grantchan.ssh.util.iostream.Reader;
 import io.netty.util.internal.StringUtil;
