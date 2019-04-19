@@ -93,7 +93,7 @@ public final class Bytes {
    * Concatenate byte arrays
    *
    * @param bufs byte arrays to concatenate, from left to right
-   * @return the newly constructed byte array with its value being the concatenation of {@param bufs}
+   * @return the new constructed byte array with its value being the concatenation of {@param bufs}
    */
   public static byte[] concat(final byte[]... bufs) {
     if (bufs == null) {
@@ -101,27 +101,27 @@ public final class Bytes {
     }
 
     // sum up the total length
-    int len = 0;
+    int size = 0;
     for (byte[] buf : bufs) {
       if (buf != null) {
-        len += buf.length;
+        size += buf.length;
       }
     }
 
-    if (len == 0) {
+    if (size == 0) {
       return null;
     }
 
-    byte[] result = new byte[len];
-    int cnt = 0;
+    byte[] res = new byte[size];
+    int off = 0;
     for (byte[] buf : bufs) {
       if (buf != null) {
-        System.arraycopy(buf, 0, result, cnt, buf.length);
-        cnt += buf.length;
+        System.arraycopy(buf, 0, res, off, buf.length);
+        off += buf.length;
       }
     }
 
-    return result;
+    return res;
   }
 
   /**

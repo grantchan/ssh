@@ -9,6 +9,7 @@ import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
+import io.github.grantchan.ssh.util.buffer.LengthBytes;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,11 +123,7 @@ public class ServerDhGroup implements KexHandler {
         session, md5(k_s), sha256(k_s));
 
     reply.clear();
-    ByteBufIo.writeBytes(reply, v_c);
-    ByteBufIo.writeBytes(reply, v_s);
-    ByteBufIo.writeBytes(reply, i_c);
-    ByteBufIo.writeBytes(reply, i_s);
-    ByteBufIo.writeBytes(reply, k_s);
+    reply.writeBytes(LengthBytes.concat(v_c, v_s, i_c, i_s, k_s));
     ByteBufIo.writeMpInt(reply, e);
     ByteBufIo.writeMpInt(reply, kex.getPubKey());
     ByteBufIo.writeMpInt(reply, kex.getSecretKey());

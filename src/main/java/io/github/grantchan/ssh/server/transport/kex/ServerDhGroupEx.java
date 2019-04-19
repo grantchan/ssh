@@ -10,6 +10,7 @@ import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
+import io.github.grantchan.ssh.util.buffer.LengthBytes;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -253,11 +254,7 @@ public class ServerDhGroupEx implements KexHandler {
     reply.readBytes(k_s);
 
     reply.clear();
-    ByteBufIo.writeBytes(reply, v_c);
-    ByteBufIo.writeBytes(reply, v_s);
-    ByteBufIo.writeBytes(reply, i_c);
-    ByteBufIo.writeBytes(reply, i_s);
-    ByteBufIo.writeBytes(reply, k_s);
+    reply.writeBytes(LengthBytes.concat(v_c, v_s, i_c, i_s, k_s));
 
     if (min == -1 || max == -1) { // old request
       reply.writeInt(n);
