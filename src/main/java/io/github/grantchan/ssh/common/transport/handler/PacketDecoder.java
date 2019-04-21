@@ -105,6 +105,8 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
     }
 
     int macSize = isServer ? session.getC2sMacSize() : session.getS2cMacSize();
+
+    // integrity check
     if (accuBuf.readableBytes() < len + macSize) {
       // packet has not been fully received, restore the reader pointer
       accuBuf.readerIndex(rIdx);

@@ -1,18 +1,63 @@
 package io.github.grantchan.ssh.util.buffer;
 
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public final class LengthBytes {
 
+  private byte[] value;
+
+  public LengthBytes() {
+
+  }
+
+  public LengthBytes(byte[] ... raws) {
+    value = concat(raws);
+  }
+
+  public LengthBytes append(byte[] ... raws) {
+    value = Bytes.concat(value, concat(raws));
+
+    return this;
+  }
+
+  public LengthBytes append(boolean ... bs) {
+    value = Bytes.concat(value, concat(bs));
+    return this;
+  }
+
+  public LengthBytes append(int ... is) {
+    value = Bytes.concat(value, concat(is));
+
+    return this;
+  }
+
+  public LengthBytes append(BigInteger ... bis) {
+    value = Bytes.concat(value, concat(bis));
+
+    return this;
+  }
+
+  public byte[] toBytes() {
+    return value;
+  }
+
+  @Override
+  public String toString() {
+    return Arrays.toString(value);
+  }
+
   /**
    * Concatenate length byte arrays
+   *
    * @param bufs Byte arrays to concatenate, from left to right
    * @return the new constructed length byte array with its value being the concatenation of
    * {@param bufs}
    */
-  public static byte[] concat(final byte[] ... bufs) {
+  public static byte[] concat(byte[] ... bufs) {
     if (bufs == null) {
       return null;
     }
@@ -46,16 +91,63 @@ public final class LengthBytes {
     return res;
   }
 
-  public static byte[] concat(final boolean ... data) {
-    return null;
+  public static byte[] concat(boolean ... bs) {
+    if (bs == null) {
+      return null;
+    }
+
+    byte[] res = new byte[bs.length];
+    for (int i = 0; i < res.length; i++) {
+      res[i] = bs[i] ? (byte) 1 : (byte) 0;
+    }
+
+    return res;
   }
 
-  public static byte[] concat(final int ... data) {
-    return null;
+  public static byte[] concat(int ... nums) {
+    if (nums == null) {
+      return null;
+    }
+
+    byte[] res = null;
+    for (int n : nums) {
+      res = Bytes.concat(res, Bytes.htonl(n));
+    }
+
+    return res;
   }
 
-  public static byte[] concat(final String ... data) {
-    return null;
+  public static byte[] concat(String ... vals) {
+    if (vals == null) {
+      return null;
+    }
+
+    List<byte[]> bufs = new ArrayList<>(vals.length);
+
+    int size = 0;
+    for (String s : vals) {
+      if (s != null) {
+        size += Integer.BYTES + s.length();
+        bufs.add(s.getBytes(StandardCharsets.UTF_8));
+      }
+    }
+
+    if (size == 0) {
+      return null;
+    }
+
+    byte[] res = new byte[size];
+    int off = 0;
+    for (byte[] buf : bufs) {
+      byte[] len = Bytes.htonl(buf.length);
+      System.arraycopy(len, 0, res, off, len.length);
+      off += len.length;
+
+      System.arraycopy(buf, 0, res, off, buf.length);
+      off += buf.length;
+    }
+
+    return res;
   }
 
   /**
@@ -114,6 +206,4 @@ public final class LengthBytes {
     return res;
   }
 
-  /* Private constructor to prevent this class from being explicitly instantiated */
-  private LengthBytes() {}
 }
