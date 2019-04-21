@@ -51,7 +51,7 @@ public final class LengthBytes {
   }
 
   /**
-   * Concatenate length byte arrays
+   * Concatenate byte arrays
    *
    * @param bufs Byte arrays to concatenate, from left to right
    * @return the new constructed length byte array with its value being the concatenation of
@@ -91,6 +91,12 @@ public final class LengthBytes {
     return res;
   }
 
+  /**
+   * Concatenate boolean values
+   *
+   * @param bs Boolean values to concatenate, from left to right
+   * @return the new constructed length byte array
+   */
   public static byte[] concat(boolean ... bs) {
     if (bs == null) {
       return null;
@@ -104,6 +110,12 @@ public final class LengthBytes {
     return res;
   }
 
+  /**
+   * Concatenate integers
+   *
+   * @param nums Integers to concatenate, from left to right
+   * @return the new constructed length byte array
+   */
   public static byte[] concat(int ... nums) {
     if (nums == null) {
       return null;
@@ -117,15 +129,21 @@ public final class LengthBytes {
     return res;
   }
 
-  public static byte[] concat(String ... vals) {
-    if (vals == null) {
+  /**
+   * Concatenate strings
+   *
+   * @param ss Strings to concatenate, from left to right
+   * @return the new constructed length byte array
+   */
+  public static byte[] concat(String ... ss) {
+    if (ss == null) {
       return null;
     }
 
-    List<byte[]> bufs = new ArrayList<>(vals.length);
+    List<byte[]> bufs = new ArrayList<>(ss.length);
 
     int size = 0;
-    for (String s : vals) {
+    for (String s : ss) {
       if (s != null) {
         size += Integer.BYTES + s.length();
         bufs.add(s.getBytes(StandardCharsets.UTF_8));
@@ -151,9 +169,10 @@ public final class LengthBytes {
   }
 
   /**
+   * Concatenate big integers
    *
-   * @param nums
-   * @return
+   * @param nums Big integers to concatenate, from left to right
+   * @return the new constructed length byte array
    */
   public static byte[] concat(final BigInteger ... nums) {
     if (nums == null) {
@@ -163,9 +182,9 @@ public final class LengthBytes {
     List<byte[]> bufs = new ArrayList<>(nums.length);
 
     int size = 0;
-    for (BigInteger num : nums) {
-      if (num != null) {
-        byte[] buf = num.toByteArray();
+    for (BigInteger n : nums) {
+      if (n != null) {
+        byte[] buf = n.toByteArray();
         if ((buf[0] & 0x80) != 0) {
           size += Integer.BYTES + Byte.BYTES + buf.length;
         } else {
@@ -205,5 +224,4 @@ public final class LengthBytes {
 
     return res;
   }
-
 }
