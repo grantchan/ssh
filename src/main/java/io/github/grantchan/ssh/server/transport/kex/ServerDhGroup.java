@@ -9,12 +9,12 @@ import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
-import io.github.grantchan.ssh.util.buffer.LengthBytes;
+import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
+import java.math.BigInteger;
 import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
@@ -26,7 +26,8 @@ public class ServerDhGroup implements KexHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  protected final MessageDigest md;
+  private final MessageDigest md;
+
   protected final KeyExchange kex;
   protected final Session session;
 
@@ -63,7 +64,7 @@ public class ServerDhGroup implements KexHandler {
      *   byte    SSH_MSG_KEXDH_INIT
      *   mpint   e
      */
-    byte[] e = ByteBufIo.readBytes(req);
+    BigInteger e = ByteBufIo.readMpInt(req);
     kex.receivedPubKey(e);
 
     /*
@@ -95,8 +96,8 @@ public class ServerDhGroup implements KexHandler {
      *  data is first hashed with HASH to compute H, and H is then hashed
      *  with SHA-1 as part of the signing operation.
      */
-    byte[] v_c = session.getClientId().getBytes(StandardCharsets.UTF_8);
-    byte[] v_s = session.getServerId().getBytes(StandardCharsets.UTF_8);
+    String v_c = session.getClientId();
+    String v_s = session.getServerId();
     byte[] i_c = session.getC2sKex();
     byte[] i_s = session.getS2cKex();
 
@@ -109,27 +110,22 @@ public class ServerDhGroup implements KexHandler {
     }
     KeyPair kp = kpg.generateKeyPair();
 
-    ByteBuf reply = session.createBuffer();
-
-    ByteBufIo.writeUtf8(reply, "ssh-rsa");
     RSAPublicKey pubKey = ((RSAPublicKey) kp.getPublic());
-    ByteBufIo.writeMpInt(reply, pubKey.getPublicExponent());
-    ByteBufIo.writeMpInt(reply, pubKey.getModulus());
 
-    byte[] k_s = new byte[reply.readableBytes()];
-    reply.readBytes(k_s);
+    LengthBytesBuilder lbb = new LengthBytesBuilder();
+    byte[] k_s = lbb.append("ssh-rsa")
+                    .append(pubKey.getPublicExponent())
+                    .append(pubKey.getModulus())
+                    .toBytes();
 
     logger.debug("[{}] Host RSA public key fingerprint MD5: {}, SHA256: {}",
         session, md5(k_s), sha256(k_s));
 
-    reply.clear();
-    reply.writeBytes(LengthBytes.concat(v_c, v_s, i_c, i_s, k_s));
-    ByteBufIo.writeMpInt(reply, e);
-    ByteBufIo.writeMpInt(reply, kex.getPubKey());
-    ByteBufIo.writeMpInt(reply, kex.getSecretKey());
-
-    byte[] h_s = new byte[reply.readableBytes()];
-    reply.readBytes(h_s);
+    lbb.clear();
+    byte[] h_s = lbb.append(v_c, v_s)
+                    .append(i_c, i_s, k_s)
+                    .append(e, kex.getPubKey(), kex.getSecretKey())
+                    .toBytes();
 
     md.update(h_s, 0, h_s.length);
     byte[] h = md.digest();
@@ -143,18 +139,18 @@ public class ServerDhGroup implements KexHandler {
       throw new IllegalArgumentException("Unknown signature: " + KexInitParam.SERVER_HOST_KEY);
     }
 
+    byte[] sigH = null;
     try {
       sig.update(h);
 
-      reply.clear();
-      ByteBufIo.writeUtf8(reply, kexParams.get(KexInitParam.SERVER_HOST_KEY));
-      ByteBufIo.writeBytes(reply, sig.sign());
+      lbb.clear();
+      sigH = lbb.append(kexParams.get(KexInitParam.SERVER_HOST_KEY))
+                .append(sig.sign())
+                .toBytes();
+
     } catch (SignatureException ex) {
       ex.printStackTrace();
     }
-
-    byte[] sigH = new byte[reply.readableBytes()];
-    reply.readBytes(sigH);
 
     session.replyKexDhReply(k_s, kex.getPubKey(), sigH);
     logger.debug("[{}] KEX process completed after SSH_MSG_KEXDH_INIT", session);

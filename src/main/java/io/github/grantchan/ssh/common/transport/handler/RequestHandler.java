@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
@@ -383,7 +384,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     ByteBuf buf = session.createBuffer();
 
     KeyExchange kex = kexHandler.getKex();
-    byte[] k = kex.getSecretKey();
+    BigInteger k = kex.getSecretKey();
     ByteBufIo.writeMpInt(buf, k);
     buf.writeBytes(id);
     buf.writeByte((byte) 0x41);
@@ -475,7 +476,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     logger.debug("[{}] Session MAC(S2C): {}, Sesson MAC(C2S): {}",session, s2cMf, c2sMf);
   }
 
-  private byte[] hashKey(byte[] e, int blockSize, byte[] k) {
+  private byte[] hashKey(byte[] e, int blockSize, BigInteger k) {
     byte[] h = session.getId();
     MessageDigest md = kexHandler.getMd();
 

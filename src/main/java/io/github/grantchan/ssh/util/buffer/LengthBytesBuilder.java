@@ -6,39 +6,48 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public final class LengthBytes {
+public final class LengthBytesBuilder {
 
   private byte[] value;
 
-  public LengthBytes() {
-
+  public LengthBytesBuilder() {
   }
 
-  public LengthBytes(byte[] ... raws) {
+  public LengthBytesBuilder(byte[] ... raws) {
     value = concat(raws);
   }
 
-  public LengthBytes append(byte[] ... raws) {
+  public LengthBytesBuilder append(byte[] ... raws) {
     value = Bytes.concat(value, concat(raws));
 
     return this;
   }
 
-  public LengthBytes append(boolean ... bs) {
+  public LengthBytesBuilder append(boolean ... bs) {
     value = Bytes.concat(value, concat(bs));
     return this;
   }
 
-  public LengthBytes append(int ... is) {
+  public LengthBytesBuilder append(int ... is) {
     value = Bytes.concat(value, concat(is));
 
     return this;
   }
 
-  public LengthBytes append(BigInteger ... bis) {
+  public LengthBytesBuilder append(String ... ss) {
+    value = Bytes.concat(value, concat(ss));
+
+    return this;
+  }
+
+  public LengthBytesBuilder append(BigInteger ... bis) {
     value = Bytes.concat(value, concat(bis));
 
     return this;
+  }
+
+  public void clear() {
+    value = null;
   }
 
   public byte[] toBytes() {

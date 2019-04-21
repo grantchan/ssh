@@ -106,8 +106,7 @@ public final class ByteBufIo {
   public static BigInteger readMpInt(ByteBuf buf) {
     Objects.requireNonNull(buf, "Cannot read integer from a null ByteBuf object");
 
-    int len = buf.readInt();
-    byte[] b = new byte[len];
+    byte[] b = new byte[buf.readInt()];
     buf.readBytes(b);
 
     return new BigInteger(b);

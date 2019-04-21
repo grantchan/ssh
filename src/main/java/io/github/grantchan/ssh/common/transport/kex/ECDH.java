@@ -1,6 +1,7 @@
 package io.github.grantchan.ssh.common.transport.kex;
 
 import javax.crypto.KeyAgreement;
+import java.math.BigInteger;
 import java.security.*;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECParameterSpec;
@@ -33,7 +34,7 @@ public class ECDH extends KeyExchange {
 
     KeyPair kp = kpg.generateKeyPair();
     ECPoint pt = ((ECPublicKey)kp.getPublic()).getW();
-    this.pubKey = ECurve.bytesOf(pt, spec.getCurve());
+    this.pubKey = new BigInteger(ECurve.bytesOf(pt, spec.getCurve()));
 
     try {
       this.ka = KeyAgreement.getInstance("ECDH");

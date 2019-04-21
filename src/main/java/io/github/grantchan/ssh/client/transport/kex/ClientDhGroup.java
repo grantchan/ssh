@@ -9,14 +9,14 @@ import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
-import io.github.grantchan.ssh.util.buffer.LengthBytes;
+import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
 import io.github.grantchan.ssh.util.publickey.decoder.PublicKeyDecoder;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.PublicKey;
@@ -82,7 +82,7 @@ public class ClientDhGroup implements KexHandler {
      *   byte    SSH_MSG_KEXDH_INIT
      *   mpint   e
      */
-    byte[] e = kex.getPubKey();
+    BigInteger e = kex.getPubKey();
     if (e == null) {
       throw new IllegalStateException("Key exchange is not initialized");
     }
@@ -125,13 +125,13 @@ public class ClientDhGroup implements KexHandler {
         session, md5(k_s), sha256(k_s));
     // Client user needs to verify the hash value of k_s(public key) of the server here
 
-    byte[] e = ByteBufIo.readBytes(msg);
+    BigInteger e = ByteBufIo.readMpInt(msg);
     kex.receivedPubKey(e);
 
     byte[] sigH = ByteBufIo.readBytes(msg);
 
-    byte[] v_c = session.getClientId().getBytes(StandardCharsets.UTF_8);
-    byte[] v_s = session.getServerId().getBytes(StandardCharsets.UTF_8);
+    String v_c = session.getClientId();
+    String v_s = session.getServerId();
     byte[] i_c = session.getC2sKex();
     byte[] i_s = session.getS2cKex();
 
@@ -142,14 +142,11 @@ public class ClientDhGroup implements KexHandler {
       e1.printStackTrace();
     }
 
-    ByteBuf buf = session.createBuffer();
-
-    buf.writeBytes(LengthBytes.concat(v_c, v_s, i_c, i_s, k_s));
-    ByteBufIo.writeMpInt(buf, kex.getPubKey());
-    ByteBufIo.writeMpInt(buf, e);
-    ByteBufIo.writeMpInt(buf, kex.getSecretKey());
-    byte[] h_s = new byte[buf.readableBytes()];
-    buf.readBytes(h_s);
+    LengthBytesBuilder lbb = new LengthBytesBuilder();
+    byte[] h_s = lbb.append(v_c, v_s)
+                    .append(i_c, i_s, k_s)
+                    .append(kex.getPubKey(), e, kex.getSecretKey())
+                    .toBytes();
 
     md.update(h_s);
     byte[] h = md.digest();

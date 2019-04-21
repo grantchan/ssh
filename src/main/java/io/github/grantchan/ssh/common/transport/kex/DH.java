@@ -33,7 +33,7 @@ public class DH extends KeyExchange {
     }
 
     KeyPair kp = kpg.generateKeyPair();
-    this.pubKey = ((DHPublicKey)kp.getPublic()).getY().toByteArray();
+    this.pubKey = ((DHPublicKey)kp.getPublic()).getY();
 
     try {
       this.ka = KeyAgreement.getInstance("DH");
@@ -58,6 +58,6 @@ public class DH extends KeyExchange {
 
   @Override
   KeySpec getKeySpec() {
-    return new DHPublicKeySpec(new BigInteger(receivedPubKey), p, g);
+    return new DHPublicKeySpec(this.receivedPubKey, p, g);
   }
 }

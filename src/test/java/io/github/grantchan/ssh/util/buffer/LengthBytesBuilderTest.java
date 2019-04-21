@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertArrayEquals;
 
-public class LengthBytesTest {
+public class LengthBytesBuilderTest {
 
   @Test
   public void testConcatByteArraysToLengthByteArray() {
@@ -20,10 +20,10 @@ public class LengthBytesTest {
         (byte) 0x29, (byte) 0x8F
     };
 
-    assertArrayEquals(LengthBytes.concat(a, b), expected);
-    assertArrayEquals(LengthBytes.concat(a, null, b), expected);
-    assertArrayEquals(LengthBytes.concat(null, a, b), expected);
-    assertArrayEquals(LengthBytes.concat(a, b, null), expected);
+    assertArrayEquals(LengthBytesBuilder.concat(a, b), expected);
+    assertArrayEquals(LengthBytesBuilder.concat(a, null, b), expected);
+    assertArrayEquals(LengthBytesBuilder.concat(null, a, b), expected);
+    assertArrayEquals(LengthBytesBuilder.concat(a, b, null), expected);
   }
 
   @Test
@@ -43,7 +43,7 @@ public class LengthBytesTest {
         (byte) 'p', (byte) 'q'
     };
 
-    assertArrayEquals(LengthBytes.concat(a, b), expected);
+    assertArrayEquals(LengthBytesBuilder.concat(a, b), expected);
   }
 
   @Test
@@ -52,7 +52,7 @@ public class LengthBytesTest {
         (byte) 0x01, (byte) 0x00, (byte) 0x00
     };
 
-    assertArrayEquals(LengthBytes.concat(true, false, false), expected);
+    assertArrayEquals(LengthBytesBuilder.concat(true, false, false), expected);
   }
 
   @Test
@@ -66,7 +66,7 @@ public class LengthBytesTest {
         (byte) 0x00, (byte) 0x00, (byte) 0x0A, (byte) 0xE6
     };
 
-    assertArrayEquals(LengthBytes.concat(a, b, c, d), expected);
+    assertArrayEquals(LengthBytesBuilder.concat(a, b, c, d), expected);
   }
 
   @Test
@@ -84,9 +84,9 @@ public class LengthBytesTest {
         (byte) 'j', (byte) 'a', (byte) 'v', (byte) 'a'
     };
 
-    assertArrayEquals(LengthBytes.concat(a, b), expected);
-    assertArrayEquals(LengthBytes.concat(a, null, b), expected);
-    assertArrayEquals(LengthBytes.concat(null, a, b), expected);
-    assertArrayEquals(LengthBytes.concat(a, b, null, null), expected);
+    assertArrayEquals(LengthBytesBuilder.concat(a, b), expected);
+    assertArrayEquals(LengthBytesBuilder.concat(a, null, b), expected);
+    assertArrayEquals(LengthBytesBuilder.concat(null, a, b), expected);
+    assertArrayEquals(LengthBytesBuilder.concat(a, b, null, null), expected);
   }
 }

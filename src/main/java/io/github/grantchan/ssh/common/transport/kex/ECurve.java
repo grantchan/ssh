@@ -256,6 +256,10 @@ public enum ECurve {
     return Bytes.concat(new byte[]{0x04}, x, y);
   }
 
+  static ECPoint ecPointOf(BigInteger val) {
+    return ecPointOf(Objects.requireNonNull(val, "Invalid parameter - val is null").toByteArray());
+  }
+
   /**
    * Converts a byte array to an ECPoint
    */
