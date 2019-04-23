@@ -266,6 +266,7 @@ public class ServerDhGroupEx implements KexHandler {
 
     md.update(h_s, 0, h_s.length);
     byte[] h = md.digest();
+    session.setId(h);
 
     List<String> kexParams = session.getKexInit();
 
