@@ -22,7 +22,7 @@ public final class Reader {
   /**
    * @param in  the {@link InputStream} to read from
    * @return    {@link BigInteger} object read from {@link InputStream} {@code in}
-   * @throws IOException
+   * @throws IOException  if error happens while reading
    */
   public static BigInteger readMpInt(InputStream in) throws IOException {
     return new BigInteger(readLengthBytes(in));

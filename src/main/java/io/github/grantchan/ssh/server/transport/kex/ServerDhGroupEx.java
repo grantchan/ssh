@@ -11,6 +11,7 @@ import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
+import io.github.grantchan.ssh.util.publickey.PublicKeyUtil;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -244,13 +245,9 @@ public class ServerDhGroupEx implements KexHandler {
     KeyPair kp = kpg.generateKeyPair();
     RSAPublicKey pubKey = ((RSAPublicKey) kp.getPublic());
 
-    LengthBytesBuilder lbb = new LengthBytesBuilder();
-    byte[] k_s = lbb.append("ssh-rsa")
-                    .append(pubKey.getPublicExponent())
-                    .append(pubKey.getModulus())
-                    .toBytes();
+    byte[] k_s = PublicKeyUtil.bytesOf(pubKey);
 
-    lbb.clear();
+    LengthBytesBuilder lbb = new LengthBytesBuilder();
     lbb.append(v_c, v_s)
        .append(i_c, i_s, k_s);
 

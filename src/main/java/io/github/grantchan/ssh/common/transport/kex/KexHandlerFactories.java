@@ -5,7 +5,6 @@ import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.digest.DigestFactories;
 import io.github.grantchan.ssh.server.transport.kex.ServerDhGroup;
-import io.github.grantchan.ssh.server.transport.kex.ServerDhGroupEx;
 
 import java.security.MessageDigest;
 import java.util.Collections;
@@ -166,12 +165,12 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    * <a href="https://tools.ietf.org/id/draft-ietf-curdle-ssh-kex-sha2-09.html#rfc.section.3.7">
    *   diffie-hellman-group14-sha256</a>
    */
-//  dhg14sha256("diffie-hellman-group14-sha256") {
-//    @Override
-//    public KexHandler create(Session session) {
-//      return getKexHandler(DigestFactories.sha256.create(), new DH(DhGroup.P14), session);
-//    }
-//  },
+  dhg14sha256("diffie-hellman-group14-sha256") {
+    @Override
+    public KexHandler create(Session session) {
+      return getKexHandler(DigestFactories.sha256.create(), new DH(DhGroup.P14), session);
+    }
+  },
 
   /*
    * This method uses [RFC3526] group14 (a 2048-bit MODP group) which is still a reasonable size.
@@ -227,12 +226,12 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    * <a href="https://tools.ietf.org/id/draft-ietf-curdle-ssh-kex-sha2-09.html#rfc.section.3.4">
    *   diffie-hellman-group-exchange-sha256</a>
    */
-  dhgexsha256("diffie-hellman-group-exchange-sha256") {
-    @Override
-    public KexHandler create(Session s) {
-      return new ServerDhGroupEx(DigestFactories.sha256.create(), s);
-    }
-  },
+//  dhgexsha256("diffie-hellman-group-exchange-sha256") {
+//    @Override
+//    public KexHandler create(Session s) {
+//      return new ServerDhGroupEx(DigestFactories.sha256.create(), s);
+//    }
+//  },
 
   /*
    * This set of ephemerally generated key exchange groups uses SHA-1 as defined in [RFC4419].

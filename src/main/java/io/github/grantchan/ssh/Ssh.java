@@ -20,7 +20,7 @@ public class Ssh {
     try {
       bs.group(worker)
         .channel(NioSocketChannel.class)
-        .remoteAddress("127.0.0.1", 5222)
+        .remoteAddress("127.0.0.1", 22)
         .handler(new ChannelInitializer<SocketChannel>() {
           @Override
           protected void initChannel(SocketChannel ch) {

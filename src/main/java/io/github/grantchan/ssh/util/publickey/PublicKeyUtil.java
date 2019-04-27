@@ -1,6 +1,7 @@
 package io.github.grantchan.ssh.util.publickey;
 
 import io.github.grantchan.ssh.common.transport.kex.ECurve;
+import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
 import sun.security.provider.DSAPublicKey;
 
 import java.security.PublicKey;
@@ -50,7 +51,7 @@ public final class PublicKeyUtil {
    * @return   {@code true} if they're identical, otherwise, {@code false}
    * @see      #compare(DSAParams, DSAParams)
    */
-  public static boolean compare(DSAPublicKey a, DSAPublicKey b) {
+  private static boolean compare(DSAPublicKey a, DSAPublicKey b) {
     if (a == b) { // if both are null
       return true;
     }
@@ -98,7 +99,7 @@ public final class PublicKeyUtil {
    * @param b  another {@link RSAPublicKey}
    * @return   {@code true} if they're identical, otherwise, {@code false}
    */
-  public static boolean compare(RSAPublicKey a, RSAPublicKey b) {
+  private static boolean compare(RSAPublicKey a, RSAPublicKey b) {
     if (a == b) { // if both are null
       return true;
     }
@@ -122,7 +123,7 @@ public final class PublicKeyUtil {
    * @return   {@code true} if they're identical, otherwise, {@code false}
    * @see      #compare(ECParameterSpec, ECParameterSpec)
    */
-  public static boolean compare(ECPublicKey a, ECPublicKey b) {
+  private static boolean compare(ECPublicKey a, ECPublicKey b) {
     if (a == b) { // if both are null
       return true;
     }
@@ -182,10 +183,101 @@ public final class PublicKeyUtil {
         return "ecdsa-sha2-" + curve.name();
       }
     }
-
     return null;
   }
 
+  /**
+   * Return the bytes of a {@link PublicKey}
+   * <p>by calling the overload method where the certain key object belongs to, it could be:
+   * <ul><li>{@link DSAPublicKey} or</li>
+   *     <li>{@link RSAPublicKey} or</li>
+   *     <li>{@link ECPublicKey}</li></ul></p>
+   *
+   * @param pubKey The {@link PublicKey} to convert to byte array
+   * @return       Byte arrays converted from {@param pubKey} if successful, otherwise, return null.
+   * @see          #bytesOf(DSAPublicKey)
+   * @see          #bytesOf(RSAPublicKey)
+   * @see          #bytesOf(ECPublicKey)
+   */
+  public static byte[] bytesOf(PublicKey pubKey) {
+    Objects.requireNonNull(pubKey, "Invalid parameter - pubKey is null");
+
+    if (pubKey instanceof DSAPublicKey) {
+      return bytesOf((DSAPublicKey) pubKey);
+    } else if (pubKey instanceof RSAPublicKey) {
+      return bytesOf((RSAPublicKey) pubKey);
+    } else if (pubKey instanceof ECPublicKey) {
+      return bytesOf((ECPublicKey) pubKey);
+    }
+    return null;
+  }
+
+  /**
+   * Return the bytes of a {@link DSAPublicKey}
+   * <p>by combining:
+   * <ul><li>the DSA key type string, "ssh-dsa"</li>
+   *     <li>the prime, P via {@link DSAParams#getP()}</li>
+   *     <li>the subprime, Q via {@link DSAParams#getQ()}</li>
+   *     <li>the base, G via {@link DSAParams#getG()}</li>
+   *     <li>the public key value, Y via {@link DSAPublicKey#getY()}</li></ul></p>
+   *
+   * @param pubKey The {@link DSAPublicKey} to convert to byte array
+   * @return       Byte arrays converted from {@param pubKey} if successful, otherwise, return null.
+   */
+  private static byte[] bytesOf(DSAPublicKey pubKey) {
+    Objects.requireNonNull(pubKey, "Invalid parameter - pubKey is null");
+
+    DSAParams params = pubKey.getParams();
+    return new LengthBytesBuilder().append("ssh-dsa")
+                                   .append(params.getP(),
+                                           params.getQ(),
+                                           params.getG(),
+                                           pubKey.getY())
+                                   .toBytes();
+  }
+
+  /**
+   * Return the bytes of a {@link RSAPublicKey}
+   * <p>by combining:
+   * <ul><li>the RSA key type string, "ssh-rsa"</li>
+   *     <li>the public exponent values via {@link RSAPublicKey#getPublicExponent()}</li>
+   *     <li>the modulus via {@link RSAPublicKey#getModulus()}</li></ul></p>
+   *
+   * @param pubKey The {@link RSAPublicKey} to convert to byte array
+   * @return       Byte arrays converted from {@param pubKey} if successful, otherwise, return null.
+   */
+  private static byte[] bytesOf(RSAPublicKey pubKey) {
+    Objects.requireNonNull(pubKey, "Invalid parameter - pubKey is null");
+
+    return new LengthBytesBuilder().append("ssh-rsa")
+                                   .append(pubKey.getPublicExponent(),
+                                           pubKey.getModulus())
+                                   .toBytes();
+  }
+
+  /**
+   * Return the bytes of a {@link ECPublicKey}
+   * <p>by combining:
+   * <ul><li>the curve type name, in string, start with "ecdsa-sha2-"</li>
+   *     <li>the curve name, in string</li>
+   *     <li>the public key, via:
+   *     <ul><li>the public point W via {@link ECPublicKey#getW()}</li>
+   *         <li>the domain parameters via {@link ECPublicKey#getParams()}</li></ul></li>
+   * </ul></p>
+   *
+   * @param pubKey The {@link ECPublicKey} to convert to byte array
+   * @return       Byte arrays converted from {@param pubKey} if successful, otherwise, return null.
+   */
+  private static byte[] bytesOf(ECPublicKey pubKey) {
+    Objects.requireNonNull(pubKey, "Invalid parameter - pubKey is null");
+
+    ECParameterSpec params = pubKey.getParams();
+    ECurve curve = ECurve.from(params);
+    return curve == null ? null :
+        new LengthBytesBuilder().append("ecdsa-sha2-" + curve.name(), curve.name())
+                                .append(ECurve.bytesOf(pubKey.getW(), params.getCurve()))
+                                .toBytes();
+  }
 
   /* Private constructor to prevent this class from being explicitly instantiated */
   private PublicKeyUtil() {}

@@ -15,6 +15,7 @@ import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.github.grantchan.ssh.util.buffer.Bytes;
+import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -381,44 +382,35 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
 
     logger.debug("[{}] Session ID: {}", session, Bytes.md5(id));
 
-    ByteBuf buf = session.createBuffer();
-
     KeyExchange kex = kexHandler.getKex();
     BigInteger k = kex.getSecretKey();
-    ByteBufIo.writeMpInt(buf, k);
-    buf.writeBytes(id);
-    buf.writeByte((byte) 0x41);
-    buf.writeBytes(id);
+    byte[] buf = Bytes.concat(LengthBytesBuilder.concat(k), id, new byte[]{(byte) 0x41}, id);
 
-    int readableBytes = buf.readableBytes();
-    byte[] array = new byte[readableBytes];
-    buf.readBytes(array);
-
-    int j = readableBytes - id.length - 1;
+    int j = buf.length - id.length - 1;
 
     MessageDigest md = kexHandler.getMd();
 
-    md.update(array);
+    md.update(buf);
     byte[] iv_c2s = md.digest();
 
-    array[j]++;
-    md.update(array);
+    buf[j]++;
+    md.update(buf);
     byte[] iv_s2c = md.digest();
 
-    array[j]++;
-    md.update(array);
+    buf[j]++;
+    md.update(buf);
     byte[] e_c2s = md.digest();
 
-    array[j]++;
-    md.update(array);
+    buf[j]++;
+    md.update(buf);
     byte[] e_s2c = md.digest();
 
-    array[j]++;
-    md.update(array);
+    buf[j]++;
+    md.update(buf);
     byte[] mac_c2s = md.digest();
 
-    array[j]++;
-    md.update(array);
+    buf[j]++;
+    md.update(buf);
     byte[] mac_s2c = md.digest();
 
     List<String> kp = session.getKexInit();
@@ -429,8 +421,9 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     CipherFactories s2cCf;
     s2cCf = Objects.requireNonNull(CipherFactories.from(kp.get(KexInitParam.ENCRYPTION_S2C)));
     e_s2c = hashKey(e_s2c, s2cCf.getBlkSize(), k);
-    Cipher s2cCip = Objects.requireNonNull(s2cCf.create(e_s2c, iv_s2c,
-        isServer ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE));
+    Cipher s2cCip = Objects.requireNonNull(
+        s2cCf.create(e_s2c, iv_s2c, isServer ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE)
+    );
 
     session.setS2cCipher(s2cCip);
     session.setS2cCipherSize(s2cCf.getIvSize());
@@ -439,8 +432,9 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     CipherFactories c2sCf;
     c2sCf = Objects.requireNonNull(CipherFactories.from(kp.get(KexInitParam.ENCRYPTION_C2S)));
     e_c2s = hashKey(e_c2s, c2sCf.getBlkSize(), k);
-    Cipher c2sCip = Objects.requireNonNull(c2sCf.create(e_c2s, iv_c2s,
-        isServer ? Cipher.DECRYPT_MODE : Cipher.ENCRYPT_MODE));
+    Cipher c2sCip = Objects.requireNonNull(
+        c2sCf.create(e_c2s, iv_c2s, isServer ? Cipher.DECRYPT_MODE : Cipher.ENCRYPT_MODE)
+    );
 
     session.setC2sCipher(c2sCip);
     session.setC2sCipherSize(c2sCf.getIvSize());

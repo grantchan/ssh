@@ -61,9 +61,9 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHand
      *
      * Key exchange will begin immediately after sending this identifier.
      */
-    String sid = "SSH-2.0-Server DEMO";
-    session.setServerId(sid);
-    ctx.writeAndFlush(Unpooled.wrappedBuffer((sid + "\r\n").getBytes(StandardCharsets.UTF_8)));
+    String id = "SSH-2.0-Server DEMO";
+    session.setServerId(id);
+    ctx.writeAndFlush(Unpooled.wrappedBuffer((id + "\r\n").getBytes(StandardCharsets.UTF_8)));
   }
 
   @Override
