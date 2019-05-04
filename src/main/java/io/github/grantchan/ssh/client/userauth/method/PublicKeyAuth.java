@@ -5,6 +5,8 @@ import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
+import io.github.grantchan.ssh.util.buffer.Bytes;
+import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
 import io.github.grantchan.ssh.util.publickey.PublicKeyUtil;
 import io.github.grantchan.ssh.util.publickey.decoder.PublicKeyDecoder;
 import io.netty.buffer.ByteBuf;
@@ -67,9 +69,7 @@ public class PublicKeyAuth implements Method {
                                                   IllegalAccessException {
     String keyType = ByteBufIo.readUtf8(buf);
 
-    int blobPos = buf.readerIndex();
-    int blobLen = buf.readInt();
-    byte[] blob = new byte[blobLen];
+    byte[] blob = new byte[buf.readInt()];
     buf.readBytes(blob);
 
     PublicKey recvPubKey = PublicKeyDecoder.ALL.decode(blob);
@@ -105,24 +105,20 @@ public class PublicKeyAuth implements Method {
      * supplied key is acceptable for authentication, and if so, it MUST
      * check whether the signature is correct.
      */
-    ByteBuf val = session.createBuffer();
-    ByteBufIo.writeBytes(val, session.getId());
-    val.writeByte(SshMessage.SSH_MSG_USERAUTH_REQUEST);
-    ByteBufIo.writeUtf8(val, user);
-    ByteBufIo.writeUtf8(val, service);
-    ByteBufIo.writeUtf8(val, "publickey");
-    val.writeBoolean(true);
-    ByteBufIo.writeUtf8(val, keyType);
-    val.writeBytes(buf, blobPos, 4 + blobLen);
+    byte[] data = Bytes.concat(
+        LengthBytesBuilder.concat(session.getId()),
+        new byte[] {SshMessage.SSH_MSG_USERAUTH_REQUEST},
+        LengthBytesBuilder.concat(user, service, "publickey"),
+        LengthBytesBuilder.concat(true),
+        LengthBytesBuilder.concat(keyType),
+        LengthBytesBuilder.concat(blob)
+    );
+    signer.update(data);
 
-    signer.update(val);
-
-    val.clear();
-    ByteBufIo.writeUtf8(val, algo);
-    ByteBufIo.writeBytes(val, signer.sign());
-
-    byte[] sig = new byte[val.readableBytes()];
-    val.readBytes(sig);
+    byte[] sig = Bytes.concat(
+        LengthBytesBuilder.concat(algo),
+        LengthBytesBuilder.concat(signer.sign())
+    );
 
     session.requestUserAuthRequest(user, service, method, algo, pubKey, sig);
 
