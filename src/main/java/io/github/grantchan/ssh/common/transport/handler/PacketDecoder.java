@@ -90,6 +90,12 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
     Cipher cipher = isServer ? session.getC2sCipher() : session.getS2cCipher();
     int cipherSize = isServer ? session.getC2sCipherSize() : session.getS2cCipherSize();
     if (decodeStep == 0 && cipher != null) {
+      if (!isServer) {
+        StringBuilder sb = new StringBuilder();
+        ByteBufUtil.appendPrettyHexDump(sb, accuBuf);
+        logger.debug("[{}] Encrypted packet received: \n{}", session, sb.toString());
+      }
+
       // decrypt the first block of the packet
       accuBuf.setBytes(rIdx, cipher.update(packet, 0, cipherSize));
 
@@ -121,11 +127,14 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
             cipher.update(packet, rIdx + cipherSize, cipLen));
       }
 
-      StringBuilder sb = new StringBuilder();
+      if (isServer) {
+        StringBuilder sb = new StringBuilder();
+        ByteBufUtil.appendPrettyHexDump(sb, accuBuf);
+        logger.debug("[{}] Decrypted packet: \n{}", session, sb.toString());
+      }
+
       int i = accuBuf.readerIndex();
       accuBuf.readerIndex(i - SSH_PACKET_LENGTH);
-      ByteBufUtil.appendPrettyHexDump(sb, accuBuf);
-      logger.debug("[{}] Decrypted packet: \n{}", session, sb.toString());
       accuBuf.readerIndex(i);
     }
 
