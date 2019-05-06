@@ -1,6 +1,6 @@
 package io.github.grantchan.ssh.client.transport.handler;
 
-import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.client.ClientSession;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.handler.IdExHandler;
 import io.github.grantchan.ssh.common.transport.handler.PacketDecoder;
@@ -30,7 +30,7 @@ public class ClientRequestHandler extends RequestHandler {
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) {
-    session = new Session(ctx, false);
+    session = new ClientSession(ctx);
 
     /*
      * RFC 4253:
