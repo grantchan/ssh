@@ -1,9 +1,9 @@
 package io.github.grantchan.ssh.server.userauth.method;
 
-import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.server.ServerSession;
 import io.netty.buffer.ByteBuf;
 
 public interface Method {
 
-  boolean authorize(String user, String service, ByteBuf buf, Session session) throws Exception;
+  boolean authorize(String user, String service, ByteBuf buf, ServerSession session) throws Exception;
 }

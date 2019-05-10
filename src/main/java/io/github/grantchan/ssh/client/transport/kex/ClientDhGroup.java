@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.client.transport.kex;
 
 import io.github.grantchan.ssh.arch.SshMessage;
-import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.client.ClientSession;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.kex.KexHandler;
 import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
@@ -33,11 +33,11 @@ public class ClientDhGroup implements KexHandler {
   private final MessageDigest md;
 
   protected final KeyExchange kex;
-  protected final Session session;
+  protected final ClientSession session;
 
   private byte expect = SshMessage.SSH_MSG_KEXDH_INIT;
 
-  public ClientDhGroup(MessageDigest md, KeyExchange kex, Session session) {
+  public ClientDhGroup(MessageDigest md, KeyExchange kex, ClientSession session) {
     this.md = md;
     this.kex = kex;
     this.session = session;

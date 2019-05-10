@@ -1,11 +1,11 @@
 package io.github.grantchan.ssh.client.userauth.method;
 
-import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.client.ClientSession;
 
 public interface MethodFactory {
 
   /**
    * @return create a new method instance
    */
-  Method create(Session session);
+  Method create(ClientSession session);
 }

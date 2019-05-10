@@ -1,9 +1,9 @@
 package io.github.grantchan.ssh.client.userauth;
 
 import io.github.grantchan.ssh.arch.SshMessage;
+import io.github.grantchan.ssh.client.ClientSession;
 import io.github.grantchan.ssh.client.userauth.method.Method;
 import io.github.grantchan.ssh.client.userauth.method.MethodFactories;
-import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
@@ -17,13 +17,13 @@ public class ClientUserAuthService implements Service {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private Session session;
+  private ClientSession session;
 
   private Iterator<String> clientMethods;
   private List<String> serverMethods;
   private Method auth;
 
-  public ClientUserAuthService(Session session) {
+  public ClientUserAuthService(ClientSession session) {
     this.session = session;
 
     Collection<String> methods = new LinkedList<>(

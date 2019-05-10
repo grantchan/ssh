@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.client.userauth.method;
 
 import io.github.grantchan.ssh.arch.SshMessage;
-import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.client.ClientSession;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
@@ -26,11 +26,11 @@ public class PublicKeyAuth implements Method {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private Session session;
+  private ClientSession session;
   private Iterator<KeyPair> keyPairs;
   private KeyPair current;
 
-  PublicKeyAuth(Session session, Collection<KeyPair> keyPairs) {
+  PublicKeyAuth(ClientSession session, Collection<KeyPair> keyPairs) {
     this.session = session;
     this.keyPairs = Objects.requireNonNull(keyPairs).iterator();
   }

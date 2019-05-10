@@ -1,9 +1,9 @@
 package io.github.grantchan.ssh.server.userauth.method;
 
 import io.github.grantchan.ssh.arch.SshMessage;
-import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
+import io.github.grantchan.ssh.server.ServerSession;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
@@ -29,7 +29,7 @@ public class PublicKeyAuth implements Method {
   }
 
   @Override
-  public boolean authorize(String user, String service, ByteBuf buf, Session session) throws Exception {
+  public boolean authorize(String user, String service, ByteBuf buf, ServerSession session) throws Exception {
     /*
      * byte      SSH_MSG_USERAUTH_REQUEST
      * ....      (fields already consumed before getting here)

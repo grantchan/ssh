@@ -1,7 +1,7 @@
 package io.github.grantchan.ssh.client.userauth.method;
 
+import io.github.grantchan.ssh.client.ClientSession;
 import io.github.grantchan.ssh.common.NamedObject;
-import io.github.grantchan.ssh.common.Session;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -11,7 +11,7 @@ public enum MethodFactories implements NamedObject, MethodFactory {
 
   publickey("publickey") {
     @Override
-    public Method create(Session session) {
+    public Method create(ClientSession session) {
       return new DirBasedPublicKeyAuth(session);
     }
   };
@@ -34,7 +34,7 @@ public enum MethodFactories implements NamedObject, MethodFactory {
     return NamedObject.getNames(values);
   }
 
-  public static Method create(String name, Session session) {
+  public static Method create(String name, ClientSession session) {
     MethodFactories f = NamedObject.find(name, values, String.CASE_INSENSITIVE_ORDER);
     return (f == null) ? null : f.create(session);
   }

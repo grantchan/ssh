@@ -1,9 +1,11 @@
 package io.github.grantchan.ssh.common.transport.kex;
 
+import io.github.grantchan.ssh.client.ClientSession;
 import io.github.grantchan.ssh.client.transport.kex.ClientDhGroup;
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.digest.DigestFactories;
+import io.github.grantchan.ssh.server.ServerSession;
 import io.github.grantchan.ssh.server.transport.kex.ServerDhGroup;
 
 import java.security.MessageDigest;
@@ -255,8 +257,8 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
 
   private static KexHandler getKexHandler(MessageDigest md, KeyExchange ke, Session session) {
     return session.isServer() ?
-        new ServerDhGroup(md, ke, session) :
-        new ClientDhGroup(md, ke, session);
+        new ServerDhGroup(md, ke, (ServerSession)session) :
+        new ClientDhGroup(md, ke, (ClientSession)session);
   }
 
   public static final Set<KexHandlerFactories> values =

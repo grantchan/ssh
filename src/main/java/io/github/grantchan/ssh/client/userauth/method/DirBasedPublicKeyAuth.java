@@ -1,5 +1,6 @@
 package io.github.grantchan.ssh.client.userauth.method;
 
+import io.github.grantchan.ssh.client.ClientSession;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.util.System;
 import io.github.grantchan.ssh.util.keypair.loader.KeyPairPEMLoader;
@@ -21,11 +22,11 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
 
   private static final String FILE_NAME_PREFIX = "id_";
 
-  public DirBasedPublicKeyAuth(Session session) {
+  public DirBasedPublicKeyAuth(ClientSession session) {
     super(session, loadKeyPairs(session, getDefaultKeysFolder()));
   }
 
-  public DirBasedPublicKeyAuth(Session session, Path keyPairFolder) {
+  public DirBasedPublicKeyAuth(ClientSession session, Path keyPairFolder) {
     super(session, loadKeyPairs(session, keyPairFolder));
   }
 

@@ -4,6 +4,7 @@ import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.handler.IdExHandler;
 import io.github.grantchan.ssh.common.transport.handler.PacketDecoder;
 import io.github.grantchan.ssh.common.transport.handler.PacketEncoder;
+import io.github.grantchan.ssh.server.ServerSession;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -20,13 +21,13 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHand
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  protected Session session;
+  protected ServerSession session;
 
   private ByteBuf accuBuf;
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) {
-    session = new Session(ctx, true);
+    session = new ServerSession(ctx);
     accuBuf = session.createBuffer();
   }
 

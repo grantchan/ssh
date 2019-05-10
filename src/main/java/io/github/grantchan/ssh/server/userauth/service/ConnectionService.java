@@ -1,5 +1,6 @@
 package io.github.grantchan.ssh.server.userauth.service;
 
+import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.netty.buffer.ByteBuf;
@@ -18,6 +19,7 @@ public class ConnectionService implements Service {
 
   @Override
   public void handleMessage(int cmd, ByteBuf req) throws Exception {
+    logger.info("[{}] Handling message - {} ...", session, SshMessage.from(cmd));
 
   }
 }

@@ -1,13 +1,13 @@
 package io.github.grantchan.ssh.server.transport.kex;
 
 import io.github.grantchan.ssh.arch.SshMessage;
-import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.kex.KexHandler;
 import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
 import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
+import io.github.grantchan.ssh.server.ServerSession;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
 import io.github.grantchan.ssh.util.publickey.PublicKeyUtil;
@@ -30,9 +30,9 @@ public class ServerDhGroup implements KexHandler {
   private final MessageDigest md;
 
   protected final KeyExchange kex;
-  protected final Session session;
+  protected final ServerSession session;
 
-  public ServerDhGroup(MessageDigest md, KeyExchange kex, Session session) {
+  public ServerDhGroup(MessageDigest md, KeyExchange kex, ServerSession session) {
     this.md = md;
     this.kex = kex;
     this.session = session;

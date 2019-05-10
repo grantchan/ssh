@@ -1,7 +1,6 @@
 package io.github.grantchan.ssh.server.transport.kex;
 
 import io.github.grantchan.ssh.arch.SshMessage;
-import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.kex.DH;
 import io.github.grantchan.ssh.common.transport.kex.KexHandler;
@@ -9,6 +8,7 @@ import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
 import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
+import io.github.grantchan.ssh.server.ServerSession;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
 import io.github.grantchan.ssh.util.publickey.PublicKeyUtil;
@@ -27,7 +27,7 @@ public class ServerDhGroupEx implements KexHandler {
 
   private final MessageDigest md;
   protected KeyExchange kex;
-  protected final Session session;
+  protected final ServerSession session;
 
   private int min; // minimal size in bits of an acceptable group
   private int n;   // preferred size in bits of the group the server will send
@@ -35,7 +35,7 @@ public class ServerDhGroupEx implements KexHandler {
 
   private byte expect = SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST;
 
-  public ServerDhGroupEx(MessageDigest md, Session session) {
+  public ServerDhGroupEx(MessageDigest md, ServerSession session) {
     this.md = md;
     this.session = session;
   }

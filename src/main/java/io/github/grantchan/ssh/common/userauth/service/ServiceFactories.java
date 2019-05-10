@@ -1,8 +1,10 @@
 package io.github.grantchan.ssh.common.userauth.service;
 
+import io.github.grantchan.ssh.client.ClientSession;
 import io.github.grantchan.ssh.client.userauth.ClientUserAuthService;
 import io.github.grantchan.ssh.common.NamedObject;
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.server.ServerSession;
 import io.github.grantchan.ssh.server.userauth.service.ConnectionService;
 import io.github.grantchan.ssh.server.userauth.service.ServerUserAuthService;
 
@@ -16,8 +18,8 @@ public enum ServiceFactories implements NamedObject, ServiceFactory {
     @Override
     public Service create(Session session) {
       return session.isServer() ?
-          new ServerUserAuthService(session) :
-          new ClientUserAuthService(session);
+          new ServerUserAuthService((ServerSession)session) :
+          new ClientUserAuthService((ClientSession)session);
     }
   },
   connection("ssh-connection") {
