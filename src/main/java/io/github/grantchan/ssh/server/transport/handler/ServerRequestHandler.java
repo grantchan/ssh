@@ -4,11 +4,14 @@ import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.cipher.CipherFactories;
+import io.github.grantchan.ssh.common.transport.compression.CompressionFactories;
 import io.github.grantchan.ssh.common.transport.handler.AbstractRequestHandler;
 import io.github.grantchan.ssh.common.transport.kex.KexHandler;
+import io.github.grantchan.ssh.common.transport.kex.KexHandlerFactories;
 import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
 import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.mac.MacFactories;
+import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
 import io.github.grantchan.ssh.server.ServerSession;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.github.grantchan.ssh.util.buffer.Bytes;
@@ -21,10 +24,12 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.math.BigInteger;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import static io.github.grantchan.ssh.common.transport.handler.RequestHandler.hashKey;
+import static io.github.grantchan.ssh.common.transport.handler.RequestHandler.negotiate;
 
 public class ServerRequestHandler extends AbstractRequestHandler {
 
@@ -39,6 +44,141 @@ public class ServerRequestHandler extends AbstractRequestHandler {
   @Override
   public Session getSession() {
     return session;
+  }
+
+  @Override
+  protected List<String> resolveKexInit(ByteBuf buf) {
+    List<String> result = new ArrayList<>(10);
+
+    // kex
+    String they = ByteBufIo.readUtf8(buf);
+    String we = KexHandlerFactories.getNames();
+    logger.debug("[{}] Server: {}", session, we);
+    logger.debug("[{}] Client: {}", session, they);
+    String kex = negotiate(they, we);
+    if (kex == null) {
+      throw new IllegalStateException("Failed to negotiate the KEX key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.KEX, kex);
+    logger.debug("[{}] negotiated: {}", session, result.get(KexInitParam.KEX));
+
+    // server host key
+    they = ByteBufIo.readUtf8(buf);
+    we = SignatureFactories.getNames();
+    logger.debug("[{}] Server: {}", session, we);
+    logger.debug("[{}] Client: {}", session, they);
+    String shk = negotiate(they, we);
+    if (shk == null) {
+      throw new IllegalStateException("Failed to negotiate the Server Host Key key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.SERVER_HOST_KEY, shk);
+    logger.debug("[{}] negotiated: {}", session, result.get(KexInitParam.SERVER_HOST_KEY));
+
+    // encryption c2s
+    they = ByteBufIo.readUtf8(buf);
+    we = CipherFactories.getNames();
+    logger.debug("[{}] Server: {}", session, we);
+    logger.debug("[{}] Client: {}", session, they);
+    String encc2s = negotiate(they, we);
+    if (encc2s == null) {
+      throw new IllegalStateException("Failed to negotiate the Encryption C2S key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.ENCRYPTION_C2S, encc2s);
+    logger.debug("[{}] negotiated: {}", session, result.get(KexInitParam.ENCRYPTION_C2S));
+
+    // encryption s2c
+    they = ByteBufIo.readUtf8(buf);
+    we = CipherFactories.getNames();
+    logger.debug("[{}] Server: {}", session, we);
+    logger.debug("[{}] Client: {}", session, they);
+    String encs2c = negotiate(they, we);
+    if (encs2c == null) {
+      throw new IllegalStateException("Failed to negotiate the Encryption S2C key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.ENCRYPTION_S2C, encs2c);
+    logger.debug("[{}] negotiated: {}", session, result.get(KexInitParam.ENCRYPTION_S2C));
+
+    // mac c2s
+    they = ByteBufIo.readUtf8(buf);
+    we = MacFactories.getNames();
+    logger.debug("[{}] Server: {}", session, we);
+    logger.debug("[{}] Client: {}", session, they);
+    String macc2s = negotiate(they, we);
+    if (macc2s == null) {
+      throw new IllegalStateException("Failed to negotiate the MAC C2S key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.MAC_C2S, macc2s);
+    logger.debug("[{}] negotiated: {}", session, result.get(KexInitParam.MAC_C2S));
+
+    // mac s2c
+    they = ByteBufIo.readUtf8(buf);
+    we = MacFactories.getNames();
+    logger.debug("[{}] Server: {}", session, we);
+    logger.debug("[{}] Client: {}", session, they);
+    String macs2c = negotiate(they, we);
+    if (macs2c == null) {
+      throw new IllegalStateException("Failed to negotiate the MAC S2C key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.MAC_S2C, macs2c);
+    logger.debug("[{}] negotiated: {}", session, result.get(KexInitParam.MAC_S2C));
+
+    // compression c2s
+    they = ByteBufIo.readUtf8(buf);
+    we = CompressionFactories.getNames();
+    logger.debug("[{}] Server: {}", session, we);
+    logger.debug("[{}] Client: {}", session, they);
+    String compc2s = negotiate(they, we);
+    if (compc2s == null) {
+      throw new IllegalStateException("Failed to negotiate the Compression C2S key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.COMPRESSION_C2S, compc2s);
+    logger.debug("[{}] negotiated: {}", session, result.get(KexInitParam.COMPRESSION_C2S));
+
+    // compression s2c
+    they = ByteBufIo.readUtf8(buf);
+    we = CompressionFactories.getNames();
+    logger.debug("[{}] Server: {}", session, we);
+    logger.debug("[{}] Client: {}", session, they);
+    String comps2c = negotiate(they, we);
+    if (comps2c == null) {
+      throw new IllegalStateException("Failed to negotiate the Compression S2C key exchange " +
+          "parameter between client and server, our parameters: " + we + ", their parameters: " +
+          they);
+    }
+    result.add(KexInitParam.COMPRESSION_S2C, comps2c);
+    logger.debug("[{}] negotiated: {}", session, result.get(KexInitParam.COMPRESSION_S2C));
+
+    // language c2s
+    they = ByteBufIo.readUtf8(buf);
+    we = "";
+    logger.debug("[{}] Server: {}", session, we);
+    logger.debug("[{}] Client: {}", session, they);
+    result.add(KexInitParam.LANGUAGE_C2S, negotiate(they, we));
+    logger.debug("[{}] negotiated: {}", session, result.get(KexInitParam.LANGUAGE_C2S));
+
+    // language s2c
+    they = ByteBufIo.readUtf8(buf);
+    we = "";
+    logger.debug("[{}] Server: {}", session, we);
+    logger.debug("[{}] Client: {}", session, they);
+    result.add(KexInitParam.LANGUAGE_S2C, negotiate(they, we));
+    logger.debug("[{}] negotiated: {}", session, result.get(KexInitParam.LANGUAGE_S2C));
+
+    return result;
   }
 
   @Override
