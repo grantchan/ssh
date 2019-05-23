@@ -22,7 +22,6 @@ public abstract class Session implements IdHolder, UsernameHolder {
 
   protected ChannelHandlerContext ctx;
 
-  private boolean isServer;
   private byte[] id;
 
   /*
@@ -50,13 +49,8 @@ public abstract class Session implements IdHolder, UsernameHolder {
   private String remoteAddr;
 
   // constructor
-  public Session(ChannelHandlerContext ctx, boolean isServer) {
+  public Session(ChannelHandlerContext ctx) {
     this.ctx = ctx;
-    this.isServer = isServer;
-  }
-
-  public boolean isServer() {
-    return this.isServer;
   }
 
   @Override

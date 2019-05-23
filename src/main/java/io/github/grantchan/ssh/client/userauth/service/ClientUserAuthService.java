@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.client.userauth;
+package io.github.grantchan.ssh.client.userauth.service;
 
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.client.ClientSession;

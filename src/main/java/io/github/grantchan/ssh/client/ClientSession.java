@@ -18,7 +18,7 @@ public class ClientSession extends Session {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   public ClientSession(ChannelHandlerContext ctx) {
-    super(ctx, false);
+    super(ctx);
   }
 
   /**

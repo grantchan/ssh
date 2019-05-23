@@ -3,8 +3,6 @@ package io.github.grantchan.ssh.server.transport.handler;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.handler.IdExHandler;
-import io.github.grantchan.ssh.common.transport.handler.PacketDecoder;
-import io.github.grantchan.ssh.common.transport.handler.PacketEncoder;
 import io.github.grantchan.ssh.server.ServerSession;
 import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
@@ -82,7 +80,7 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHand
       session.setClientId(id);
 
       ctx.pipeline().addLast(new PacketDecoder(session),
-                             new ServerRequestHandler(session),
+                             new RequestHandler(session),
                              new PacketEncoder(session));
       ctx.pipeline().remove(this);
 

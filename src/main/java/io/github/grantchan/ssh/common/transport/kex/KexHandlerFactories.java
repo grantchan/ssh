@@ -256,7 +256,7 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
 ;
 
   private static KexHandler getKexHandler(MessageDigest md, KeyExchange ke, Session session) {
-    return session.isServer() ?
+    return session instanceof ServerSession ?
         new ServerDhGroup(md, ke, (ServerSession)session) :
         new ClientDhGroup(md, ke, (ClientSession)session);
   }

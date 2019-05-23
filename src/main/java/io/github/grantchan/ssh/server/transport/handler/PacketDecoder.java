@@ -1,9 +1,9 @@
-package io.github.grantchan.ssh.common.transport.handler;
+package io.github.grantchan.ssh.server.transport.handler;
 
 import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.arch.SshMessage;
-import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
+import io.github.grantchan.ssh.server.ServerSession;
 import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -23,13 +23,13 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private final Session session;
+  private final ServerSession session;
 
   private ByteBuf accuBuf;
   private int decodeStep = 0;
   private long seq = 0; // packet sequence number
 
-  public PacketDecoder(Session session) {
+  public PacketDecoder(ServerSession session) {
     this.session = Objects.requireNonNull(session, "Session is not initialized");
   }
 
@@ -48,9 +48,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     accuBuf.writeBytes((ByteBuf) msg);
 
-    boolean isServer = session.isServer();
-
-    int cipherSize = isServer ? session.getC2sCipherSize() : session.getS2cCipherSize();
+    int cipherSize = session.getC2sCipherSize();
     while (accuBuf.readableBytes() > cipherSize) {
       int wIdx = accuBuf.writerIndex();
 
@@ -58,7 +56,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
       if (pkLen != -1) {
         // This is important - handling the SSH_MSG_NEWKEYS will update the MAC block size,
         // we need to cache this value and use it until the message is fully process.
-        int macSize = isServer ? session.getC2sMacSize() : session.getC2sMacSize();
+        int macSize = session.getC2sMacSize();
 
         ctx.fireChannelRead(accuBuf);
 
@@ -85,17 +83,9 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
     byte[] packet = new byte[accuBuf.readableBytes()];
     accuBuf.getBytes(rIdx, packet);
 
-    boolean isServer = session.isServer();
-
-    Cipher cipher = isServer ? session.getC2sCipher() : session.getS2cCipher();
-    int cipherSize = isServer ? session.getC2sCipherSize() : session.getS2cCipherSize();
+    Cipher cipher = session.getC2sCipher();
+    int cipherSize = session.getC2sCipherSize();
     if (decodeStep == 0 && cipher != null) {
-      if (!isServer) {
-        StringBuilder sb = new StringBuilder();
-        ByteBufUtil.appendPrettyHexDump(sb, accuBuf);
-        logger.debug("[{}] Encrypted packet received: \n{}", session, sb.toString());
-      }
-
       // decrypt the first block of the packet
       accuBuf.setBytes(rIdx, cipher.update(packet, 0, cipherSize));
 
@@ -110,7 +100,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
           "Invalid packet length: " + len);
     }
 
-    int macSize = isServer ? session.getC2sMacSize() : session.getS2cMacSize();
+    int macSize = session.getC2sMacSize();
 
     // integrity check
     if (accuBuf.readableBytes() < len + macSize) {
@@ -127,11 +117,9 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
             cipher.update(packet, rIdx + cipherSize, cipLen));
       }
 
-      if (isServer) {
-        StringBuilder sb = new StringBuilder();
-        ByteBufUtil.appendPrettyHexDump(sb, accuBuf);
-        logger.debug("[{}] Decrypted packet: \n{}", session, sb.toString());
-      }
+      StringBuilder sb = new StringBuilder();
+      ByteBufUtil.appendPrettyHexDump(sb, accuBuf);
+      logger.debug("[{}] Decrypted packet: \n{}", session, sb.toString());
 
       int i = accuBuf.readerIndex();
       accuBuf.readerIndex(i - SSH_PACKET_LENGTH);
@@ -139,7 +127,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
     }
 
     // verify the packet by the MAC
-    Mac mac = isServer ? session.getC2sMac() : session.getS2cMac();
+    Mac mac = session.getC2sMac();
     if (mac != null) {
       mac.update(Bytes.htonl(seq));
 

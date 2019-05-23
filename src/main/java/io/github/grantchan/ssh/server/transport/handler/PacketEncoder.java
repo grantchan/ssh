@@ -1,6 +1,6 @@
-package io.github.grantchan.ssh.common.transport.handler;
+package io.github.grantchan.ssh.server.transport.handler;
 
-import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.server.ServerSession;
 import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -21,11 +21,11 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private final Session session;
+  private final ServerSession session;
   private final SecureRandom rand = new SecureRandom();
   private long seq = 0;
 
-  public PacketEncoder(Session session) {
+  public PacketEncoder(ServerSession session) {
     this.session = Objects.requireNonNull(session, "Session is not initialized");
   }
 
@@ -36,10 +36,8 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
     int len = buf.readableBytes();
     int off = buf.readerIndex() - SSH_PACKET_HEADER_LENGTH;
 
-    boolean isServer = session.isServer();
-
     // Calculate padding length
-    int bsize  = isServer ? session.getS2cCipherSize() : session.getC2sCipherSize();
+    int bsize  = session.getS2cCipherSize();
     int oldLen = len;
     len += SSH_PACKET_HEADER_LENGTH;
     int pad = (-len) & (bsize - 1);
@@ -63,20 +61,20 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
     byte[] packet = new byte[buf.readableBytes()];
     buf.getBytes(off, packet);
 
-    Mac mac = isServer ? session.getS2cMac() : session.getC2sMac();
+    Mac mac = session.getS2cMac();
     if (mac != null) {
-      int macSize = isServer ? session.getS2cMacSize() : session.getC2sMacSize();
+      int macSize = session.getS2cMacSize();
       mac.update(Bytes.htonl(seq));
       mac.update(packet);
       byte[] tmp = mac.doFinal();
-      if (macSize != (isServer ? session.getS2cDefMacSize() : session.getC2sDefMacSize())) {
+      if (macSize != session.getS2cDefMacSize()) {
         buf.writeBytes(tmp, 0, macSize);
       } else {
         buf.writeBytes(tmp);
       }
     }
 
-    Cipher cipher = isServer ? session.getS2cCipher() : session.getC2sCipher();
+    Cipher cipher = session.getS2cCipher();
     if (cipher != null) {
       StringBuilder sb = new StringBuilder();
       ByteBufUtil.appendPrettyHexDump(sb, buf);
