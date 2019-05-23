@@ -4,7 +4,7 @@ import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.client.ClientSession;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.kex.KexHandler;
-import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
+import io.github.grantchan.ssh.common.transport.kex.KexInitProposal;
 import io.github.grantchan.ssh.common.transport.kex.KeyExchange;
 import io.github.grantchan.ssh.common.transport.signature.Signature;
 import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
@@ -154,10 +154,10 @@ public class ClientDhGroup implements KexHandler {
 
     List<String> kexParams = session.getKexInit();
 
-    Signature verif = SignatureFactories.create(kexParams.get(KexInitParam.SERVER_HOST_KEY), pubKey);
+    Signature verif = SignatureFactories.create(kexParams.get(KexInitProposal.Param.SERVER_HOST_KEY), pubKey);
     if (verif == null) {
       throw new IllegalArgumentException("Unknown signature: " +
-          kexParams.get(KexInitParam.SERVER_HOST_KEY));
+          kexParams.get(KexInitProposal.Param.SERVER_HOST_KEY));
     }
 
     try {

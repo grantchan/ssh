@@ -1,10 +1,12 @@
 package io.github.grantchan.ssh.server.transport.handler;
 
+import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.handler.IdExHandler;
 import io.github.grantchan.ssh.common.transport.handler.PacketDecoder;
 import io.github.grantchan.ssh.common.transport.handler.PacketEncoder;
 import io.github.grantchan.ssh.server.ServerSession;
+import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -14,8 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-
-import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
 public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHandler {
 
@@ -86,12 +86,10 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHand
                              new PacketEncoder(session));
       ctx.pipeline().remove(this);
 
-      ByteBuf serverKexInit = IdExHandler.kexInit();
-      byte[] buf = new byte[serverKexInit.readableBytes()];
-      serverKexInit.getBytes(SSH_PACKET_HEADER_LENGTH, buf);
-      session.setS2cKex(buf);
+      byte[] ki = IdExHandler.kexInit();
+      session.setS2cKex(Bytes.concat(new byte[] {SshMessage.SSH_MSG_KEXINIT}, ki));
 
-      ctx.channel().writeAndFlush(serverKexInit);
+      session.sendKexInit(ki);
 
       if (accuBuf.readableBytes() > 0) {
         ctx.fireChannelRead(accuBuf);

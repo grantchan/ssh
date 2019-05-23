@@ -12,18 +12,18 @@ import java.util.function.Supplier;
 
 public enum KexInitProposal implements NamedObject {
 
-  KEX             (0, "KEX",              KexHandlerFactories::getNames),
-  SERVER_HOST_KEY (1, "Server Host Key",  SignatureFactories::getNames),
-  ENCRYPTION_C2S  (2, "Encryption C2S",   CipherFactories::getNames),
-  ENCRYPTION_S2C  (3, "Encryption S2C",   CipherFactories::getNames),
-  MAC_C2S         (4, "MAC C2S",          MacFactories::getNames),
-  MAC_S2C         (5, "MAC S2C",          MacFactories::getNames),
-  COMPRESSION_C2S (6, "Compression C2S",  CompressionFactories::getNames),
-  COMPRESSION_S2C (7, "Compression S2C",  CompressionFactories::getNames),
-  LANGUAGE_C2S    (8, "Language C2S",     () -> ""),
-  LANGUAGE_S2C    (9, "Language S2C",     () -> "");
+  KEX             (Param.KEX,             "KEX",              KexHandlerFactories::getNames),
+  SERVER_HOST_KEY (Param.SERVER_HOST_KEY, "Server Host Key",  SignatureFactories::getNames),
+  ENCRYPTION_C2S  (Param.ENCRYPTION_C2S,  "Encryption C2S",   CipherFactories::getNames),
+  ENCRYPTION_S2C  (Param.ENCRYPTION_S2C,  "Encryption S2C",   CipherFactories::getNames),
+  MAC_C2S         (Param.MAC_C2S,         "MAC C2S",          MacFactories::getNames),
+  MAC_S2C         (Param.MAC_S2C,         "MAC S2C",          MacFactories::getNames),
+  COMPRESSION_C2S (Param.COMPRESSION_C2S, "Compression C2S",  CompressionFactories::getNames),
+  COMPRESSION_S2C (Param.COMPRESSION_S2C, "Compression S2C",  CompressionFactories::getNames),
+  LANGUAGE_C2S    (Param.LANGUAGE_C2S,    "Language C2S",     () -> ""),
+  LANGUAGE_S2C    (Param.LANGUAGE_S2C,    "Language S2C",     () -> "");
 
-  private final static Set<KexInitProposal> ALL = EnumSet.allOf(KexInitProposal.class);
+  public final static Set<KexInitProposal> ALL = EnumSet.allOf(KexInitProposal.class);
 
   private int id;
   private String name;
@@ -33,15 +33,6 @@ public enum KexInitProposal implements NamedObject {
     this.id = id;
     this.name = name;
     this.proposals = proposals;
-  }
-
-  public static KexInitProposal from(int id) {
-    for (KexInitProposal kip : ALL) {
-      if (kip.id == id) {
-        return kip;
-      }
-    }
-    return null;
   }
 
   public int getId() {
@@ -55,5 +46,19 @@ public enum KexInitProposal implements NamedObject {
 
   public Supplier<String> getProposals() {
     return proposals;
+  }
+
+  public class Param {
+
+    public static final int KEX             = 0;
+    public static final int SERVER_HOST_KEY = 1;
+    public static final int ENCRYPTION_C2S  = 2;
+    public static final int ENCRYPTION_S2C  = 3;
+    public static final int MAC_C2S         = 4;
+    public static final int MAC_S2C         = 5;
+    public static final int COMPRESSION_C2S = 6;
+    public static final int COMPRESSION_S2C = 7;
+    public static final int LANGUAGE_C2S    = 8;
+    public static final int LANGUAGE_S2C    = 9;
   }
 }

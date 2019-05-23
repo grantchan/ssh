@@ -107,6 +107,7 @@ public class PublicKeyAuth implements Method {
         LengthBytesBuilder.concat(keyType),
         LengthBytesBuilder.concat(blob)
     );
+
     verifier.update(data);
 
     return verifier.verify(sig);

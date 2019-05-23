@@ -6,7 +6,7 @@ import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.kex.KexHandler;
 import io.github.grantchan.ssh.common.transport.kex.KexHandlerFactories;
-import io.github.grantchan.ssh.common.transport.kex.KexInitParam;
+import io.github.grantchan.ssh.common.transport.kex.KexInitProposal;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -86,6 +86,9 @@ public abstract class AbstractRequestHandler extends ChannelInboundHandlerAdapte
     session.handleDisconnect(code, msg);
   }
 
+  protected abstract void setKexInit(byte[] ki);
+
+  @Override
   public void handleKexInit(ByteBuf msg) throws IOException {
     Session session = Objects.requireNonNull(getSession(), "Session is not initialized");
 
@@ -123,18 +126,12 @@ public abstract class AbstractRequestHandler extends ChannelInboundHandlerAdapte
     kiBytes[0] = SshMessage.SSH_MSG_KEXINIT;
     msg.getBytes(startPos, kiBytes, 1, payloadLen);
 
-    kexHandler = KexHandlerFactories.create(kexInit.get(KexInitParam.KEX), session);
+    kexHandler = KexHandlerFactories.create(kexInit.get(KexInitProposal.Param.KEX), session);
     if (kexHandler == null) {
-      throw new IOException("Unknown key exchange: " + KexInitParam.KEX);
+      throw new IOException("Unknown key exchange: " + KexInitProposal.Param.KEX);
     }
 
-    if (session.isServer()) {
-      session.setC2sKex(kiBytes);
-    } else {
-      session.setS2cKex(kiBytes);
-
-      kexHandler.handleMessage(SshMessage.SSH_MSG_KEXDH_INIT, null);
-    }
+    setKexInit(kiBytes);
   }
 
   protected abstract List<String> resolveKexInit(ByteBuf buf);

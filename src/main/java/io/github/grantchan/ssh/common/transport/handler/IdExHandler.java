@@ -1,14 +1,10 @@
 package io.github.grantchan.ssh.common.transport.handler;
 
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.common.transport.cipher.CipherFactories;
-import io.github.grantchan.ssh.common.transport.compression.CompressionFactories;
-import io.github.grantchan.ssh.common.transport.kex.KexHandlerFactories;
-import io.github.grantchan.ssh.common.transport.mac.MacFactories;
-import io.github.grantchan.ssh.common.transport.signature.SignatureFactories;
-import io.github.grantchan.ssh.util.buffer.ByteBufIo;
+import io.github.grantchan.ssh.common.transport.kex.KexInitProposal;
+import io.github.grantchan.ssh.util.buffer.Bytes;
+import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.util.ByteProcessor;
 
 import java.nio.charset.StandardCharsets;
@@ -16,8 +12,6 @@ import java.security.SecureRandom;
 import java.util.Objects;
 
 import static io.github.grantchan.ssh.arch.SshConstant.MSG_KEX_COOKIE_SIZE;
-import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
-import static io.github.grantchan.ssh.arch.SshMessage.SSH_MSG_KEXINIT;
 
 public interface IdExHandler {
 
@@ -26,8 +20,6 @@ public interface IdExHandler {
    * including the Carriage Return and Line Feed.
    */
   int MAX_IDENTIFICATION_LINE_LENGTH = 255;
-
-  SecureRandom rand = new SecureRandom();
 
   /*
    * Get the remote peer's identification
@@ -116,31 +108,22 @@ public interface IdExHandler {
   /*
    * Construct the key exchange initialization packet.
    */
-  static ByteBuf kexInit() {
-    ByteBuf buf = Unpooled.buffer();
-
-    buf.writerIndex(SSH_PACKET_HEADER_LENGTH);
-    buf.readerIndex(SSH_PACKET_HEADER_LENGTH);
-    buf.writeByte(SSH_MSG_KEXINIT);
+  static byte[] kexInit() {
+    SecureRandom rand = new SecureRandom();
 
     byte[] cookie = new byte[MSG_KEX_COOKIE_SIZE];
     rand.nextBytes(cookie);
-    buf.writeBytes(cookie);
 
-    ByteBufIo.writeUtf8(buf, KexHandlerFactories.getNames());
-    ByteBufIo.writeUtf8(buf, SignatureFactories.getNames());
-    ByteBufIo.writeUtf8(buf, CipherFactories.getNames());
-    ByteBufIo.writeUtf8(buf, CipherFactories.getNames());
-    ByteBufIo.writeUtf8(buf, MacFactories.getNames());
-    ByteBufIo.writeUtf8(buf, MacFactories.getNames());
-    ByteBufIo.writeUtf8(buf, CompressionFactories.getNames());
-    ByteBufIo.writeUtf8(buf, CompressionFactories.getNames());
-    ByteBufIo.writeUtf8(buf, "");
-    ByteBufIo.writeUtf8(buf, "");
+    LengthBytesBuilder lbb = new LengthBytesBuilder();
+    KexInitProposal.ALL.forEach(p -> {
+      lbb.append(p.getProposals().get());
+    });
 
-    buf.writeBoolean(false); // first factory packet follows
-    buf.writeInt(0); // reserved (FFU)
-
-    return buf;
+    return Bytes.concat(
+        cookie,
+        lbb.toBytes(),
+        new byte[]{0},  // first factory packet follows
+        Bytes.htonl(0)  // reserved (FFU)
+    );
   }
 }

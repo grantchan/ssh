@@ -113,6 +113,7 @@ public class PublicKeyAuth implements Method {
         LengthBytesBuilder.concat(keyType),
         LengthBytesBuilder.concat(blob)
     );
+
     signer.update(data);
 
     byte[] sig = Bytes.concat(

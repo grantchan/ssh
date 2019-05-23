@@ -198,6 +198,14 @@ public abstract class Session implements IdHolder, UsernameHolder {
     this.s2cDefMacSize = s2cDefMacSize;
   }
 
+  public void sendKexInit(byte[] payload) {
+    ByteBuf buf = createMessage(SshMessage.SSH_MSG_KEXINIT);
+
+    buf.writeBytes(payload);
+
+    ctx.channel().writeAndFlush(buf);
+  }
+
   /**
    * Sends a disconnection message to terminate the connection.
    * <p>This message causes immediate termination of the connection. All implementations MUST be
