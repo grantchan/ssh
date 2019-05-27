@@ -121,10 +121,6 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
         accuBuf.setBytes(rIdx + cipherSize,
             cipher.update(packet, rIdx + cipherSize, cipLen));
       }
-
-      int i = accuBuf.readerIndex();
-      accuBuf.readerIndex(i - SSH_PACKET_LENGTH);
-      accuBuf.readerIndex(i);
     }
 
     // verify the packet by the MAC

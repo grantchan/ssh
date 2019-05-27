@@ -120,10 +120,6 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
       StringBuilder sb = new StringBuilder();
       ByteBufUtil.appendPrettyHexDump(sb, accuBuf);
       logger.debug("[{}] Decrypted packet: \n{}", session, sb.toString());
-
-      int i = accuBuf.readerIndex();
-      accuBuf.readerIndex(i - SSH_PACKET_LENGTH);
-      accuBuf.readerIndex(i);
     }
 
     // verify the packet by the MAC
