@@ -130,6 +130,7 @@ public class ClientUserAuthService implements Service {
      */
     logger.debug("[{}] User authentication succeeded.", session);
 
+    session.setAuthed(true);
     session.acceptService("ssh-connection");
   }
 

@@ -73,7 +73,7 @@ public final class Bytes {
    * @return the unsigned {@code long} integer
    * @throws IllegalArgumentException if {@code param} contains less than {@link Integer#BYTES} bytes
    */
-  public static long nl(byte[] buf, int off, int len) {
+  private static long nl(byte[] buf, int off, int len) {
     Objects.requireNonNull(buf);
 
     if (len < Integer.BYTES) {
@@ -174,6 +174,7 @@ public final class Bytes {
 
   /**
    * Generate the unique identifier of byte array for a number of bytes {@param data}
+   *
    * @param data Input byte buffer
    * @param md The one-way hash algorithm to use to generate the finger print
    * @return the finger print byte array represents the input bytes {@param data}
@@ -209,6 +210,7 @@ public final class Bytes {
 
   /**
    * Generate the hexdecimal encoded SHA256 hash string for the given byte array {@param data}
+   *
    * @param data Input byte buffer
    * @return The SHA256 hash string represents the input bytes {@param data}
    * @see <a href="https://en.wikipedia.org/wiki/SHA-2">SHA-2</a>

@@ -15,12 +15,28 @@ import javax.crypto.Mac;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public abstract class Session implements IdHolder, UsernameHolder {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   protected ChannelHandlerContext ctx;
+
+  private final static Set<Session> sessions = new CopyOnWriteArraySet<>();
+  private final static ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
+
+  static {
+    timer.scheduleAtFixedRate(() -> {
+      for (Session s : sessions) {
+        s.checkTimeout();
+      }
+    }, 1, 1, TimeUnit.SECONDS);
+  }
 
   private byte[] id;
 
@@ -48,9 +64,14 @@ public abstract class Session implements IdHolder, UsernameHolder {
   private String username;
   private String remoteAddr;
 
+  private long authStartTime = System.currentTimeMillis();
+  private volatile boolean isAuthed = false;
+  private volatile boolean isActive = false;
+
   // constructor
   public Session(ChannelHandlerContext ctx) {
     this.ctx = ctx;
+    sessions.add(this);
   }
 
   @Override
@@ -192,6 +213,22 @@ public abstract class Session implements IdHolder, UsernameHolder {
     this.s2cDefMacSize = s2cDefMacSize;
   }
 
+  public boolean isAuthed() {
+    return isAuthed;
+  }
+
+  public void setAuthed(boolean authed) {
+    if (!isAuthed && authed) {
+      logger.debug("[{}] Authentication process completed in {} ms", this,
+          System.currentTimeMillis() - authStartTime);
+    }
+    this.isAuthed = authed;
+  }
+
+  public void setActive(boolean isActive) {
+    this.isActive = isActive;
+  }
+
   public void sendKexInit(byte[] payload) {
     ByteBuf buf = createMessage(SshMessage.SSH_MSG_KEXINIT);
 
@@ -213,7 +250,7 @@ public abstract class Session implements IdHolder, UsernameHolder {
    *
    * @see <a href="https://tools.ietf.org/html/rfc4253#section-11.1">Disconnection Message</a>
    */
-  public void disconnect(int reason, String message) {
+  public void notifyDisconnect(int reason, String message) {
     ByteBuf buf = createMessage(SshMessage.SSH_MSG_DISCONNECT);
 
     buf.writeInt(reason);
@@ -230,6 +267,18 @@ public abstract class Session implements IdHolder, UsernameHolder {
       remoteAddr = isa.getAddress().getHostAddress();
     }
     return remoteAddr;
+  }
+
+  private void checkTimeout() {
+    long authElapsed = System.currentTimeMillis() - authStartTime;
+    if (isActive && !isAuthed && authElapsed > 1000) {
+      logger.debug("[{}] Timeout - reason: Authentication process timeout since it's taken {} ms",
+          this, authElapsed);
+
+      notifyDisconnect(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR, "Authentication timeout");
+
+      disconnect(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR, "Authentication timeout");
+    }
   }
 
   /**
@@ -294,10 +343,16 @@ public abstract class Session implements IdHolder, UsernameHolder {
    * @param code  the disconnect reason code
    * @param msg   message about the reason
    */
-  public void handleDisconnect(int code, String msg) {
-    logger.info("Disconnecting... reason: {}, msg: {}", SshMessage.disconnectReason(code), msg);
+  public void disconnect(int code, String msg) {
+    logger.info("[{}] Disconnecting... reason: {}, msg: {}",
+        this, SshMessage.disconnectReason(code), msg);
 
-    ctx.channel().close();
+    ctx.channel().close()
+       .addListener(f -> {
+         if (f.isSuccess()) {
+           isActive = false;
+         }
+       });
   }
 
   /**

@@ -56,7 +56,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
       if (pkLen != -1) {
         // This is important - handling the SSH_MSG_NEWKEYS will update the MAC block size,
         // we need to cache this value and use it until the message is fully process.
-        int macSize = session.getC2sMacSize();
+        int macSize = session.getS2cMacSize();
 
         ctx.fireChannelRead(accuBuf);
 
@@ -97,7 +97,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
       decodeStep = 1;
     }
 
-    int len  = accuBuf.readInt();
+    int len = accuBuf.readInt();
     if (len < SshConstant.SSH_PACKET_HEADER_LENGTH || len > SshConstant.SSH_PACKET_MAX_LENGTH) {
       logger.error("[{}] Illegal packet to decode - invalid packet length: {}", session, len);
 

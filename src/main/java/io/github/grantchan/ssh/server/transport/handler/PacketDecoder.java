@@ -92,7 +92,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
       decodeStep = 1;
     }
 
-    int len  = accuBuf.readInt();
+    int len = accuBuf.readInt();
     if (len < SshConstant.SSH_PACKET_HEADER_LENGTH || len > SshConstant.SSH_PACKET_MAX_LENGTH) {
       logger.error("[{}] Illegal packet to decode - invalid packet length: {}", session, len);
 

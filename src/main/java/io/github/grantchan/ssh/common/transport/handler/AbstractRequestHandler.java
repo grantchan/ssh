@@ -50,7 +50,7 @@ public abstract class AbstractRequestHandler extends ChannelInboundHandlerAdapte
     if (t instanceof SshException) {
       int reasonCode = ((SshException) t).getDisconnectReason();
       if (reasonCode > 0) {
-        session.disconnect(reasonCode, t.getMessage());
+        session.notifyDisconnect(reasonCode, t.getMessage());
       }
     }
     ctx.channel().close();
@@ -83,7 +83,7 @@ public abstract class AbstractRequestHandler extends ChannelInboundHandlerAdapte
     int code = req.readInt();
     String msg = ByteBufIo.readUtf8(req);
 
-    session.handleDisconnect(code, msg);
+    session.disconnect(code, msg);
   }
 
   protected abstract void setKexInit(byte[] ki);
