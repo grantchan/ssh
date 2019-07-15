@@ -2,6 +2,7 @@ package io.github.grantchan.ssh.common;
 
 import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.arch.SshMessage;
+import io.github.grantchan.ssh.common.transport.compression.Compression;
 import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.common.userauth.service.ServiceFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
@@ -59,6 +60,8 @@ public abstract class Session implements IdHolder, UsernameHolder {
   private Mac c2sMac, s2cMac;
   private int c2sMacSize = 0, s2cMacSize = 0;
   private int c2sDefMacSize = 0, s2cDefMacSize = 0;
+
+  private Compression c2sCompression, s2cCompression;
 
   private Service service;
   private String username;
@@ -211,6 +214,22 @@ public abstract class Session implements IdHolder, UsernameHolder {
 
   public void setS2cDefMacSize(int s2cDefMacSize) {
     this.s2cDefMacSize = s2cDefMacSize;
+  }
+
+  public Compression getC2sCompression() {
+    return c2sCompression;
+  }
+
+  public void setC2sCompression(Compression c2sCompression) {
+    this.c2sCompression = c2sCompression;
+  }
+
+  public Compression getS2cCompression() {
+    return s2cCompression;
+  }
+
+  public void setS2cCompression(Compression s2cCompression) {
+    this.s2cCompression = s2cCompression;
   }
 
   public boolean isAuthed() {

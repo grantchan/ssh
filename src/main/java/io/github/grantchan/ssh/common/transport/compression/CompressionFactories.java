@@ -9,9 +9,15 @@ import java.util.Set;
 
 public enum CompressionFactories implements NamedFactory<Compression> {
 
-  none("none");
+  none("none"),
+  delayedZLib("zlib@openssh.com") {
+    @Override
+    public Compression create() {
+      return new DelayedZLib();
+    }
+  };
 
-  private static final Set<CompressionFactories> values =
+  private static final Set<CompressionFactories> ALL =
       Collections.unmodifiableSet(EnumSet.allOf(CompressionFactories.class));
 
   private final String name;
@@ -31,6 +37,10 @@ public enum CompressionFactories implements NamedFactory<Compression> {
   }
 
   public static String getNames() {
-    return NamedObject.getNames(values);
+    return NamedObject.getNames(ALL);
+  }
+
+  public static CompressionFactories from(String name) {
+    return NamedObject.find(name, ALL, String.CASE_INSENSITIVE_ORDER);
   }
 }

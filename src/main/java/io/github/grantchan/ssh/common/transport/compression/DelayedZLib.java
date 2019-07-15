@@ -17,19 +17,14 @@ public class DelayedZLib implements Compression {
   public byte[] compress(byte[] data) {
     ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
 
-    try {
-      deflater.setInput(data);
-      deflater.finish();
+    deflater.setInput(data);
+    deflater.finish();
 
-      byte[] zipped = new byte[BUFFER_SIZE];
-      while (!deflater.finished()) {
-        int cnt = deflater.deflate(zipped);
-        out.write(zipped, 0, cnt);
-      }
-      return out.toByteArray();
-    } finally {
-      deflater.end();
+    byte[] buf = new byte[BUFFER_SIZE];
+    for (int len = deflater.deflate(buf); len > 0; len = deflater.deflate(buf)) {
+      out.write(buf, 0, len);
     }
+    return out.toByteArray();
   }
 
   @Override
@@ -39,16 +34,13 @@ public class DelayedZLib implements Compression {
     try {
       inflater.setInput(data);
 
-      byte[] unzipped = new byte[BUFFER_SIZE];
-      while (!inflater.finished()) {
-        int cnt = inflater.inflate(unzipped);
-        out.write(unzipped, 0, cnt);
+      byte[] buf = new byte[BUFFER_SIZE];
+      for (int len = inflater.inflate(buf); len > 0; len = inflater.inflate(buf)) {
+        out.write(buf, 0, len);
       }
       return out.toByteArray();
     } catch (DataFormatException e) {
       throw new IOException("Error decompressing data");
-    } finally {
-      inflater.end();
     }
   }
 }
