@@ -9,6 +9,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,10 +82,15 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHand
       logger.debug("[{}] Received identification: {}", session, id);
       session.setClientId(id);
 
-      ctx.pipeline().addLast(new PacketDecoder(session),
-                             new RequestHandler(session),
-                             new PacketEncoder(session));
-      ctx.pipeline().remove(this);
+      ChannelPipeline pipeline = ctx.pipeline();
+      LoggingHandler loggingHandler = pipeline.get(LoggingHandler.class);
+      pipeline.remove(LoggingHandler.class);
+
+      pipeline.addLast(new PacketDecoder(session),
+                       loggingHandler,
+                       new RequestHandler(session),
+                       new PacketEncoder(session));
+      pipeline.remove(this);
 
       byte[] ki = IdExHandler.kexInit();
       session.setS2cKex(Bytes.concat(new byte[] {SshMessage.SSH_MSG_KEXINIT}, ki));

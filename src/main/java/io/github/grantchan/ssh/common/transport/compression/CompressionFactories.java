@@ -9,7 +9,12 @@ import java.util.Set;
 
 public enum CompressionFactories implements NamedFactory<Compression> {
 
-  none("none"),
+  none("none") {
+    @Override
+    public Compression create() {
+      return null;
+    }
+  },
   delayedZLib("zlib@openssh.com") {
     @Override
     public Compression create() {

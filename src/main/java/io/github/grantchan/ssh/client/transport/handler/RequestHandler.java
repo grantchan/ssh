@@ -5,6 +5,8 @@ import io.github.grantchan.ssh.client.ClientSession;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.cipher.CipherFactories;
+import io.github.grantchan.ssh.common.transport.compression.Compression;
+import io.github.grantchan.ssh.common.transport.compression.CompressionFactories;
 import io.github.grantchan.ssh.common.transport.handler.AbstractRequestHandler;
 import io.github.grantchan.ssh.common.transport.handler.IdExHandler;
 import io.github.grantchan.ssh.common.transport.kex.KexHandler;
@@ -247,27 +249,39 @@ public class RequestHandler extends AbstractRequestHandler {
 
     List<String> kp = session.getKexInit();
 
-    // server to client cipher
-    CipherFactories s2cCf;
-    s2cCf = Objects.requireNonNull(CipherFactories.from(kp.get(KexInitProposal.Param.ENCRYPTION_S2C)));
-    e_s2c = hashKey(e_s2c, s2cCf.getBlkSize(), k, id, md);
-    Cipher s2cCip = Objects.requireNonNull(s2cCf.create(e_s2c, iv_s2c, Cipher.DECRYPT_MODE)
-    );
-
-    session.setS2cCipher(s2cCip);
-    session.setS2cCipherSize(s2cCf.getIvSize());
-
+    // Cipher
     // client to server cipher
     CipherFactories c2sCf;
     c2sCf = Objects.requireNonNull(CipherFactories.from(kp.get(KexInitProposal.Param.ENCRYPTION_C2S)));
     e_c2s = hashKey(e_c2s, c2sCf.getBlkSize(), k, id, md);
-    Cipher c2sCip = Objects.requireNonNull(c2sCf.create(e_c2s, iv_c2s, Cipher.ENCRYPT_MODE)
-    );
+    Cipher c2sCip = Objects.requireNonNull(c2sCf.create(e_c2s, iv_c2s, Cipher.ENCRYPT_MODE));
 
     session.setC2sCipher(c2sCip);
     session.setC2sCipherSize(c2sCf.getIvSize());
 
-    logger.debug("[{}] Session Cipher(S2C): {}, Session Cipher(C2S): {}", session, s2cCf, c2sCf);
+    // server to client cipher
+    CipherFactories s2cCf;
+    s2cCf = Objects.requireNonNull(CipherFactories.from(kp.get(KexInitProposal.Param.ENCRYPTION_S2C)));
+    e_s2c = hashKey(e_s2c, s2cCf.getBlkSize(), k, id, md);
+    Cipher s2cCip = Objects.requireNonNull(s2cCf.create(e_s2c, iv_s2c, Cipher.DECRYPT_MODE));
+
+    session.setS2cCipher(s2cCip);
+    session.setS2cCipherSize(s2cCf.getIvSize());
+
+    logger.debug("[{}] Session Cipher(C2S): {}, Session Cipher(S2C): {}", session, c2sCf, s2cCf);
+
+    // MAC
+    // client to server MAC
+    MacFactories c2sMf;
+    c2sMf = Objects.requireNonNull(MacFactories.from(kp.get(KexInitProposal.Param.MAC_C2S)));
+    Mac c2sMac = c2sMf.create(mac_c2s);
+    if (c2sMac == null) {
+      throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR,
+          "Unsupported C2S MAC: " + kp.get(KexInitProposal.Param.MAC_C2S));
+    }
+    session.setC2sMac(c2sMac);
+    session.setC2sMacSize(c2sMf.getBlkSize());
+    session.setC2sDefMacSize(c2sMf.getDefBlkSize());
 
     // server to client MAC
     MacFactories s2cMf;
@@ -277,25 +291,26 @@ public class RequestHandler extends AbstractRequestHandler {
       throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR,
           "Unsupported S2C MAC: " + kp.get(KexInitProposal.Param.MAC_S2C));
     }
-
     session.setS2cMac(s2cMac);
     session.setS2cMacSize(s2cMf.getBlkSize());
     session.setS2cDefMacSize(s2cMf.getDefBlkSize());
 
-    // client to server MAC
-    MacFactories c2sMf;
-    c2sMf = Objects.requireNonNull(MacFactories.from(kp.get(KexInitProposal.Param.MAC_C2S)));
-    Mac c2sMac = c2sMf.create(mac_c2s);
-    if (c2sMac == null) {
-      throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR,
-          "Unsupported C2S MAC: " + kp.get(KexInitProposal.Param.MAC_C2S));
-    }
+    logger.debug("[{}] Session MAC(C2S): {}, Sesson MAC(S2C): {}",session, c2sMf, s2cMf);
 
-    session.setC2sMac(c2sMac);
-    session.setC2sMacSize(c2sMf.getBlkSize());
-    session.setC2sDefMacSize(c2sMf.getDefBlkSize());
+    // Compression
+    // client to server compression
+    CompressionFactories c2sCmf;
+    c2sCmf = Objects.requireNonNull(CompressionFactories.from(kp.get(KexInitProposal.Param.COMPRESSION_C2S)));
+    Compression c2sCompression = c2sCmf.create();
+    session.setC2sCompression(c2sCompression);
 
-    logger.debug("[{}] Session MAC(S2C): {}, Sesson MAC(C2S): {}",session, s2cMf, c2sMf);
+    // server to client compression
+    CompressionFactories s2cCmf;
+    s2cCmf = Objects.requireNonNull(CompressionFactories.from(kp.get(KexInitProposal.Param.COMPRESSION_S2C)));
+    Compression s2cCompression = s2cCmf.create();
+    session.setS2cCompression(s2cCompression);
+
+    logger.debug("[{}] Session Compression(C2S): {}, Session Compression(S2C): {}", session, c2sCmf, s2cCmf);
 
     session.requestServiceRequest();
   }

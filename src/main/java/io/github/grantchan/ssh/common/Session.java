@@ -290,7 +290,7 @@ public abstract class Session implements IdHolder, UsernameHolder {
 
   private void checkTimeout() {
     long authElapsed = System.currentTimeMillis() - authStartTime;
-    if (isActive && !isAuthed && authElapsed > 1000) {
+    if (isActive && !isAuthed && authElapsed > 5000) {
       logger.debug("[{}] Timeout - reason: Authentication process timeout since it's taken {} ms",
           this, authElapsed);
 
