@@ -48,4 +48,9 @@ public enum CompressionFactories implements NamedFactory<Compression> {
   public static CompressionFactories from(String name) {
     return NamedObject.find(name, ALL, String.CASE_INSENSITIVE_ORDER);
   }
+
+  @Override
+  public String toString() {
+    return name;
+  }
 }

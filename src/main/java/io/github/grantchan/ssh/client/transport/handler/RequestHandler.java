@@ -42,7 +42,7 @@ public class RequestHandler extends AbstractRequestHandler {
 
   private ClientSession session;
 
-  private ByteBuf accuBuf;
+  private ByteBuf accrued;
   private String username;
 
   public RequestHandler(String username) {
@@ -85,7 +85,7 @@ public class RequestHandler extends AbstractRequestHandler {
     session.setClientId("SSH-2.0-Client DEMO");
     session.setUsername(username);
 
-    accuBuf = session.createBuffer();
+    accrued = session.createBuffer();
   }
 
   @Override
@@ -96,9 +96,9 @@ public class RequestHandler extends AbstractRequestHandler {
       return;
     }
 
-    accuBuf.writeBytes((ByteBuf) msg);
+    accrued.writeBytes((ByteBuf) msg);
 
-    id = IdExHandler.getId(accuBuf);
+    id = IdExHandler.getId(accrued);
     if (id == null) {
       return;
     }

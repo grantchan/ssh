@@ -1,6 +1,7 @@
 package io.github.grantchan.ssh.common.transport.handler;
 
 import io.github.grantchan.ssh.common.Session;
+import io.github.grantchan.ssh.common.transport.compression.Compression;
 import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -13,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.security.SecureRandom;
-import java.util.Objects;
 
 import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
@@ -21,14 +21,10 @@ public abstract class AbstractPacketEncoder extends ChannelOutboundHandlerAdapte
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  protected final Session session;
-
   private final SecureRandom rand = new SecureRandom();
   private long seq = 0;
 
-  public AbstractPacketEncoder(Session session) {
-    this.session = Objects.requireNonNull(session, "Session is not initialized");
-  }
+  protected abstract Session getSession();
 
   protected abstract Cipher getCipher();
 
@@ -40,12 +36,28 @@ public abstract class AbstractPacketEncoder extends ChannelOutboundHandlerAdapte
 
   protected abstract int getDefMacSize();
 
+  protected abstract Compression getCompression();
+
   @Override
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
     ByteBuf buf = (ByteBuf) msg;
 
     int len = buf.readableBytes();
     int off = buf.readerIndex() - SSH_PACKET_HEADER_LENGTH;
+
+    Compression comp = getCompression();
+    if (comp != null && getSession().isAuthed() && len > 0) {
+      byte[] plain = new byte[len];
+      buf.readBytes(plain);
+      buf.clear();
+
+      byte[] zipped = comp.compress(plain);
+      logger.debug("[{}] Compressed packet: ({} -> {} bytes)", getSession(), plain.length,
+          zipped.length);
+
+      buf.writeBytes(zipped);
+      len = buf.readableBytes();
+    }
 
     // Calculate padding length
     int bsize  = getCipherSize();
@@ -89,7 +101,7 @@ public abstract class AbstractPacketEncoder extends ChannelOutboundHandlerAdapte
     if (cipher != null) {
       StringBuilder sb = new StringBuilder();
       ByteBufUtil.appendPrettyHexDump(sb, buf);
-      logger.debug("[{}] Packet before encryption: \n{}", session, sb.toString());
+      logger.debug("[{}] Packet before encryption: \n{}", getSession(), sb.toString());
 
       byte[] tmp = new byte[len + 4 - off];
       buf.getBytes(off, tmp);

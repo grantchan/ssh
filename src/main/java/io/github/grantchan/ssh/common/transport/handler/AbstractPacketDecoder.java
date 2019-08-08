@@ -93,11 +93,13 @@ public abstract class AbstractPacketDecoder extends ChannelInboundHandlerAdapter
     Cipher cipher = getCipher();
     int cipherSize = getBlkSize();
 
+    //
     // Two decode steps here:
     // 1. decode the first block of the packet, the size of a block is the cipher size. In the
     //    first block, we check if the packet is fully received, if yes, we move on to step 2,
     //    otherwise, return null.
     // 2. decode the rest of the buffer
+    //
 
     if (decodeStep == 0 && cipher != null) {
       StringBuilder sb = new StringBuilder();
@@ -187,7 +189,7 @@ public abstract class AbstractPacketDecoder extends ChannelInboundHandlerAdapter
 
       StringBuilder sb = new StringBuilder();
       ByteBufUtil.appendPrettyHexDump(sb, packet);
-      logger.debug("[{}] Decompressed packet (before: {} bytes, after: {} bytes): \n{}",
+      logger.debug("[{}] Decompressed packet ({} -> {} bytes): \n{}",
           getSession(), zipped.length, unzipped.length, sb.toString());
     } else {
       packet.capacity(len);

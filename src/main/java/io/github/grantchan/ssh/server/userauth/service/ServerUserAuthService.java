@@ -115,8 +115,8 @@ public class ServerUserAuthService implements Service {
 
       if (result) {
         session.acceptService(service);
-        session.setAuthed(true);
         session.replyUserAuthSuccess();
+        session.setAuthed(true);
       } else {
         session.replyUserAuthFailure(MethodFactories.getNames(), false);
       }

@@ -23,12 +23,12 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHand
 
   protected ServerSession session;
 
-  private ByteBuf accuBuf;
+  private ByteBuf accrued;
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) {
     session = new ServerSession(ctx);
-    accuBuf = session.createBuffer();
+    accrued = session.createBuffer();
   }
 
   @Override
@@ -70,11 +70,11 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHand
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) {
-    accuBuf.writeBytes((ByteBuf) msg);
+    accrued.writeBytes((ByteBuf) msg);
 
     String id = session.getClientId();
     if (id == null) {
-      id = IdExHandler.getId(accuBuf);
+      id = IdExHandler.getId(accrued);
       if (id == null) {
         return;
       }
@@ -82,23 +82,24 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHand
       logger.debug("[{}] Received identification: {}", session, id);
       session.setClientId(id);
 
-      ChannelPipeline pipeline = ctx.pipeline();
-      LoggingHandler loggingHandler = pipeline.get(LoggingHandler.class);
-      pipeline.remove(LoggingHandler.class);
+      ChannelPipeline cp = ctx.pipeline();
 
-      pipeline.addLast(new PacketDecoder(session),
-                       loggingHandler,
-                       new RequestHandler(session),
-                       new PacketEncoder(session));
-      pipeline.remove(this);
+      LoggingHandler loggingHandler = cp.get(LoggingHandler.class);
+      cp.remove(LoggingHandler.class);
+
+      cp.addLast(new PacketDecoder(session),
+                 loggingHandler,
+                 new RequestHandler(session),
+                 new PacketEncoder(session));
+      cp.remove(this);
 
       byte[] ki = IdExHandler.kexInit();
       session.setS2cKex(Bytes.concat(new byte[] {SshMessage.SSH_MSG_KEXINIT}, ki));
 
       session.sendKexInit(ki);
 
-      if (accuBuf.readableBytes() > 0) {
-        ctx.fireChannelRead(accuBuf);
+      if (accrued.readableBytes() > 0) {
+        ctx.fireChannelRead(accrued);
       }
     }
     ReferenceCountUtil.release(msg);
