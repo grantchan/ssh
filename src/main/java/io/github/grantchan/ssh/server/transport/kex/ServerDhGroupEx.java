@@ -51,7 +51,7 @@ public class ServerDhGroupEx implements KexHandler {
   }
 
   @Override
-  public void handleMessage(int cmd, ByteBuf msg) throws SshException {
+  public void handle(int cmd, ByteBuf msg) throws SshException {
     logger.debug("[{}] Handling key exchange message - {} ...", session, SshMessage.from(cmd));
 
     if (cmd == SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST_OLD &&

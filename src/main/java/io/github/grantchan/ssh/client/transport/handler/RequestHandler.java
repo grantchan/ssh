@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -148,10 +147,10 @@ public class RequestHandler extends AbstractRequestHandler {
   }
 
   @Override
-  public void handleKexInit(ByteBuf msg) throws IOException {
+  public void handleKexInit(ByteBuf msg) throws Exception {
     super.handleKexInit(msg);
 
-    getKexHandler().handleMessage(SshMessage.SSH_MSG_KEXDH_INIT, null);
+    getKexHandler().handle(SshMessage.SSH_MSG_KEXDH_INIT, null);
   }
 
   @Override

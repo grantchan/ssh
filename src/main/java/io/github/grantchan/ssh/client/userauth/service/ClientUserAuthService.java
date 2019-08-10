@@ -39,7 +39,7 @@ public class ClientUserAuthService implements Service {
   }
 
   @Override
-  public void handleMessage(int cmd, ByteBuf msg) throws Exception {
+  public void handle(int cmd, ByteBuf msg) throws Exception {
     switch (cmd) {
       case SshMessage.SSH_MSG_USERAUTH_BANNER:
         handleBanner(msg);

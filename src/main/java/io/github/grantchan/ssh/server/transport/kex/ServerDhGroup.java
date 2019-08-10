@@ -49,7 +49,7 @@ public class ServerDhGroup implements KexHandler {
   }
 
   @Override
-  public void handleMessage(int cmd, ByteBuf req) throws SshException {
+  public void handle(int cmd, ByteBuf req) throws SshException {
     logger.debug("[{}] Handling key exchange message - {} ...",
         session, SshMessage.from(cmd));
 

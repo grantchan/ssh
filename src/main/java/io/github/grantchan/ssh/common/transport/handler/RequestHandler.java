@@ -9,7 +9,6 @@ import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
 import io.netty.buffer.ByteBuf;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.Objects;
@@ -56,13 +55,12 @@ public interface RequestHandler {
 
       default:
         if (cmd >= SSH_MSG_KEXDH_FIRST && cmd <= SSH_MSG_KEXDH_LAST) {
-          Objects.requireNonNull(getKexHandler(), "Kex handler is not initialized")
-                 .handleMessage(cmd, req);
+          Objects.requireNonNull(getKexHandler(), "Kex handler is not initialized").handle(cmd, req);
         } else {
           Service svc = Objects.requireNonNull(getSession(), "Session is not initialized")
                                .getService();
           if (svc != null) {
-            svc.handleMessage(cmd, req);
+            svc.handle(cmd, req);
           } else {
             throw new IllegalStateException("Unknown request command - " + SshMessage.from(cmd));
           }
@@ -72,7 +70,7 @@ public interface RequestHandler {
 
   void handleDisconnect(ByteBuf req);
 
-  void handleKexInit(ByteBuf msg) throws IOException;
+  void handleKexInit(ByteBuf msg) throws Exception;
 
   void handleServiceRequest(ByteBuf req) throws SshException;
 

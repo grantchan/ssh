@@ -89,7 +89,7 @@ public abstract class AbstractRequestHandler extends ChannelInboundHandlerAdapte
   protected abstract void setKexInit(byte[] ki);
 
   @Override
-  public void handleKexInit(ByteBuf msg) throws IOException {
+  public void handleKexInit(ByteBuf msg) throws Exception {
     Session session = Objects.requireNonNull(getSession(), "Session is not initialized");
 
     /*

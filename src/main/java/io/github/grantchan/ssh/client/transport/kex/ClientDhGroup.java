@@ -54,7 +54,7 @@ public class ClientDhGroup implements KexHandler {
   }
 
   @Override
-  public void handleMessage(int cmd, ByteBuf msg) throws SshException {
+  public void handle(int cmd, ByteBuf msg) throws SshException {
     logger.debug("[{}] Handling key exchange message - {} ...", session, SshMessage.from(cmd));
 
     if (cmd == SshMessage.SSH_MSG_KEXDH_INIT &&

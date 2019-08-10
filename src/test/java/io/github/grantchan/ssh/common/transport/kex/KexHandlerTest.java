@@ -30,8 +30,8 @@ public class KexHandlerTest {
     thrown.expect(hasProperty("disconnectReason",
         is(SshMessage.SSH_DISCONNECT_KEY_EXCHANGE_FAILED)));
 
-    new ClientDhGroup(null, null, null).handleMessage(SshMessage.SSH_MSG_KEXDH_REPLY, null);
-    new ServerDhGroup(null, null, null).handleMessage(SshMessage.SSH_MSG_KEXDH_REPLY, null);
+    new ClientDhGroup(null, null, null).handle(SshMessage.SSH_MSG_KEXDH_REPLY, null);
+    new ServerDhGroup(null, null, null).handle(SshMessage.SSH_MSG_KEXDH_REPLY, null);
   }
 
 }

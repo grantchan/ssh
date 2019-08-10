@@ -29,7 +29,7 @@ public class ServerUserAuthService implements Service {
   }
 
   @Override
-  public void handleMessage(int cmd, ByteBuf req) throws Exception {
+  public void handle(int cmd, ByteBuf req) throws Exception {
     if (cmd == SshMessage.SSH_MSG_USERAUTH_REQUEST) {
 
       /*
