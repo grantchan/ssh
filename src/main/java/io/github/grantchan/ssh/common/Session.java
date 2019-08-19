@@ -3,7 +3,6 @@ package io.github.grantchan.ssh.common;
 import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.transport.compression.Compression;
-import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.common.userauth.service.ServiceFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
@@ -15,6 +14,7 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -281,14 +281,20 @@ public abstract class Session implements IdHolder, UsernameHolder {
 
   private String getRemoteAddress() {
     if (remoteAddr == null) {
-      InetSocketAddress isa = (InetSocketAddress) ctx.channel().remoteAddress();
+      SocketAddress sa = ctx.channel().remoteAddress();
+      if (sa instanceof InetSocketAddress) {
+        InetSocketAddress isa = (InetSocketAddress) sa;
 
-      remoteAddr = isa.getAddress().getHostAddress();
+        remoteAddr = isa.getAddress().getHostAddress();
+      } else {
+        remoteAddr = sa.toString();
+      }
     }
     return remoteAddr;
   }
 
   private void checkTimeout() {
+/*
     long authElapsed = System.currentTimeMillis() - authStartTime;
     if (isActive && !isAuthed && authElapsed > 5000) {
       logger.debug("[{}] Timeout - reason: Authentication process timeout since it's taken {} ms",
@@ -298,6 +304,7 @@ public abstract class Session implements IdHolder, UsernameHolder {
 
       disconnect(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR, "Authentication timeout");
     }
+*/
   }
 
   /**
@@ -340,6 +347,19 @@ public abstract class Session implements IdHolder, UsernameHolder {
     logger.debug("[{}] Requesting SSH_MSG_NEWKEYS...", this);
 
     ctx.channel().writeAndFlush(newKeys);
+  }
+
+  public void replyChannelOpenConfirmation(int rChId, int lChId, int wndSize, int wndPacketSize) {
+    ByteBuf conf = createMessage(SshMessage.SSH_MSG_CHANNEL_OPEN_CONFIRMATION);
+
+    conf.writeInt(rChId);
+    conf.writeInt(lChId);
+    conf.writeInt(wndSize);
+    conf.writeInt(wndPacketSize);
+
+    logger.debug("[{}] Replying SSH_MSG_CHANNEL_OPEN_CONFIRMATION...", this);
+
+    ctx.channel().writeAndFlush(conf);
   }
 
   public ByteBuf createBuffer() {

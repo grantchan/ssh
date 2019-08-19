@@ -1,8 +1,8 @@
-package io.github.grantchan.ssh.server.userauth.service;
+package io.github.grantchan.ssh.server.connection.service;
 
 import io.github.grantchan.ssh.arch.SshMessage;
+import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
-import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
@@ -81,13 +81,14 @@ public class ConnectionService implements Service {
      * @see <a href="https://tools.ietf.org/html/rfc4254#section-5.1">Opening a Channel</a>
      */
     String chType = ByteBufIo.readUtf8(req);
-    int sender = req.readInt();
+    int rChId = req.readInt();
     long wndSize = req.readUnsignedInt();
     long maxPacketSize = req.readUnsignedInt();
 
     logger.debug("[{}] Received SSH_MSG_CHANNEL_OPEN. channel type={}, sender channel id={}, " +
-        "initial window size={}, maximum packet size={}", session, chType, sender, wndSize,
+        "initial window size={}, maximum packet size={}", session, chType, rChId, wndSize,
         maxPacketSize);
 
+    session.replyChannelOpenConfirmation(rChId, 0, 2097152, 32768);
   }
 }

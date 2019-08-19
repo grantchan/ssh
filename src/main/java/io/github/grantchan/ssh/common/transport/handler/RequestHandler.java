@@ -1,10 +1,10 @@
 package io.github.grantchan.ssh.common.transport.handler;
 
 import io.github.grantchan.ssh.arch.SshMessage;
+import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.kex.KexHandler;
-import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
 import io.netty.buffer.ByteBuf;

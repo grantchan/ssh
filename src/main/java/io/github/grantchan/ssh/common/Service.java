@@ -1,4 +1,4 @@
-package io.github.grantchan.ssh.common.userauth.service;
+package io.github.grantchan.ssh.common;
 
 import io.netty.buffer.ByteBuf;
 

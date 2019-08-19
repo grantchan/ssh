@@ -1,8 +1,8 @@
 package io.github.grantchan.ssh.server.userauth.service;
 
 import io.github.grantchan.ssh.arch.SshMessage;
+import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.SshException;
-import io.github.grantchan.ssh.common.userauth.service.Service;
 import io.github.grantchan.ssh.common.userauth.service.ServiceFactories;
 import io.github.grantchan.ssh.common.userauth.service.ServiceFactory;
 import io.github.grantchan.ssh.server.ServerSession;

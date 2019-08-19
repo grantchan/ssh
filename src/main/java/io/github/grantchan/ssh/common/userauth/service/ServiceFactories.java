@@ -3,9 +3,10 @@ package io.github.grantchan.ssh.common.userauth.service;
 import io.github.grantchan.ssh.client.ClientSession;
 import io.github.grantchan.ssh.client.userauth.service.ClientUserAuthService;
 import io.github.grantchan.ssh.common.NamedObject;
+import io.github.grantchan.ssh.common.Service;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.server.ServerSession;
-import io.github.grantchan.ssh.server.userauth.service.ConnectionService;
+import io.github.grantchan.ssh.server.connection.service.ConnectionService;
 import io.github.grantchan.ssh.server.userauth.service.ServerUserAuthService;
 
 import java.util.Collections;
