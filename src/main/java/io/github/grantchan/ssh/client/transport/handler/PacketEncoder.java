@@ -18,7 +18,7 @@ public class PacketEncoder extends AbstractPacketEncoder {
   }
 
   @Override
-  protected Session getSession() {
+  public Session getSession() {
     return session;
   }
 

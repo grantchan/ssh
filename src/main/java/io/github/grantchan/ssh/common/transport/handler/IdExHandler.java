@@ -1,6 +1,5 @@
 package io.github.grantchan.ssh.common.transport.handler;
 
-import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.kex.KexInitProposal;
 import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
@@ -13,7 +12,7 @@ import java.util.Objects;
 
 import static io.github.grantchan.ssh.arch.SshConstant.MSG_KEX_COOKIE_SIZE;
 
-public interface IdExHandler {
+public interface IdExHandler extends SessionHolder {
 
   /*
    * RFC 4253: The maximum length of the string is 255 characters,
@@ -102,8 +101,6 @@ public interface IdExHandler {
 
     return id[0];
   }
-
-  Session getSession();
 
   /*
    * Construct the key exchange initialization packet.

@@ -20,7 +20,8 @@ import java.util.Objects;
 
 import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_LENGTH;
 
-public abstract class AbstractPacketDecoder extends ChannelInboundHandlerAdapter {
+public abstract class AbstractPacketDecoder extends ChannelInboundHandlerAdapter
+                                            implements SessionHolder {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -59,8 +60,6 @@ public abstract class AbstractPacketDecoder extends ChannelInboundHandlerAdapter
     }
     ReferenceCountUtil.release(msg);
   }
-
-  protected abstract Session getSession();
 
   protected abstract Cipher getCipher();
 

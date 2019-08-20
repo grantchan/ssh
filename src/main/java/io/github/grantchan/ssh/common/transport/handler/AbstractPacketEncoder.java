@@ -1,6 +1,5 @@
 package io.github.grantchan.ssh.common.transport.handler;
 
-import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.compression.Compression;
 import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
@@ -17,14 +16,13 @@ import java.security.SecureRandom;
 
 import static io.github.grantchan.ssh.arch.SshConstant.SSH_PACKET_HEADER_LENGTH;
 
-public abstract class AbstractPacketEncoder extends ChannelOutboundHandlerAdapter {
+public abstract class AbstractPacketEncoder extends ChannelOutboundHandlerAdapter
+                                            implements SessionHolder {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final SecureRandom rand = new SecureRandom();
   private long seq = 0;
-
-  protected abstract Session getSession();
 
   protected abstract Cipher getCipher();
 

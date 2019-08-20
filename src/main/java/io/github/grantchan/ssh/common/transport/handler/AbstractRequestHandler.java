@@ -32,13 +32,10 @@ public abstract class AbstractRequestHandler extends ChannelInboundHandlerAdapte
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    Session session = Objects.requireNonNull(getSession(), "Session is not initialized");
-
     ByteBuf req = (ByteBuf) msg;
-    int cmd = req.getByte(req.readerIndex()) & 0xFF;
-    logger.info("[{}] Handling message - {} ...", session, SshMessage.from(cmd));
+    int cmd = req.readByte() & 0xFF;
 
-    handle(req);
+    handle(cmd, req);
   }
 
   @Override

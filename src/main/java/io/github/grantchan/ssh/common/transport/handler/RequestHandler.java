@@ -2,29 +2,30 @@ package io.github.grantchan.ssh.common.transport.handler;
 
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Service;
-import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.SshException;
 import io.github.grantchan.ssh.common.transport.kex.KexHandler;
 import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.github.grantchan.ssh.util.buffer.LengthBytesBuilder;
 import io.netty.buffer.ByteBuf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.Objects;
 
-public interface RequestHandler {
+public interface RequestHandler extends SessionHolder {
+
+  Logger logger = LoggerFactory.getLogger(RequestHandler.class);
 
   // The numbers 30-49 are key exchange specific and may be redefined by other kex methods.
   byte SSH_MSG_KEXDH_FIRST = 30;
   byte SSH_MSG_KEXDH_LAST  = 49;
 
-  Session getSession();
-
   KexHandler getKexHandler();
 
-  default void handle(ByteBuf req) throws Exception {
-    int cmd = req.readByte() & 0xFF;
+  default void handle(int cmd, ByteBuf req) throws Exception {
+    logger.info("[{}] Handling message - {} ...", getSession(), SshMessage.from(cmd));
 
     switch (cmd) {
       case SshMessage.SSH_MSG_DISCONNECT:

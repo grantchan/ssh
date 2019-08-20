@@ -18,7 +18,7 @@ public class PacketDecoder extends AbstractPacketDecoder {
   }
 
   @Override
-  protected Session getSession() {
+  public Session getSession() {
     return this.session;
   }
 

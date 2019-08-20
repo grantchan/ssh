@@ -19,7 +19,7 @@ public class ConnectionService implements Service {
   }
 
   @Override
-  public void handle(int cmd, ByteBuf req) throws Exception {
+  public void handle(int cmd, ByteBuf req) {
     logger.info("[{}] Handling message - {} ...", session, SshMessage.from(cmd));
 
     switch (cmd) {
@@ -43,7 +43,7 @@ public class ConnectionService implements Service {
         break;
 
       default:
-        throw new IllegalStateException("Unsupported request: " + SshMessage.from(cmd));
+//        throw new IllegalStateException("Unsupported request: " + SshMessage.from(cmd));
     }
   }
 
