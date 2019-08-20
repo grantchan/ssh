@@ -4,7 +4,7 @@ import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,8 +14,8 @@ public class ServerSession extends Session {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  public ServerSession(ChannelHandlerContext ctx) {
-    super(ctx);
+  public ServerSession(Channel channel) {
+    super(channel);
   }
 
   /**
@@ -33,7 +33,7 @@ public class ServerSession extends Session {
 
     logger.debug("[{}] Replying SSH_MSG_SERVICE_ACCEPT...", this);
 
-    ctx.channel().writeAndFlush(buf);
+    channel.writeAndFlush(buf);
   }
 
   public void replyKexDhReply(byte[] k_s, BigInteger f, byte[] sigH) {
@@ -45,7 +45,7 @@ public class ServerSession extends Session {
 
     logger.debug("[{}] Replying SSH_MSG_KEXDH_REPLY...", this);
 
-    ctx.channel().writeAndFlush(reply);
+    channel.writeAndFlush(reply);
   }
 
   /**
@@ -67,7 +67,7 @@ public class ServerSession extends Session {
 
     logger.debug("[{}] Replying SSH_MSG_KEX_DH_GEX_REPLY...", this);
 
-    ctx.channel().writeAndFlush(reply);
+    channel.writeAndFlush(reply);
   }
 
   /**
@@ -103,7 +103,7 @@ public class ServerSession extends Session {
 
     logger.debug("[{}] Replying SSH_MSG_USERAUTH_SUCCESS...", this);
 
-    ctx.channel().writeAndFlush(uas);
+    channel.writeAndFlush(uas);
   }
 
   /**
@@ -131,7 +131,7 @@ public class ServerSession extends Session {
 
     logger.debug("[{}] Replying SSH_MSG_USERAUTH_FAILURE...", this);
 
-    ctx.channel().writeAndFlush(uaf);
+    channel.writeAndFlush(uaf);
   }
 
   /**
@@ -150,7 +150,7 @@ public class ServerSession extends Session {
 
     logger.debug("[{}] Replying SSH_MSG_USERAUTH_PK_OK...", this);
 
-    ctx.channel().writeAndFlush(uapo);
+    channel.writeAndFlush(uapo);
   }
 
 

@@ -55,7 +55,7 @@ public class RequestHandler extends AbstractRequestHandler {
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) {
-    session = new ClientSession(ctx);
+    session = new ClientSession(ctx.channel());
 
     /*
      * RFC 4253:

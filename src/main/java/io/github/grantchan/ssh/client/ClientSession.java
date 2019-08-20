@@ -5,7 +5,7 @@ import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.github.grantchan.ssh.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +17,8 @@ public class ClientSession extends Session {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  public ClientSession(ChannelHandlerContext ctx) {
-    super(ctx);
+  public ClientSession(Channel channel) {
+    super(channel);
   }
 
   /**
@@ -33,7 +33,7 @@ public class ClientSession extends Session {
 
     logger.debug("[{}] Requesting SSH_MSG_KEXDH_INIT...", this);
 
-    ctx.channel().writeAndFlush(req);
+    channel.writeAndFlush(req);
   }
 
   /**
@@ -46,7 +46,7 @@ public class ClientSession extends Session {
 
     logger.debug("[{}] Requesting SSH_MSG_SERVICE_REQUEST...", this);
 
-    ctx.channel().writeAndFlush(req);
+    channel.writeAndFlush(req);
   }
 
   public void requestUserAuthRequest(String user, String service, String method) {
@@ -59,7 +59,7 @@ public class ClientSession extends Session {
     logger.debug("[{}] Requesting SSH_MSG_USERAUTH_REQUEST... username:{}, service:{}, method:{}",
         this, user, service, method);
 
-    ctx.channel().writeAndFlush(req);
+    channel.writeAndFlush(req);
   }
 
   public void requestUserAuthRequest(String user, String service, String method, String algo,
@@ -76,7 +76,7 @@ public class ClientSession extends Session {
     logger.debug("[{}] Requesting SSH_MSG_USERAUTH_REQUEST... " +
         "username:{}, service:{}, method:{}, algo:{}", this, user, service, method, algo);
 
-    ctx.channel().writeAndFlush(req);
+    channel.writeAndFlush(req);
   }
 
   public void requestUserAuthRequest(String user, String service, String method, String algo,
@@ -95,6 +95,6 @@ public class ClientSession extends Session {
             "username:{}, service:{}, method:{}, algo:{}, sigature: {}", this, user, service, method, algo,
         Bytes.md5(sig));
 
-    ctx.channel().writeAndFlush(req);
+    channel.writeAndFlush(req);
   }
 }

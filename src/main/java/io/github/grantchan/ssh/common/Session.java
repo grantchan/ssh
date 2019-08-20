@@ -6,7 +6,7 @@ import io.github.grantchan.ssh.common.transport.compression.Compression;
 import io.github.grantchan.ssh.common.userauth.service.ServiceFactories;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +26,7 @@ public abstract class Session implements IdHolder, UsernameHolder {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  protected ChannelHandlerContext ctx;
+  protected Channel channel;
 
   private final static Set<Session> sessions = new CopyOnWriteArraySet<>();
   private final static ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
@@ -72,8 +72,8 @@ public abstract class Session implements IdHolder, UsernameHolder {
   private volatile boolean isActive = false;
 
   // constructor
-  public Session(ChannelHandlerContext ctx) {
-    this.ctx = ctx;
+  public Session(Channel channel) {
+    this.channel = channel;
     sessions.add(this);
   }
 
@@ -253,7 +253,7 @@ public abstract class Session implements IdHolder, UsernameHolder {
 
     buf.writeBytes(payload);
 
-    ctx.channel().writeAndFlush(buf);
+    channel.writeAndFlush(buf);
   }
 
   /**
@@ -276,12 +276,12 @@ public abstract class Session implements IdHolder, UsernameHolder {
     ByteBufIo.writeUtf8(buf, message);
     ByteBufIo.writeUtf8(buf, "");
 
-    ctx.channel().writeAndFlush(buf);
+    channel.writeAndFlush(buf);
   }
 
   private String getRemoteAddress() {
     if (remoteAddr == null) {
-      SocketAddress sa = ctx.channel().remoteAddress();
+      SocketAddress sa = channel.remoteAddress();
       if (sa instanceof InetSocketAddress) {
         InetSocketAddress isa = (InetSocketAddress) sa;
 
@@ -323,7 +323,7 @@ public abstract class Session implements IdHolder, UsernameHolder {
 
     logger.debug("[{}] Replying SSH_MSG_KEX_DH_GEX_GROUP...", this);
 
-    ctx.channel().writeAndFlush(pg);
+    channel.writeAndFlush(pg);
   }
 
   /**
@@ -346,7 +346,7 @@ public abstract class Session implements IdHolder, UsernameHolder {
 
     logger.debug("[{}] Requesting SSH_MSG_NEWKEYS...", this);
 
-    ctx.channel().writeAndFlush(newKeys);
+    channel.writeAndFlush(newKeys);
   }
 
   public void replyChannelOpenConfirmation(int rChId, int lChId, int wndSize, int wndPacketSize) {
@@ -359,11 +359,11 @@ public abstract class Session implements IdHolder, UsernameHolder {
 
     logger.debug("[{}] Replying SSH_MSG_CHANNEL_OPEN_CONFIRMATION...", this);
 
-    ctx.channel().writeAndFlush(conf);
+    channel.writeAndFlush(conf);
   }
 
   public ByteBuf createBuffer() {
-    return ctx.alloc().buffer();
+    return channel.alloc().buffer();
   }
 
   protected ByteBuf createMessage(byte messageId) {
@@ -386,12 +386,12 @@ public abstract class Session implements IdHolder, UsernameHolder {
     logger.info("[{}] Disconnecting... reason: {}, msg: {}",
         this, SshMessage.disconnectReason(code), msg);
 
-    ctx.channel().close()
-       .addListener(f -> {
-         if (f.isSuccess()) {
-           isActive = false;
-         }
-       });
+    channel.close()
+           .addListener(f -> {
+             if (f.isSuccess()) {
+               isActive = false;
+             }
+           });
   }
 
   /**

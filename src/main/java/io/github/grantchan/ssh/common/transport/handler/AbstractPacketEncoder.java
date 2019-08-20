@@ -49,7 +49,9 @@ public abstract class AbstractPacketEncoder extends ChannelOutboundHandlerAdapte
     if (comp != null && getSession().isAuthed() && len > 0) {
       byte[] plain = new byte[len];
       buf.readBytes(plain);
-      buf.clear();
+
+      buf.readerIndex(SSH_PACKET_HEADER_LENGTH);
+      buf.writerIndex(SSH_PACKET_HEADER_LENGTH);
 
       byte[] zipped = comp.compress(plain);
       logger.debug("[{}] Compressed packet: ({} -> {} bytes)", getSession(), plain.length,

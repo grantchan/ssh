@@ -27,7 +27,7 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHand
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) {
-    session = new ServerSession(ctx);
+    session = new ServerSession(ctx.channel());
     accrued = session.createBuffer();
   }
 
