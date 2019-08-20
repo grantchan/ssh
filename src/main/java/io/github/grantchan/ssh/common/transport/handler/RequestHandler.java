@@ -14,7 +14,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.Objects;
 
-public interface RequestHandler extends SessionHolder {
+public interface RequestHandler extends SessionHolder, Service {
 
   Logger logger = LoggerFactory.getLogger(RequestHandler.class);
 
@@ -24,6 +24,7 @@ public interface RequestHandler extends SessionHolder {
 
   KexHandler getKexHandler();
 
+  @Override
   default void handle(int cmd, ByteBuf req) throws Exception {
     logger.info("[{}] Handling message - {} ...", getSession(), SshMessage.from(cmd));
 
