@@ -3,11 +3,13 @@ package io.github.grantchan.ssh.common.transport.handler;
 import io.github.grantchan.ssh.arch.SshConstant;
 import io.github.grantchan.ssh.arch.SshMessage;
 import io.github.grantchan.ssh.client.ClientSession;
+import io.github.grantchan.ssh.client.transport.handler.ClientPacketEncoder;
 import io.github.grantchan.ssh.common.transport.cipher.CipherFactories;
 import io.github.grantchan.ssh.common.transport.compression.Compression;
 import io.github.grantchan.ssh.common.transport.compression.CompressionFactories;
 import io.github.grantchan.ssh.common.transport.mac.MacFactories;
 import io.github.grantchan.ssh.server.ServerSession;
+import io.github.grantchan.ssh.server.transport.handler.ServerPacketDecoder;
 import io.github.grantchan.ssh.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -72,13 +74,13 @@ public class PacketCodecTest {
     clientChannel = new EmbeddedChannel(new LoggingHandler());
     ClientSession clientSession = new ClientSession(clientChannel);
     clientChannel.pipeline()
-        .addLast(new io.github.grantchan.ssh.client.transport.handler.PacketEncoder(clientSession));
+        .addLast(new ClientPacketEncoder(clientSession));
 
     // Server as receiver to decode message
     serverChannel = new EmbeddedChannel(new LoggingHandler());
     ServerSession serverSession = new ServerSession(serverChannel);
     serverChannel.pipeline()
-        .addFirst(new io.github.grantchan.ssh.server.transport.handler.PacketDecoder(serverSession));
+        .addFirst(new ServerPacketDecoder(serverSession));
 
     if (cipFactories != null) {
       // Set up cipher factory

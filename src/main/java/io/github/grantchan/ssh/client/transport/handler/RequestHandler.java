@@ -108,8 +108,8 @@ public class RequestHandler extends AbstractRequestHandler {
     ctx.writeAndFlush(Unpooled.wrappedBuffer((session.getClientId() + "\r\n")
                                                      .getBytes(StandardCharsets.UTF_8)));
 
-    ctx.pipeline().addFirst(new PacketDecoder(session));
-    ctx.pipeline().addLast(new PacketEncoder(session));
+    ctx.pipeline().addFirst(new ClientPacketDecoder(session));
+    ctx.pipeline().addLast(new ClientPacketEncoder(session));
 
     byte[] ki = IdExHandler.kexInit();
     session.setC2sKex(Bytes.concat(new byte[] {SshMessage.SSH_MSG_KEXINIT}, ki));

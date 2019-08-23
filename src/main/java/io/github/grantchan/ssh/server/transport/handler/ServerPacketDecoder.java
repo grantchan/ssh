@@ -1,19 +1,19 @@
-package io.github.grantchan.ssh.client.transport.handler;
+package io.github.grantchan.ssh.server.transport.handler;
 
-import io.github.grantchan.ssh.client.ClientSession;
 import io.github.grantchan.ssh.common.Session;
 import io.github.grantchan.ssh.common.transport.compression.Compression;
-import io.github.grantchan.ssh.common.transport.handler.AbstractPacketEncoder;
+import io.github.grantchan.ssh.common.transport.handler.AbstractPacketDecoder;
+import io.github.grantchan.ssh.server.ServerSession;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.util.Objects;
 
-public class PacketEncoder extends AbstractPacketEncoder {
+public class ServerPacketDecoder extends AbstractPacketDecoder {
 
-  private final ClientSession session;
+  private final ServerSession session;
 
-  public PacketEncoder(ClientSession session) {
+  public ServerPacketDecoder(ServerSession session) {
     this.session = Objects.requireNonNull(session, "Session is not initialized");
   }
 
@@ -23,32 +23,27 @@ public class PacketEncoder extends AbstractPacketEncoder {
   }
 
   @Override
-  protected Cipher getCipher() {
+  public Cipher getCipher() {
     return session.getC2sCipher();
   }
 
   @Override
-  protected int getCipherSize() {
+  public int getBlkSize() {
     return session.getC2sCipherSize();
   }
 
   @Override
-  protected Mac getMac() {
+  public Mac getMac() {
     return session.getC2sMac();
   }
 
   @Override
-  protected int getMacSize() {
+  public int getMacSize() {
     return session.getC2sMacSize();
   }
 
   @Override
-  protected int getDefMacSize() {
-    return session.getC2sDefMacSize();
-  }
-
-  @Override
-  protected Compression getCompression() {
+  public Compression getCompression() {
     return session.getC2sCompression();
   }
 }

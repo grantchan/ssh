@@ -244,6 +244,10 @@ public abstract class Session implements IdHolder, UsernameHolder {
     this.isAuthed = authed;
   }
 
+  public boolean isActive() {
+    return isActive;
+  }
+
   public void setActive(boolean isActive) {
     this.isActive = isActive;
   }
@@ -366,6 +370,10 @@ public abstract class Session implements IdHolder, UsernameHolder {
     return channel.alloc().buffer();
   }
 
+  public ByteBuf createBuffer(int size) {
+    return channel.alloc().buffer(size);
+  }
+
   protected ByteBuf createMessage(byte messageId) {
     ByteBuf msg = createBuffer();
 
@@ -389,7 +397,7 @@ public abstract class Session implements IdHolder, UsernameHolder {
     channel.close()
            .addListener(f -> {
              if (f.isSuccess()) {
-               isActive = false;
+               setActive(false);
              }
            });
   }

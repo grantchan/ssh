@@ -87,10 +87,10 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHand
       LoggingHandler loggingHandler = cp.get(LoggingHandler.class);
       cp.remove(LoggingHandler.class);
 
-      cp.addLast(new PacketDecoder(session),
+      cp.addLast(new ServerPacketDecoder(session),
                  loggingHandler,
                  new RequestHandler(session),
-                 new PacketEncoder(session));
+                 new ServerPacketEncoder(session));
       cp.remove(this);
 
       byte[] ki = IdExHandler.kexInit();

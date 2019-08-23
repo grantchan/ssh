@@ -9,11 +9,11 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.util.Objects;
 
-public class PacketEncoder extends AbstractPacketEncoder {
+public class ServerPacketEncoder extends AbstractPacketEncoder {
 
   private final ServerSession session;
 
-  public PacketEncoder(ServerSession session) {
+  public ServerPacketEncoder(ServerSession session) {
     this.session = Objects.requireNonNull(session, "Session is not initialized");
   }
 
@@ -23,32 +23,32 @@ public class PacketEncoder extends AbstractPacketEncoder {
   }
 
   @Override
-  protected Cipher getCipher() {
+  public Cipher getCipher() {
     return session.getS2cCipher();
   }
 
   @Override
-  protected int getCipherSize() {
+  public int getCipherSize() {
     return session.getS2cCipherSize();
   }
 
   @Override
-  protected Mac getMac() {
+  public Mac getMac() {
     return session.getS2cMac();
   }
 
   @Override
-  protected int getMacSize() {
+  public int getMacSize() {
     return session.getS2cMacSize();
   }
 
   @Override
-  protected int getDefMacSize() {
+  public int getDefMacSize() {
     return session.getS2cDefMacSize();
   }
 
   @Override
-  protected Compression getCompression() {
+  public Compression getCompression() {
     return session.getS2cCompression();
   }
 }
