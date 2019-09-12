@@ -8,5 +8,4 @@ public interface SignatureFactory {
    * @return create a new Signature instance
    */
   Signature create(Key key);
-
 }

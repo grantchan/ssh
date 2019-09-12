@@ -5,5 +5,5 @@ public interface IdHolder {
   /**
    * @return the attached id
    */
-  byte[] getId();
+  int getId();
 }

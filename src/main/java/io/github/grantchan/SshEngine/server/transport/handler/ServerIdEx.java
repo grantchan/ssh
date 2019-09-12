@@ -17,7 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
-public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHandler {
+public class ServerIdEx extends ChannelInboundHandlerAdapter
+                        implements IdExHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 

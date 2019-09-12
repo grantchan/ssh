@@ -1,6 +1,7 @@
 package io.github.grantchan.SshEngine.server.userauth.service;
 
 import io.github.grantchan.SshEngine.arch.SshMessage;
+import io.github.grantchan.SshEngine.common.AbstractLogger;
 import io.github.grantchan.SshEngine.common.Service;
 import io.github.grantchan.SshEngine.common.SshException;
 import io.github.grantchan.SshEngine.common.userauth.service.ServiceFactories;
@@ -14,9 +15,8 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ServerUserAuthService implements Service {
-
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+public class ServerUserAuthService extends AbstractLogger
+                                   implements Service {
 
   private ServerSession session;
   private String service;

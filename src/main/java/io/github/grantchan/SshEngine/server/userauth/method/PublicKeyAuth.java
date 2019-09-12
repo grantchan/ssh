@@ -1,6 +1,7 @@
 package io.github.grantchan.SshEngine.server.userauth.method;
 
 import io.github.grantchan.SshEngine.arch.SshMessage;
+import io.github.grantchan.SshEngine.common.AbstractLogger;
 import io.github.grantchan.SshEngine.common.transport.signature.Signature;
 import io.github.grantchan.SshEngine.common.transport.signature.SignatureFactories;
 import io.github.grantchan.SshEngine.server.ServerSession;
@@ -18,9 +19,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 
-public class PublicKeyAuth implements Method {
-
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+public class PublicKeyAuth extends AbstractLogger
+                           implements Method {
 
   private final Collection<PublicKey> keys;
 

@@ -7,11 +7,16 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class AbstractPacketDecoder extends ChannelInboundHandlerAdapter
                                             implements PacketDecoder {
 
   private ByteBuf accrued;
+
+  private AtomicInteger step = new AtomicInteger(0);
+  private AtomicLong seq = new AtomicLong(0); // packet sequence number
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) {
@@ -33,8 +38,8 @@ public abstract class AbstractPacketDecoder extends ChannelInboundHandlerAdapter
 
     ByteBuf packet;
     while (accrued.readableBytes() > blkSize &&
-           (packet = decode(accrued)) != null) {  // received packet should be bigger
-                                                  // than a block
+           (packet = decode(accrued, step, seq)) != null) {  // received packet should be bigger
+                                                             // than a block
       ctx.fireChannelRead(packet);
 
       accrued.discardReadBytes();

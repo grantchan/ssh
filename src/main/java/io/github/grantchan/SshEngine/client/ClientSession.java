@@ -6,16 +6,12 @@ import io.github.grantchan.SshEngine.util.buffer.ByteBufIo;
 import io.github.grantchan.SshEngine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.PublicKey;
 
 public class ClientSession extends Session {
-
-  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   public ClientSession(Channel channel) {
     super(channel);

@@ -7,8 +7,6 @@ import io.github.grantchan.SshEngine.common.userauth.service.ServiceFactories;
 import io.github.grantchan.SshEngine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
@@ -22,9 +20,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public abstract class Session implements IdHolder, UsernameHolder {
-
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+public abstract class Session extends AbstractLogger
+                              implements UsernameHolder {
 
   protected Channel channel;
 
@@ -77,7 +74,6 @@ public abstract class Session implements IdHolder, UsernameHolder {
     sessions.add(this);
   }
 
-  @Override
   public byte[] getId() {
     return id;
   }
@@ -361,9 +357,30 @@ public abstract class Session implements IdHolder, UsernameHolder {
     conf.writeInt(wndSize);
     conf.writeInt(wndPacketSize);
 
-    logger.debug("[{}] Replying SSH_MSG_CHANNEL_OPEN_CONFIRMATION...", this);
+    logger.debug("[{}] Replying SSH_MSG_CHANNEL_OPEN_CONFIRMATION... remote id:{}, local id:{}," +
+        " window size:{}, packet size:{}", this, rChId, lChId, wndSize, wndPacketSize);
 
     channel.writeAndFlush(conf);
+  }
+
+  public void replyChannelSuccess(int channelId) {
+    ByteBuf cs = createMessage(SshMessage.SSH_MSG_CHANNEL_SUCCESS);
+
+    cs.writeInt(channelId);
+
+    logger.debug("[{}] Replying SSH_MSG_CHANNEL_SUCCESS... channel id:{}", this, channelId);
+
+    channel.writeAndFlush(cs);
+  }
+
+  public void replyChannelFailure(int channelId) {
+    ByteBuf cs = createMessage(SshMessage.SSH_MSG_CHANNEL_FAILURE);
+
+    cs.writeInt(channelId);
+
+    logger.debug("[{}] Replying SSH_MSG_CHANNEL_FAILURE... channel id:{}", this, channelId);
+
+    channel.writeAndFlush(cs);
   }
 
   public ByteBuf createBuffer() {

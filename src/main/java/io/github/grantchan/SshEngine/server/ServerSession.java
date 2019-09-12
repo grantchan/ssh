@@ -5,14 +5,10 @@ import io.github.grantchan.SshEngine.common.Session;
 import io.github.grantchan.SshEngine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 
 public class ServerSession extends Session {
-
-  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   public ServerSession(Channel channel) {
     super(channel);

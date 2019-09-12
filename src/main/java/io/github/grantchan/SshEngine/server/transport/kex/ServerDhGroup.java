@@ -1,6 +1,7 @@
 package io.github.grantchan.SshEngine.server.transport.kex;
 
 import io.github.grantchan.SshEngine.arch.SshMessage;
+import io.github.grantchan.SshEngine.common.AbstractLogger;
 import io.github.grantchan.SshEngine.common.SshException;
 import io.github.grantchan.SshEngine.common.transport.kex.KexHandler;
 import io.github.grantchan.SshEngine.common.transport.kex.KexInitProposal;
@@ -23,7 +24,8 @@ import java.util.List;
 import static io.github.grantchan.SshEngine.util.buffer.Bytes.md5;
 import static io.github.grantchan.SshEngine.util.buffer.Bytes.sha256;
 
-public class ServerDhGroup implements KexHandler {
+public class ServerDhGroup extends AbstractLogger
+                           implements KexHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 

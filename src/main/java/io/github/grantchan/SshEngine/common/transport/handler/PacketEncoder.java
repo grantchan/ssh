@@ -19,7 +19,6 @@ public interface PacketEncoder extends SessionHolder {
   Logger logger = LoggerFactory.getLogger(PacketEncoder.class);
 
   SecureRandom rand = new SecureRandom();
-  AtomicLong seq = new AtomicLong(0); // packet sequence number
 
   Cipher getCipher();
 
@@ -33,7 +32,7 @@ public interface PacketEncoder extends SessionHolder {
 
   Compression getCompression();
 
-  default ByteBuf encode(ByteBuf msg) {
+  default ByteBuf encode(ByteBuf msg, AtomicLong seq) {
     int len = msg.readableBytes();
     int off = msg.readerIndex() - SSH_PACKET_HEADER_LENGTH;
 

@@ -1,18 +1,18 @@
 package io.github.grantchan.SshEngine.common.connection;
 
-import io.github.grantchan.SshEngine.common.NamedFactory;
 import io.github.grantchan.SshEngine.common.NamedObject;
+import io.github.grantchan.SshEngine.common.Session;
 
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-public enum ChannelFactories implements NamedFactory<Channel> {
+public enum ChannelFactories implements NamedObject, ChannelFactory {
 
-  Session("session") {
+  SessionChannel("session") {
     @Override
-    public Channel create() {
-      return new SessionChannel();
+    public Channel create(Session session) {
+      return new SessionChannel(session);
     }
   };
 

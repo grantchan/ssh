@@ -21,9 +21,6 @@ public interface PacketDecoder extends SessionHolder {
 
   Logger logger = LoggerFactory.getLogger(PacketDecoder.class);
 
-  AtomicInteger decodeStep = new AtomicInteger(0);
-  AtomicLong seq = new AtomicLong(0); // packet sequence number
-
   Cipher getCipher();
 
   int getBlkSize();
@@ -47,7 +44,7 @@ public interface PacketDecoder extends SessionHolder {
    * @return the message decoded from the packet, if successful, otherwise null,
    * the accumulate packet buffer remains unchanged.
    */
-  default ByteBuf decode(ByteBuf msg) throws Exception {
+  default ByteBuf decode(ByteBuf msg, AtomicInteger step, AtomicLong seq) throws Exception {
     int rIdx = msg.readerIndex();
     byte[] buf = new byte[msg.readableBytes()];
     msg.getBytes(rIdx, buf);
@@ -63,7 +60,7 @@ public interface PacketDecoder extends SessionHolder {
     // 2. decode the rest of the buffer
     //
 
-    if (decodeStep.get() == 0 && cipher != null) {
+    if (step.get() == 0 && cipher != null) {
       StringBuilder sb = new StringBuilder();
       ByteBufUtil.appendPrettyHexDump(sb, msg);
       logger.debug("[{}] Encrypted packet received: \n{}", getSession(), sb.toString());
@@ -71,7 +68,7 @@ public interface PacketDecoder extends SessionHolder {
       // decrypt the first block of the packet
       msg.setBytes(rIdx, cipher.update(buf, 0, cipherSize));
 
-      decodeStep.set(1);
+      step.set(1);
     }
 
     // Since the size of a block must be bigger than the size of an integer, as long as the first
@@ -161,7 +158,7 @@ public interface PacketDecoder extends SessionHolder {
 
     msg.skipBytes(pad + macSize);
 
-    decodeStep.set(0);
+    step.set(0);
 
     return packet;
   }

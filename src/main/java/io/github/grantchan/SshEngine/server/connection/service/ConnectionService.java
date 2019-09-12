@@ -1,20 +1,19 @@
 package io.github.grantchan.SshEngine.server.connection.service;
 
 import io.github.grantchan.SshEngine.arch.SshMessage;
+import io.github.grantchan.SshEngine.common.AbstractLogger;
 import io.github.grantchan.SshEngine.common.Service;
 import io.github.grantchan.SshEngine.common.Session;
 import io.github.grantchan.SshEngine.common.connection.Channel;
 import io.github.grantchan.SshEngine.common.connection.ChannelFactories;
+import io.github.grantchan.SshEngine.common.connection.Window;
 import io.github.grantchan.SshEngine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
-public class ConnectionService implements Service {
-
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+public class ConnectionService extends AbstractLogger
+                               implements Service {
 
   private final Session session;
 
@@ -38,6 +37,7 @@ public class ConnectionService implements Service {
         break;
 
       case SshMessage.SSH_MSG_CHANNEL_REQUEST:
+        handleChannelRequest(req);
         break;
 
       case SshMessage.SSH_MSG_CHANNEL_SUCCESS:
@@ -51,10 +51,22 @@ public class ConnectionService implements Service {
     }
   }
 
+  private void handleChannelRequest(ByteBuf req) {
+    int id = req.readInt();
+
+    Channel channel = Channel.get(id);
+    if (channel == null) {
+      throw new IllegalStateException("Channel not found - id:" + id);
+    }
+
+    channel.handleRequest(req);
+  }
+
   private void handleChannelOpen(ByteBuf req) {
 
     /*
-     * RFC 4254:
+     * 5.1.  Open a Channel
+     *
      * When either side wishes to open a new channel, it allocates a local
      * number for the channel.  It then sends the following message to the
      * other side, and includes the local channel number and initial window
@@ -85,17 +97,24 @@ public class ConnectionService implements Service {
      * @see <a href="https://tools.ietf.org/html/rfc4254#section-5.1">Opening a Channel</a>
      */
     String type = ByteBufIo.readUtf8(req);
-    int remoteId = req.readInt();
-    long wndSize = req.readUnsignedInt();
-    long maxPacketSize = req.readUnsignedInt();
+    int peerId = req.readInt();
+    long rwndsize = req.readUnsignedInt();
+    long rpksize = req.readUnsignedInt();
 
-    logger.debug("[{}] Received SSH_MSG_CHANNEL_OPEN. channel type={}, sender channel id={}, " +
-        "initial window size={}, maximum packet size={}", session, type, remoteId, wndSize,
-        maxPacketSize);
+    logger.debug("[{}] Received SSH_MSG_CHANNEL_OPEN. channel type:{}, sender channel id:{}, " +
+        "initial window size:{}, maximum packet size:{}", session, type, peerId, rwndsize, rpksize);
 
-    Channel channel = Objects.requireNonNull(ChannelFactories.from(type), "Unknown channel type")
-                             .create();
+    Channel channel = Objects.requireNonNull(ChannelFactories.from(type)).create(session);
+    channel.open(peerId, (int)rwndsize, (int)rpksize)
+        .whenComplete((isOpened, ex) -> {
+          if (isOpened) {
+            Window wnd = channel.getLocalWindow();
 
-    session.replyChannelOpenConfirmation(remoteId, channel.getId(), 2097152, 32768);
+            session.replyChannelOpenConfirmation(peerId, channel.getId(), wnd.getSize(), wnd.getPacketSize());
+          } else {
+            // open failed
+
+          }
+        });
   }
 }
