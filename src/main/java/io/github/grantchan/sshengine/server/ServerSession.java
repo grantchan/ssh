@@ -149,5 +149,31 @@ public class ServerSession extends AbstractSession {
     channel.writeAndFlush(uapo);
   }
 
+  public void replyChannelOpenConfirmation(int rChId, int lChId, int wndSize, int wndPacketSize) {
+    ByteBuf conf = createMessage(SshMessage.SSH_MSG_CHANNEL_OPEN_CONFIRMATION);
 
+    conf.writeInt(rChId);
+    conf.writeInt(lChId);
+    conf.writeInt(wndSize);
+    conf.writeInt(wndPacketSize);
+
+    logger.debug("[{}] Replying SSH_MSG_CHANNEL_OPEN_CONFIRMATION... remote id:{}, local id:{}," +
+        " window size:{}, packet size:{}", this, rChId, lChId, wndSize, wndPacketSize);
+
+    channel.writeAndFlush(conf);
+  }
+
+  public void replyChannelOpenFailure(int peerId, int reason, String message, String lang) {
+    ByteBuf cof = createMessage(SshMessage.SSH_MSG_CHANNEL_OPEN_FAILURE);
+
+    cof.writeInt(peerId);
+    cof.writeInt(reason);
+    ByteBufIo.writeUtf8(cof, message);
+    ByteBufIo.writeUtf8(cof, lang);
+
+    logger.debug("[{}] Replying SSH_MSG_CHANNEL_OPEN_FAILURE... remote channel id:{}, reason code:{}," +
+        " message:{}, lang:{}", this, peerId, reason, message, lang);
+
+    channel.writeAndFlush(cof);
+  }
 }

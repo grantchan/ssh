@@ -26,7 +26,7 @@ public enum ServiceFactories implements NamedObject, ServiceFactory {
   connection("ssh-connection") {
     @Override
     public Service create(AbstractSession session) {
-      return new ConnectionService(session);
+      return new ConnectionService((ServerSession) session);
     }
   };
 

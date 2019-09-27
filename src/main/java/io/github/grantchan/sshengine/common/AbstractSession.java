@@ -349,20 +349,6 @@ public abstract class AbstractSession extends AbstractLogger
     channel.writeAndFlush(newKeys);
   }
 
-  public void replyChannelOpenConfirmation(int rChId, int lChId, int wndSize, int wndPacketSize) {
-    ByteBuf conf = createMessage(SshMessage.SSH_MSG_CHANNEL_OPEN_CONFIRMATION);
-
-    conf.writeInt(rChId);
-    conf.writeInt(lChId);
-    conf.writeInt(wndSize);
-    conf.writeInt(wndPacketSize);
-
-    logger.debug("[{}] Replying SSH_MSG_CHANNEL_OPEN_CONFIRMATION... remote id:{}, local id:{}," +
-        " window size:{}, packet size:{}", this, rChId, lChId, wndSize, wndPacketSize);
-
-    channel.writeAndFlush(conf);
-  }
-
   public void replyChannelSuccess(int channelId) {
     ByteBuf cs = createMessage(SshMessage.SSH_MSG_CHANNEL_SUCCESS);
 

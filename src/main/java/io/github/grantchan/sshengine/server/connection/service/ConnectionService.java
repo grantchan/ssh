@@ -2,11 +2,12 @@ package io.github.grantchan.sshengine.server.connection.service;
 
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.AbstractLogger;
-import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.Service;
+import io.github.grantchan.sshengine.common.SshException;
 import io.github.grantchan.sshengine.common.connection.Channel;
 import io.github.grantchan.sshengine.common.connection.ChannelFactories;
 import io.github.grantchan.sshengine.common.connection.Window;
+import io.github.grantchan.sshengine.server.ServerSession;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 
@@ -15,9 +16,9 @@ import java.util.Objects;
 public class ConnectionService extends AbstractLogger
                                implements Service {
 
-  private final AbstractSession session;
+  private final ServerSession session;
 
-  public ConnectionService(AbstractSession session) {
+  public ConnectionService(ServerSession session) {
     this.session = session;
   }
 
@@ -106,15 +107,24 @@ public class ConnectionService extends AbstractLogger
 
     Channel channel = Objects.requireNonNull(ChannelFactories.from(type)).create(session);
     channel.open(peerId, (int)rwndsize, (int)rpksize)
-        .whenComplete((isOpened, ex) -> {
-          if (isOpened) {
-            Window wnd = channel.getLocalWindow();
+           .whenComplete((isOpened, ex) -> {
+             if (isOpened != null && isOpened) {
+               Window wnd = channel.getLocalWindow();
 
-            session.replyChannelOpenConfirmation(peerId, channel.getId(), wnd.getSize(), wnd.getPacketSize());
-          } else {
-            // open failed
-
-          }
-        });
+               session.replyChannelOpenConfirmation(peerId, channel.getId(), wnd.getSize(),
+                                                    wnd.getPacketSize());
+             } else {
+               // failed to open
+               int reason = 0;
+               String message = "Error while opening channel, id: " + peerId;
+               if (ex != null) {
+                 if (ex instanceof SshException) {
+                   reason = ((SshException) ex).getReason();
+                 }
+                 message = ex.getMessage();
+               }
+               session.replyChannelOpenFailure(peerId, reason, message, "");
+             }
+           });
   }
 }
