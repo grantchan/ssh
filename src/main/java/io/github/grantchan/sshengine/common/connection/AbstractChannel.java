@@ -67,7 +67,9 @@ public abstract class AbstractChannel extends AbstractLogger
         } catch (Exception e) {
           logger.debug("[{}] Failed to open channel - {}", this, state.get());
 
-          future.complete(false);
+          unRegister(id);
+
+          future.completeExceptionally(e);
         }
       } else {
         logger.debug("[{}] This channel is already opened - {}", this, state.get());
@@ -109,7 +111,7 @@ public abstract class AbstractChannel extends AbstractLogger
         } catch (Exception e) {
           logger.debug("[{}] Failed to close channel - {}", this, state.get());
 
-          future.complete(false);
+          future.completeExceptionally(e);
         }
       } else {
         logger.debug("[{}] This channel is already closed - {}", this, state.get());
@@ -126,7 +128,8 @@ public abstract class AbstractChannel extends AbstractLogger
    * @throws Exception If failed to close the channel
    */
   protected void doClose() throws Exception {
-    unRegister(this.id);  // In a session, once the channel is closed, it'll never be opened again
+    unRegister(this.id);  // In a session, once the channel is closed, its id will never be used
+                          // again
 
     state.set(State.CLOSED);
   }
