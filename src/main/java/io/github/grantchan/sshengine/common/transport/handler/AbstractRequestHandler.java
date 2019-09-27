@@ -45,7 +45,7 @@ public abstract class AbstractRequestHandler extends ChannelInboundHandlerAdapte
     logger.debug("[" + session + "] exceptionCaught details", t);
 
     if (t instanceof SshException) {
-      int reasonCode = ((SshException) t).getDisconnectReason();
+      int reasonCode = ((SshException) t).getReason();
       if (reasonCode > 0) {
         session.notifyDisconnect(reasonCode, t.getMessage());
       }

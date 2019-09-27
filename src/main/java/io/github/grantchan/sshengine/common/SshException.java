@@ -6,18 +6,18 @@ public class SshException extends IOException {
 
   private static final long serialVersionUID = -2275187066710839249L;
 
-  private final int disconnectReason;
+  private final int reason;
 
-  public int getDisconnectReason() {
-    return disconnectReason;
+  public int getReason() {
+    return reason;
   }
 
-  public SshException(int disconnectReason, String message) {
-    this(disconnectReason, message, null);
+  public SshException(int reason, String message) {
+    this(reason, message, null);
   }
 
-  public SshException(int disconnectReason, String message, Throwable cause) {
+  public SshException(int reason, String message, Throwable cause) {
     super(message, cause);
-    this.disconnectReason = disconnectReason;
+    this.reason = reason;
   }
 }
