@@ -25,13 +25,12 @@ public interface Channel extends Closeable, IdHolder {
    * Put a channel into the channel mapper.
    * This method should be called when the channel is newly created.
    *
-   * @param channel the channel to register
    * @return the integer can identify the channel object successfully registered
    */
-  default int register(Channel channel) {
+  default int register() {
     int id = idGenerator.getAndIncrement();
 
-    channels.put(id, channel);
+    channels.put(id, this);
 
     return id;
   }
@@ -56,8 +55,19 @@ public interface Channel extends Closeable, IdHolder {
    */
   CompletableFuture<Boolean> open(int peerId, int rwndsize, int rpksize);
 
+  /**
+   * @return {@code true} if the channel is open, otherwise {@code false}
+   */
+  boolean isOpen();
+
+  /**
+   * @return the local window
+   */
   Window getLocalWindow();
 
+  /**
+   * @return the remote window
+   */
   Window getRemoteWindow();
 
   void handleRequest(ByteBuf req);

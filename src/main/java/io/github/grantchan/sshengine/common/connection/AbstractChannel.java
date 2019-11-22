@@ -32,7 +32,7 @@ public abstract class AbstractChannel extends AbstractLogger
   public AbstractChannel(AbstractSession session) {
     this.session = session;
 
-    this.id = register(this);
+    this.id = register();
   }
 
   /**
@@ -89,6 +89,11 @@ public abstract class AbstractChannel extends AbstractLogger
    */
   protected void doOpen(int rwndsize, int rpksize) throws Exception {
     state.set(State.OPENED);
+  }
+
+  @Override
+  public boolean isOpen() {
+    return state.get() == State.OPENED;
   }
 
   /**
@@ -235,6 +240,13 @@ public abstract class AbstractChannel extends AbstractLogger
      *
      * The client SHOULD ignore pty requests.
      */
+
+    if (!isOpen()) {
+      logger.debug("[{}] The channel is not open, request(pytreq) ignored", this);
+
+      return false;
+    }
+
     boolean wantReply = req.readBoolean();
     String term = ByteBufIo.readUtf8(req);
     int termCols = req.readInt();
@@ -268,6 +280,13 @@ public abstract class AbstractChannel extends AbstractLogger
      * This message will request that the user's default shell (typically
      * defined in /etc/passwd in UNIX systems) be started at the other end.
      */
+
+    if (!isOpen()) {
+      logger.debug("[{}] The channel is not open, request(shell) ignored", this);
+
+      return false;
+    }
+
     boolean wantReply = req.readBoolean();
 
     logger.debug("[{}] Received shell request. want reply:{}", this, wantReply);
