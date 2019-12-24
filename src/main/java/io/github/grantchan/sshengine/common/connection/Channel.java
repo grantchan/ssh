@@ -2,6 +2,7 @@ package io.github.grantchan.sshengine.common.connection;
 
 import io.github.grantchan.sshengine.common.Closeable;
 import io.github.grantchan.sshengine.common.IdHolder;
+import io.github.grantchan.sshengine.common.transport.handler.SessionHolder;
 import io.netty.buffer.ByteBuf;
 
 import java.util.Map;
@@ -9,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public interface Channel extends Closeable, IdHolder {
+public interface Channel extends Closeable, IdHolder, SessionHolder {
 
   // Channel mapper: Channel identifier(as key) -> Channel object(as value)
   Map<Integer, Channel> channels = new ConcurrentHashMap<>();
@@ -23,14 +24,16 @@ public interface Channel extends Closeable, IdHolder {
 
   /**
    * Put a channel into the channel mapper.
-   * This method should be called when the channel is newly created.
    *
+   * <p>This method should be called when the channel is newly created.</p>
+   *
+   * @param channel the channel to register
    * @return the integer can identify the channel object successfully registered
    */
-  default int register() {
+  default int register(Channel channel) {
     int id = idGenerator.getAndIncrement();
 
-    channels.put(id, this);
+    channels.put(id, channel);
 
     return id;
   }

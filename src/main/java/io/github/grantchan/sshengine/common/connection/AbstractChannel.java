@@ -2,7 +2,6 @@ package io.github.grantchan.sshengine.common.connection;
 
 import io.github.grantchan.sshengine.common.AbstractLogger;
 import io.github.grantchan.sshengine.common.AbstractSession;
-import io.github.grantchan.sshengine.common.transport.handler.SessionHolder;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 
@@ -12,10 +11,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class AbstractChannel extends AbstractLogger
-                                      implements Channel, SessionHolder {
+                                      implements Channel {
 
   // Channel identifier
   private final int id;
+
   private final AbstractSession session;
 
   private int peerId;
@@ -32,7 +32,7 @@ public abstract class AbstractChannel extends AbstractLogger
   public AbstractChannel(AbstractSession session) {
     this.session = session;
 
-    this.id = register();
+    this.id = register(this);
   }
 
   /**
@@ -65,9 +65,9 @@ public abstract class AbstractChannel extends AbstractLogger
 
           future.complete(true);
         } catch (Exception e) {
-          logger.debug("[{}] Failed to open channel - {}", this, state.get());
-
           unRegister(id);
+
+          logger.debug("[{}] Failed to open channel - {}", this, state.get());
 
           future.completeExceptionally(e);
         }
