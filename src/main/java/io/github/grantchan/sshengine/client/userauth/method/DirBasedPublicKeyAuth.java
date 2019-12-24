@@ -2,6 +2,7 @@ package io.github.grantchan.sshengine.client.userauth.method;
 
 import io.github.grantchan.sshengine.client.ClientSession;
 import io.github.grantchan.sshengine.common.AbstractSession;
+import io.github.grantchan.sshengine.util.LazySupplier;
 import io.github.grantchan.sshengine.util.System;
 import io.github.grantchan.sshengine.util.keypair.loader.KeyPairPEMLoader;
 import org.slf4j.Logger;
@@ -22,6 +23,14 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
 
   private static final String FILE_NAME_PREFIX = "id_";
 
+  private static final LazySupplier<Path> DEFAULT_KEY_FOLDER_HOLDER =
+      new LazySupplier<Path>() {
+        @Override
+        protected Path initialize() {
+          return System.getUserHomeFolder().resolve(".ssh");
+        }
+      };
+
   public DirBasedPublicKeyAuth(ClientSession session) {
     super(session, loadKeyPairs(session, getDefaultKeysFolder()));
   }
@@ -31,7 +40,7 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
   }
 
   private static Path getDefaultKeysFolder() {
-    return System.getUserHomeFolder().resolve(".ssh");
+    return DEFAULT_KEY_FOLDER_HOLDER.get();
   }
 
   /**
