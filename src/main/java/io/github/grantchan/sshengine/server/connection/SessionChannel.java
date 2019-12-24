@@ -1,6 +1,8 @@
-package io.github.grantchan.sshengine.common.connection;
+package io.github.grantchan.sshengine.server.connection;
 
 import io.github.grantchan.sshengine.common.AbstractSession;
+import io.github.grantchan.sshengine.common.connection.AbstractChannel;
+import io.github.grantchan.sshengine.common.connection.Window;
 
 public class SessionChannel extends AbstractChannel {
 

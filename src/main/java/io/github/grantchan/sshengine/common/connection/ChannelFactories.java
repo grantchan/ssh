@@ -2,6 +2,7 @@ package io.github.grantchan.sshengine.common.connection;
 
 import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.NamedObject;
+import io.github.grantchan.sshengine.server.connection.SessionChannel;
 
 import java.util.Collections;
 import java.util.EnumSet;
