@@ -53,7 +53,7 @@ public interface PublicKeyDecoder<T extends PublicKey> {
       )
   );
 
-  static PublicKeyDecoder<PublicKey> aggregate(
+  static PublicKeyDecoder<? extends PublicKey> aggregate(
       Collection<? extends PublicKeyDecoder<? extends PublicKey>> decoders) {
     if (decoders == null) {
       return null;

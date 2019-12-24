@@ -99,7 +99,7 @@ public interface KeyPairPEMLoader {
       )
   );
 
-  static KeyPairPEMLoader aggregate(Collection<KeyPairPEMLoader> loaders) {
+  static KeyPairPEMLoader aggregate(Collection<? extends KeyPairPEMLoader> loaders) {
     if (loaders == null) {
       return null;
     }
