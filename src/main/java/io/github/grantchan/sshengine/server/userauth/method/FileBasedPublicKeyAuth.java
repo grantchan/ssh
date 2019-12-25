@@ -19,8 +19,6 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
 
   private static final Logger logger = LoggerFactory.getLogger(FileBasedPublicKeyAuth.class);
 
-  private static final FileBasedPublicKeyAuth instance = new FileBasedPublicKeyAuth();
-
   private static final LazySupplier<Path> AUTHORIZED_KEY_FILE_PATH_HOLDER =
       new LazySupplier<Path>() {
         @Override
@@ -28,6 +26,8 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
           return System.getUserHomeFolder().resolve(".ssh/authorized_keys");
         }
       };
+
+  private static final FileBasedPublicKeyAuth instance = new FileBasedPublicKeyAuth();
 
   private FileBasedPublicKeyAuth() {
     this(AUTHORIZED_KEY_FILE_PATH_HOLDER.get().toFile());
