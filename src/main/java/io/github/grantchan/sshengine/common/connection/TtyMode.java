@@ -36,9 +36,10 @@ public enum TtyMode {
   flags.  The following opcode values have been defined.  Note that the
   values given below are in decimal format for readability, but they
   are actually byte values.
-
-  mnemonic     (opcode)  description
 */
+
+/* mnemonic    (opcode)  description */
+
   TTY_OP_END   (0),      // Indicates end of options.
 
   VINTR        (1),      // Interrupt character; 255 if none. Similarly for the other characters.

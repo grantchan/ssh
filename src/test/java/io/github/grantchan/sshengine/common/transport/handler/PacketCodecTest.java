@@ -50,6 +50,7 @@ public class PacketCodecTest {
   @Parameter(2)
   public CompressionFactories compFactories;
 
+  /** Permutation of cipher, MAC, compression */
   @Parameters(name = "Cipher:{0}, MAC:{1}, Compression:{2}")
   public static Collection<Object[]> parameters() {
     return Arrays.asList(new Object[][] {
@@ -68,19 +69,26 @@ public class PacketCodecTest {
     });
   }
 
+  /**
+   * Constructs:
+   * a client channel as sender to encode the message packet,
+   * a server channel as receiver to decode the received packet,
+   *
+   * in which the cipher, MAC, compression are created by different parameter permutations
+   */
   @Before
   public void setUp() {
     // Client as sender to send encoded message
     clientChannel = new EmbeddedChannel(new LoggingHandler());
     ClientSession clientSession = new ClientSession(clientChannel);
     clientChannel.pipeline()
-        .addLast(new ClientPacketEncoder(clientSession));
+                 .addLast(new ClientPacketEncoder(clientSession));
 
     // Server as receiver to decode message
     serverChannel = new EmbeddedChannel(new LoggingHandler());
     ServerSession serverSession = new ServerSession(serverChannel);
     serverChannel.pipeline()
-        .addFirst(new ServerPacketDecoder(serverSession));
+                 .addFirst(new ServerPacketDecoder(serverSession));
 
     if (cipFactories != null) {
       // Set up cipher factory
@@ -137,6 +145,10 @@ public class PacketCodecTest {
     clientChannel.finish();
   }
 
+  /**
+   * Test when using different permutation of cipher, MAC, compression, receiver
+   * should be able to decipher, decompress, verify (by MAC) the SSH_MSG_DEBUG message.
+   */
   @Test
   public void whenMessageSent_shouldBeHandledByRecipient() {
     // Construct a SSH_MSG_DEBUG message
