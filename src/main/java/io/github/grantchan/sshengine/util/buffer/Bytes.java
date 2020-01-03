@@ -36,7 +36,7 @@ public final class Bytes {
    * order) byte array
    *
    * @param i The unsigned integer in host byte order
-   * @return  The network byte order byte array of {@param i}
+   * @return  The network byte order byte array of {@code i}
    *
    * @see <a href="https://en.wikipedia.org/wiki/Endianness">Endianness</a>
    */
@@ -103,7 +103,7 @@ public final class Bytes {
    *
    * @param bufs byte arrays to concatenate, from left to right
    * @return     The new constructed byte array with its value being the concatenation of
-   *             {@param bufs}
+   *             {@code bufs}
    */
   public static byte[] concat(final byte[]... bufs) {
     if (bufs == null) {
@@ -165,7 +165,7 @@ public final class Bytes {
    *
    * @param buf Input byte buffer
    * @param sep Separator for each byte
-   * @return    The hexadecimal string represents the input bytes {@param buf}
+   * @return    The hexadecimal string represents the input bytes {@code buf}
    *
    * @see <a href="https://en.wikipedia.org/wiki/Hexadecimal">Hexadecimal</a>
    */
@@ -191,7 +191,7 @@ public final class Bytes {
    *
    * @param data Input byte array
    * @param md   The one-way hash algorithm to use to generate the finger print
-   * @return     The finger print byte array represents the input bytes {@param data}
+   * @return     The finger print byte array represents the input bytes {@code data}
    *
    * @see <a href="https://en.wikipedia.org/wiki/Fingerprint_(computing)">Fingerprint (computing)</a>
    */
@@ -214,7 +214,7 @@ public final class Bytes {
    * <p>Internally, this invokes {@link #hex(byte[])} and {@link #fingerPrint(byte[], MessageDigest)}</p>
    *
    * @param data Input byte buffer
-   * @return     The MD5 hash string represents the input bytes {@param data}
+   * @return     The MD5 hash string represents the input bytes {@code data}
    *
    * @see <a href="https://en.wikipedia.org/wiki/MD5">MD5</a>
    * @see #hex(byte[])
@@ -234,7 +234,7 @@ public final class Bytes {
    * <p>Internally, this invokes {@link #fingerPrint(byte[], MessageDigest)}</p>
    *
    * @param data Input byte buffer
-   * @return     The SHA256 hash string represents the input bytes {@param data}
+   * @return     The SHA256 hash string represents the input bytes {@code data}
    *
    * @see <a href="https://en.wikipedia.org/wiki/SHA-2">SHA-2</a>
    * @see #fingerPrint(byte[], MessageDigest)

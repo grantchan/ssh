@@ -15,6 +15,7 @@ public final class PublicKeyUtil {
 
   /**
    * Compare two public keys
+   *
    * <p>by calling the overload method where the certain key object belongs to, it could be:
    * <ul><li>{@link DSAPublicKey} or</li>
    *     <li>{@link RSAPublicKey} or</li>
@@ -24,9 +25,10 @@ public final class PublicKeyUtil {
    * @param b  another public key to compare
    * @return   {@code true} if they're identical, {@code false} if they're not identical, or they're
    *           not belong to same certain {@link PublicKey} class
-   * @see      #compare(DSAParams, DSAParams)
-   * @see      #compare(RSAPublicKey, RSAPublicKey)
-   * @see      #compare(ECPublicKey, ECPublicKey)
+   *
+   * @see #compare(DSAParams, DSAParams)
+   * @see #compare(RSAPublicKey, RSAPublicKey)
+   * @see #compare(ECPublicKey, ECPublicKey)
    */
   public static boolean compare(PublicKey a, PublicKey b) {
     if ((a instanceof DSAPublicKey) && (b instanceof DSAPublicKey)) {
@@ -49,7 +51,8 @@ public final class PublicKeyUtil {
    * @param a  one of {@link DSAPublicKey} to compare
    * @param b  another {@link DSAPublicKey}
    * @return   {@code true} if they're identical, otherwise, {@code false}
-   * @see      #compare(DSAParams, DSAParams)
+   *
+   * @see #compare(DSAParams, DSAParams)
    */
   private static boolean compare(DSAPublicKey a, DSAPublicKey b) {
     if (a == b) { // if both are null
@@ -121,7 +124,8 @@ public final class PublicKeyUtil {
    * @param a  one of {@link ECPublicKey} to compare
    * @param b  another {@link ECPublicKey}
    * @return   {@code true} if they're identical, otherwise, {@code false}
-   * @see      #compare(ECParameterSpec, ECParameterSpec)
+   *
+   * @see #compare(ECParameterSpec, ECParameterSpec)
    */
   private static boolean compare(ECPublicKey a, ECPublicKey b) {
     if (a == b) { // if both are null
@@ -166,8 +170,8 @@ public final class PublicKeyUtil {
    * Return the type of a {@link PublicKey}
    * <p>By far, it supports {@link DSAPublicKey}, {@link RSAPublicKey}, {@link ECPublicKey}</p>
    *
-   * @param pubKey Input {@link PublicKey}
-   * @return the string of the type of the given {@param pubKey}
+   * @param pubKey  Input {@link PublicKey}
+   * @return        The string of the type of the given {@code pubKey}
    */
   public static String typeOf(PublicKey pubKey) {
     Objects.requireNonNull(pubKey, "Invalid parameter - pubKey is null");
@@ -193,11 +197,12 @@ public final class PublicKeyUtil {
    *     <li>{@link RSAPublicKey} or</li>
    *     <li>{@link ECPublicKey}</li></ul></p>
    *
-   * @param pubKey The {@link PublicKey} to convert to byte array
-   * @return       Byte arrays converted from {@param pubKey} if successful, otherwise, return null.
-   * @see          #bytesOf(DSAPublicKey)
-   * @see          #bytesOf(RSAPublicKey)
-   * @see          #bytesOf(ECPublicKey)
+   * @param pubKey  The {@link PublicKey} to convert to byte array
+   * @return        Byte arrays converted from {@code pubKey} if successful, otherwise, return null.
+   *
+   * @see #bytesOf(DSAPublicKey)
+   * @see #bytesOf(RSAPublicKey)
+   * @see #bytesOf(ECPublicKey)
    */
   public static byte[] bytesOf(PublicKey pubKey) {
     Objects.requireNonNull(pubKey, "Invalid parameter - pubKey is null");
@@ -222,7 +227,7 @@ public final class PublicKeyUtil {
    *     <li>the public key value, Y via {@link DSAPublicKey#getY()}</li></ul></p>
    *
    * @param pubKey The {@link DSAPublicKey} to convert to byte array
-   * @return       Byte arrays converted from {@param pubKey} if successful, otherwise, return null.
+   * @return       Byte arrays converted from {@code pubKey} if successful, otherwise, return null.
    */
   private static byte[] bytesOf(DSAPublicKey pubKey) {
     Objects.requireNonNull(pubKey, "Invalid parameter - pubKey is null");
@@ -244,7 +249,7 @@ public final class PublicKeyUtil {
    *     <li>the modulus via {@link RSAPublicKey#getModulus()}</li></ul></p>
    *
    * @param pubKey The {@link RSAPublicKey} to convert to byte array
-   * @return       Byte arrays converted from {@param pubKey} if successful, otherwise, return null.
+   * @return       Byte arrays converted from {@code pubKey} if successful, otherwise, return null.
    */
   private static byte[] bytesOf(RSAPublicKey pubKey) {
     Objects.requireNonNull(pubKey, "Invalid parameter - pubKey is null");
@@ -266,7 +271,7 @@ public final class PublicKeyUtil {
    * </ul></p>
    *
    * @param pubKey The {@link ECPublicKey} to convert to byte array
-   * @return       Byte arrays converted from {@param pubKey} if successful, otherwise, return null.
+   * @return       Byte arrays converted from {@code pubKey} if successful, otherwise, return null.
    */
   private static byte[] bytesOf(ECPublicKey pubKey) {
     Objects.requireNonNull(pubKey, "Invalid parameter - pubKey is null");

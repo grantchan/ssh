@@ -62,9 +62,9 @@ public final class LengthBytesBuilder {
   /**
    * Concatenate byte arrays
    *
-   * @param bufs Byte arrays to concatenate, from left to right
-   * @return the new constructed length byte array with its value being the concatenation of
-   * {@param bufs}
+   * @param bufs  Byte arrays to concatenate, from left to right
+   * @return      The new constructed length byte array with its value being the concatenation of
+   *              {@code bufs}
    */
   public static byte[] concat(byte[] ... bufs) {
     if (bufs == null) {
@@ -103,8 +103,8 @@ public final class LengthBytesBuilder {
   /**
    * Concatenate boolean values
    *
-   * @param bs Boolean values to concatenate, from left to right
-   * @return the new constructed length byte array
+   * @param bs  Boolean values to concatenate, from left to right
+   * @return    The new constructed length byte array
    */
   public static byte[] concat(boolean ... bs) {
     if (bs == null) {
@@ -122,8 +122,8 @@ public final class LengthBytesBuilder {
   /**
    * Concatenate integers
    *
-   * @param nums Integers to concatenate, from left to right
-   * @return the new constructed length byte array
+   * @param nums  Integers to concatenate, from left to right
+   * @return      The new constructed length byte array
    */
   public static byte[] concat(int ... nums) {
     if (nums == null) {
@@ -180,8 +180,8 @@ public final class LengthBytesBuilder {
   /**
    * Concatenate big integers
    *
-   * @param nums Big integers to concatenate, from left to right
-   * @return the new constructed length byte array
+   * @param nums  Big integers to concatenate, from left to right
+   * @return      The new constructed length byte array
    */
   public static byte[] concat(final BigInteger ... nums) {
     if (nums == null) {
