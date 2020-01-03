@@ -23,12 +23,9 @@ public class KexHandlerTest {
   public void whenMessageIdDoesntMatchExpected_shouldThrowException() throws Exception {
     thrown.expect(SshException.class);
 
-    thrown.expectMessage(
-        "Invalid key exchange message, expect: SSH_MSG_KEXDH_INIT, actual: SSH_MSG_KEXDH_REPLY");
-
-    thrown.expect(hasProperty("disconnectReason"));
-    thrown.expect(hasProperty("disconnectReason",
-        is(SshMessage.SSH_DISCONNECT_KEY_EXCHANGE_FAILED)));
+    thrown.expectMessage("Invalid key exchange message, expect: SSH_MSG_KEXDH_INIT, actual: 31");
+    thrown.expect(hasProperty("reason"));
+    thrown.expect(hasProperty("reason", is(SshMessage.SSH_DISCONNECT_KEY_EXCHANGE_FAILED)));
 
     new ClientDhGroup(null, null, null).handle(SshMessage.SSH_MSG_KEXDH_REPLY, null);
     new ServerDhGroup(null, null, null).handle(SshMessage.SSH_MSG_KEXDH_REPLY, null);

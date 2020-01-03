@@ -28,8 +28,8 @@ public class PacketDecoderTest {
     thrown.expect(SshException.class);
 
     thrown.expectMessage("Invalid packet length: 0");
-    thrown.expect(hasProperty("disconnectReason"));
-    thrown.expect(hasProperty("disconnectReason", is(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR)));
+    thrown.expect(hasProperty("reason"));
+    thrown.expect(hasProperty("reason", is(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR)));
 
     ServerSession session = Mockito.mock(ServerSession.class);
     Mockito.when(session.getC2sCipherSize()).thenReturn(8);
