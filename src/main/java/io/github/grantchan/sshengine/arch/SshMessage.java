@@ -179,6 +179,13 @@ public final class SshMessage {
         }
       };
 
+  /**
+   * Checks if the given class is one of the numeric classes - Byte, Short, Integer, Long, Float,
+   * Double.
+   *
+   * @param clazz The class to check its type
+   * @return      True if {@code clazz} belongs to the class set mentioned above, otherwise false.
+   */
   private static boolean isNumeric(Class<?> clazz) {
     if (clazz == null) {
       return false;
