@@ -1,9 +1,14 @@
 package io.github.grantchan.sshengine.common.connection;
 
+import io.github.grantchan.sshengine.util.LazySupplier;
+
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 /**
- * <p>
  * Encoded terminal modes
- * </p>
  *
  * <p>
  * All 'encoded terminal modes' (as passed in a pty request) are encoded
@@ -76,6 +81,7 @@ public enum TtyMode {
   IXANY        (39),     // Any char will restart after stop.
   IXOFF        (40),     // Enable input flow control.
   IMAXBEL      (41),     // Ring bell on input queue full.
+  IUTF8        (42),     // <a href="https://tools.ietf.org/html/draft-sgtatham-secsh-iutf8-01">IUTF8 Terminal Mode in Secure Shell</a>
 
   ISIG         (50),     // Enable signals INTR, QUIT, [D]SUSP.
   ICANON       (51),     // Canonicalize input lines.
@@ -103,12 +109,30 @@ public enum TtyMode {
   PARENB       (92),     // Parity enable.
   PARODD       (93),     // Odd parity, else even.
 
-  TTY_OP_ISPEED(128), // Specifies the input baud rate in bits per second.
-  TTY_OP_OSPEED(129);  // Specifies the output baud rate in bits per second.
+  TTY_OP_ISPEED(128),    // Specifies the input baud rate in bits per second.
+  TTY_OP_OSPEED(129);    // Specifies the output baud rate in bits per second.
+
+  private static final LazySupplier<Map<Integer, TtyMode>> MODE_INDEX =
+      new LazySupplier<Map<Integer, TtyMode>>() {
+        @Override
+        protected Map<Integer, TtyMode> initialize() {
+          return EnumSet.allOf(TtyMode.class)
+                        .stream()
+                        .collect(Collectors.toMap(TtyMode::value, Function.identity()));
+        }
+      };
 
   private final int opcode;
 
   TtyMode(int opcode) {
     this.opcode = opcode;
+  }
+
+  public int value() {
+    return opcode;
+  }
+
+  public static TtyMode from(int opcode) {
+    return MODE_INDEX.get().get(opcode);
   }
 }
