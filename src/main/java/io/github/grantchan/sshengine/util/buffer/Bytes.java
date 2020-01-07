@@ -82,7 +82,7 @@ public final class Bytes {
    * @return     The unsigned {@code long} integer
    * @throws IllegalArgumentException if {@code param} contains less than {@link Integer#BYTES} bytes
    */
-  private static long nl(byte[] buf, int off, int len) {
+  public static long nl(byte[] buf, int off, int len) {
     Objects.requireNonNull(buf);
 
     if (len < Integer.BYTES) {
