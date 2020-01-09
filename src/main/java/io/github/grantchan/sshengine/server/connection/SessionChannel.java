@@ -159,14 +159,22 @@ public class SessionChannel extends AbstractChannel {
     int termHeight = req.readInt();
     byte[] modes = ByteBufIo.readBytes(req);
 
-    for (int i = 0; i < modes.length && modes[i] != TtyMode.TTY_OP_END.value(); i += Integer.BYTES) {
+    int i = 0;
+    while (i < modes.length && modes[i] != TtyMode.TTY_OP_END.value()) {
       int opcode = modes[i++] & 0xff;
+      if (opcode > 159) {
+        logger.warn("[{}] Unknown opcode: {}", this, opcode);
+        continue;
+      }
 
       TtyMode mode = TtyMode.from(opcode);
+      if (mode != null) {
+        ttyModes.put(mode, (int) Bytes.nl(modes, i, Integer.BYTES));
+      } else {
+        logger.warn("[{}] Unsupported tty mode - opcode: {}", this, opcode);
+      }
 
-      long val = Bytes.nl(modes, i, Integer.BYTES);
-
-      ttyModes.put(mode, (int) val);
+      i += Integer.BYTES;
     }
 
     logger.debug("[{}] Received pty-req request. want reply:{}, terminal:{}, " +

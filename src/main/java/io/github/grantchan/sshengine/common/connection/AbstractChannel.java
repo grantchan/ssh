@@ -2,8 +2,6 @@ package io.github.grantchan.sshengine.common.connection;
 
 import io.github.grantchan.sshengine.common.AbstractLogger;
 import io.github.grantchan.sshengine.common.AbstractSession;
-import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
-import io.netty.buffer.ByteBuf;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -48,7 +46,7 @@ public abstract class AbstractChannel extends AbstractLogger
     return session;
   }
 
-  public int getPeerId() {
+  protected int getPeerId() {
     return peerId;
   }
 
@@ -104,7 +102,7 @@ public abstract class AbstractChannel extends AbstractLogger
    * Close a channel asynchronously
    */
   @Override
-  public CompletableFuture<Boolean> closeGracefully() {
+  public CompletableFuture<Boolean> close() {
     CompletableFuture<Boolean> future = new CompletableFuture<>();
 
     executor.submit(() -> {

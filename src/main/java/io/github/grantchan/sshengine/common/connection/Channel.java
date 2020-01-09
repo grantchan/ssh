@@ -1,6 +1,5 @@
 package io.github.grantchan.sshengine.common.connection;
 
-import io.github.grantchan.sshengine.common.Closeable;
 import io.github.grantchan.sshengine.common.IdHolder;
 import io.github.grantchan.sshengine.common.transport.handler.SessionHolder;
 import io.netty.buffer.ByteBuf;
@@ -10,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public interface Channel extends Closeable, IdHolder, SessionHolder {
+public interface Channel extends IdHolder, SessionHolder {
 
   // Channel mapper: Channel identifier(as key) -> Channel object(as value)
   Map<Integer, Channel> channels = new ConcurrentHashMap<>();
@@ -57,6 +56,14 @@ public interface Channel extends Closeable, IdHolder, SessionHolder {
    *         once the process is finish, the result can be accessed by this object.
    */
   CompletableFuture<Boolean> open(int peerId, int rwndsize, int rpksize);
+
+  /**
+   * Close asynchronously
+   *
+   * @return A CompletableFuture object as a handle to the result of the asynchronous close process,
+   *         once the process is finish, the result can be accessed by this object.
+   */
+  CompletableFuture<Boolean> close();
 
   /**
    * @return {@code true} if the channel is open, otherwise {@code false}
