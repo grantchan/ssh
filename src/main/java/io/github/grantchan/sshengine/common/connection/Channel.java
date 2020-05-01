@@ -4,6 +4,7 @@ import io.github.grantchan.sshengine.common.IdHolder;
 import io.github.grantchan.sshengine.common.transport.handler.SessionHolder;
 import io.netty.buffer.ByteBuf;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -80,5 +81,7 @@ public interface Channel extends IdHolder, SessionHolder {
    */
   Window getRemoteWindow();
 
-  void handleRequest(ByteBuf req);
+  void handleRequest(ByteBuf req) throws IOException;
+
+  void handleData(ByteBuf req) throws IOException;
 }

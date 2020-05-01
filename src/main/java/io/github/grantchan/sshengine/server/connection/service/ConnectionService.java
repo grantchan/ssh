@@ -11,6 +11,7 @@ import io.github.grantchan.sshengine.server.ServerSession;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 
+import java.io.IOException;
 import java.util.Objects;
 
 public class ConnectionService extends AbstractLogger
@@ -23,7 +24,7 @@ public class ConnectionService extends AbstractLogger
   }
 
   @Override
-  public void handle(int cmd, ByteBuf req) {
+  public void handle(int cmd, ByteBuf req) throws Exception {
     logger.info("[{}] Handling message - {} ...", session, SshMessage.from(cmd));
 
     switch (cmd) {
@@ -32,6 +33,7 @@ public class ConnectionService extends AbstractLogger
         break;
 
       case SshMessage.SSH_MSG_CHANNEL_DATA:
+        handleChannelData(req);
         break;
 
       case SshMessage.SSH_MSG_CHANNEL_CLOSE:
@@ -50,17 +52,6 @@ public class ConnectionService extends AbstractLogger
       default:
 //        throw new IllegalStateException("Unsupported request: " + SshMessage.from(cmd));
     }
-  }
-
-  private void handleChannelRequest(ByteBuf req) {
-    int id = req.readInt();
-
-    Channel channel = Channel.get(id);
-    if (channel == null) {
-      throw new IllegalStateException("Channel not found - id:" + id);
-    }
-
-    channel.handleRequest(req);
   }
 
   private void handleChannelOpen(ByteBuf req) {
@@ -126,5 +117,27 @@ public class ConnectionService extends AbstractLogger
                session.replyChannelOpenFailure(peerId, reason, message, "");
              }
            });
+  }
+
+  private void handleChannelData(ByteBuf req) throws IOException {
+    int id = req.readInt();
+
+    Channel channel = Channel.get(id);
+    if (channel == null) {
+      throw new IllegalStateException("Channel not found - id:" + id);
+    }
+
+    channel.handleData(req);
+  }
+
+  private void handleChannelRequest(ByteBuf req) throws IOException {
+    int id = req.readInt();
+
+    Channel channel = Channel.get(id);
+    if (channel == null) {
+      throw new IllegalStateException("Channel not found - id:" + id);
+    }
+
+    channel.handleRequest(req);
   }
 }

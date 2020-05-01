@@ -163,7 +163,7 @@ public final class SshMessage {
                  }, TreeMap::new, Collectors.mapping(Field::getName, Collectors.toList())));
   }
 
-  private static final LazySupplier<Map<Integer, List<String>>> MESSAGE_MAP =
+  private static final LazySupplier<Map<Integer, List<String>>> MESSAGE_INDEX =
       new LazySupplier<Map<Integer, List<String>>>() {
         @Override
         protected Map<Integer, List<String>> initialize() {
@@ -171,7 +171,7 @@ public final class SshMessage {
         }
       };
 
-  private static final LazySupplier<Map<Integer, List<String>>> DISCONNECT_REASON_MAP =
+  private static final LazySupplier<Map<Integer, List<String>>> DISCONNECT_REASON_INDEX =
       new LazySupplier<Map<Integer, List<String>>>() {
         @Override
         protected Map<Integer, List<String>> initialize() {
@@ -206,7 +206,7 @@ public final class SshMessage {
    * @return     the message string
    */
   public static String from(int cmd) {
-    List<String> names = MESSAGE_MAP.get().get(cmd);
+    List<String> names = MESSAGE_INDEX.get().get(cmd);
     if (names != null && names.size() == 1) {
       return names.get(0);
     }
@@ -221,6 +221,6 @@ public final class SshMessage {
    * @return      the reason string
    */
   public static String disconnectReason(int code) {
-    return DISCONNECT_REASON_MAP.get().get(code).get(0);
+    return DISCONNECT_REASON_INDEX.get().get(code).get(0);
   }
 }
