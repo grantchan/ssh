@@ -10,9 +10,9 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public enum KexInitProposal implements NamedObject {
+public enum KexProposal implements NamedObject {
 
-  KEX             (Param.KEX,             "KEX",              KexHandlerFactories::getNames),
+  KEX             (Param.KEX,             "KEX",              KexGroupFactories::getNames),
   SERVER_HOST_KEY (Param.SERVER_HOST_KEY, "Server Host Key",  SignatureFactories::getNames),
   ENCRYPTION_C2S  (Param.ENCRYPTION_C2S,  "Encryption C2S",   CipherFactories::getNames),
   ENCRYPTION_S2C  (Param.ENCRYPTION_S2C,  "Encryption S2C",   CipherFactories::getNames),
@@ -23,13 +23,13 @@ public enum KexInitProposal implements NamedObject {
   LANGUAGE_C2S    (Param.LANGUAGE_C2S,    "Language C2S",     () -> ""),
   LANGUAGE_S2C    (Param.LANGUAGE_S2C,    "Language S2C",     () -> "");
 
-  public final static Set<KexInitProposal> ALL = EnumSet.allOf(KexInitProposal.class);
+  public final static Set<KexProposal> ALL = EnumSet.allOf(KexProposal.class);
 
   private int id;
   private String name;
   private Supplier<String> proposals;
 
-  KexInitProposal(int id, String name, Supplier<String> proposals) {
+  KexProposal(int id, String name, Supplier<String> proposals) {
     this.id = id;
     this.name = name;
     this.proposals = proposals;

@@ -2,10 +2,10 @@ package io.github.grantchan.sshengine.common.transport.kex;
 
 import io.github.grantchan.sshengine.common.AbstractSession;
 
-public interface KexHandlerFactory {
+public interface KexGroupFactory {
 
   /**
-   * @return create a new KexHandler instance
+   * @return create a new KexGroup instance
    */
-   KexHandler create(AbstractSession session);
+   KexGroup create(AbstractSession session);
 }

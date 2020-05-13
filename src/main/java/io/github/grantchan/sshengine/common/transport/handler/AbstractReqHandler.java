@@ -4,9 +4,9 @@ import io.github.grantchan.sshengine.arch.SshConstant;
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.SshException;
-import io.github.grantchan.sshengine.common.transport.kex.KexHandler;
-import io.github.grantchan.sshengine.common.transport.kex.KexHandlerFactories;
-import io.github.grantchan.sshengine.common.transport.kex.KexInitProposal;
+import io.github.grantchan.sshengine.common.transport.kex.KexGroup;
+import io.github.grantchan.sshengine.common.transport.kex.KexGroupFactories;
+import io.github.grantchan.sshengine.common.transport.kex.KexProposal;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -18,16 +18,16 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class AbstractRequestHandler extends ChannelInboundHandlerAdapter
-                                             implements RequestHandler {
+public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
+                                         implements ReqHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private KexHandler kexHandler;
+  private KexGroup kexGroup;
 
   @Override
-  public KexHandler getKexHandler() {
-    return kexHandler;
+  public KexGroup getKexGroup() {
+    return kexGroup;
   }
 
   @Override
@@ -123,9 +123,9 @@ public abstract class AbstractRequestHandler extends ChannelInboundHandlerAdapte
     kiBytes[0] = SshMessage.SSH_MSG_KEXINIT;
     msg.getBytes(startPos, kiBytes, 1, payloadLen);
 
-    kexHandler = KexHandlerFactories.create(kexInit.get(KexInitProposal.Param.KEX), session);
-    if (kexHandler == null) {
-      throw new IOException("Unknown key exchange: " + KexInitProposal.Param.KEX);
+    kexGroup = KexGroupFactories.create(kexInit.get(KexProposal.Param.KEX), session);
+    if (kexGroup == null) {
+      throw new IOException("Unknown key exchange: " + KexProposal.Param.KEX);
     }
 
     setKexInit(kiBytes);

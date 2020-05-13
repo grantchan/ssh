@@ -4,11 +4,11 @@ import io.netty.buffer.ByteBuf;
 
 import java.security.MessageDigest;
 
-public interface KexHandler {
+public interface KexGroup {
 
   MessageDigest getMd();
 
-  KeyExchange getKex();
+  Kex getKex();
 
   void handle(int cmd, ByteBuf req) throws Exception;
 }

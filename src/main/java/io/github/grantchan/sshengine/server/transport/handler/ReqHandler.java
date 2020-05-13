@@ -6,10 +6,10 @@ import io.github.grantchan.sshengine.common.SshException;
 import io.github.grantchan.sshengine.common.transport.cipher.CipherFactories;
 import io.github.grantchan.sshengine.common.transport.compression.Compression;
 import io.github.grantchan.sshengine.common.transport.compression.CompressionFactories;
-import io.github.grantchan.sshengine.common.transport.handler.AbstractRequestHandler;
-import io.github.grantchan.sshengine.common.transport.kex.KexHandler;
-import io.github.grantchan.sshengine.common.transport.kex.KexInitProposal;
-import io.github.grantchan.sshengine.common.transport.kex.KeyExchange;
+import io.github.grantchan.sshengine.common.transport.handler.AbstractReqHandler;
+import io.github.grantchan.sshengine.common.transport.kex.KexGroup;
+import io.github.grantchan.sshengine.common.transport.kex.KexProposal;
+import io.github.grantchan.sshengine.common.transport.kex.Kex;
 import io.github.grantchan.sshengine.common.transport.mac.MacFactories;
 import io.github.grantchan.sshengine.server.ServerSession;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
@@ -27,16 +27,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static io.github.grantchan.sshengine.common.transport.handler.RequestHandler.hashKey;
-import static io.github.grantchan.sshengine.common.transport.handler.RequestHandler.negotiate;
+import static io.github.grantchan.sshengine.common.transport.handler.ReqHandler.hashKey;
+import static io.github.grantchan.sshengine.common.transport.handler.ReqHandler.negotiate;
 
-public class RequestHandler extends AbstractRequestHandler {
+public class ReqHandler extends AbstractReqHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private ServerSession session;
 
-  RequestHandler(ServerSession session) {
+  ReqHandler(ServerSession session) {
     this.session = session;
   }
 
@@ -49,7 +49,7 @@ public class RequestHandler extends AbstractRequestHandler {
   protected List<String> resolveKexInit(ByteBuf buf) {
     List<String> result = new ArrayList<>(10);
 
-    KexInitProposal.ALL.forEach(p -> {
+    KexProposal.ALL.forEach(p -> {
       String they = ByteBufIo.readUtf8(buf);
       String we = p.getProposals().get();
       logger.debug("[{}] {}(Server): {}", session, p.getName(), we);
@@ -69,7 +69,7 @@ public class RequestHandler extends AbstractRequestHandler {
 
   @Override
   protected void setKexInit(byte[] ki) {
-    session.setC2sKex(ki);
+    session.setRawC2sKex(ki);
   }
 
   @Override
@@ -123,7 +123,7 @@ public class RequestHandler extends AbstractRequestHandler {
   public void handleNewKeys(ByteBuf req) throws SshException {
     super.handleNewKeys(req);
 
-    KexHandler kexHandler = Objects.requireNonNull(getKexHandler(), "Kex handler is not initalized");
+    KexGroup kexGroup = Objects.requireNonNull(getKexGroup(), "Kex handler is not initialized");
     /*
      * RFC 4253:
      * The client sends SSH_MSG_NEWKEYS:
@@ -142,11 +142,11 @@ public class RequestHandler extends AbstractRequestHandler {
      *
      * @see <a href="https://tools.ietf.org/html/rfc4253#section-7.3">Taking Keys Into Use</a>
      */
-    byte[] id = session.getId();
+    byte[] id = session.getRawId();
 
     logger.debug("[{}] Session ID: {}", session, Bytes.md5(id));
 
-    KeyExchange kex = kexHandler.getKex();
+    Kex kex = kexGroup.getKex();
     BigInteger k = kex.getSecretKey();
 
     byte[] buf = Bytes.concat(
@@ -158,7 +158,7 @@ public class RequestHandler extends AbstractRequestHandler {
 
     int j = buf.length - id.length - 1;
 
-    MessageDigest md = kexHandler.getMd();
+    MessageDigest md = kexGroup.getMd();
 
     md.update(buf);
     byte[] iv_c2s = md.digest();
@@ -188,7 +188,7 @@ public class RequestHandler extends AbstractRequestHandler {
     // Cipher
     // server to client cipher
     CipherFactories s2cCf;
-    s2cCf = Objects.requireNonNull(CipherFactories.from(kp.get(KexInitProposal.Param.ENCRYPTION_S2C)));
+    s2cCf = Objects.requireNonNull(CipherFactories.from(kp.get(KexProposal.Param.ENCRYPTION_S2C)));
     e_s2c = hashKey(e_s2c, s2cCf.getBlkSize(), k, id, md);
     Cipher s2cCip = Objects.requireNonNull(s2cCf.create(e_s2c, iv_s2c, Cipher.ENCRYPT_MODE));
 
@@ -197,7 +197,7 @@ public class RequestHandler extends AbstractRequestHandler {
 
     // client to server cipher
     CipherFactories c2sCf;
-    c2sCf = Objects.requireNonNull(CipherFactories.from(kp.get(KexInitProposal.Param.ENCRYPTION_C2S)));
+    c2sCf = Objects.requireNonNull(CipherFactories.from(kp.get(KexProposal.Param.ENCRYPTION_C2S)));
     e_c2s = hashKey(e_c2s, c2sCf.getBlkSize(), k, id, md);
     Cipher c2sCip = Objects.requireNonNull(c2sCf.create(e_c2s, iv_c2s, Cipher.DECRYPT_MODE));
 
@@ -209,11 +209,11 @@ public class RequestHandler extends AbstractRequestHandler {
     // MAC
     // server to client MAC
     MacFactories s2cMf;
-    s2cMf = Objects.requireNonNull(MacFactories.from(kp.get(KexInitProposal.Param.MAC_S2C)));
+    s2cMf = Objects.requireNonNull(MacFactories.from(kp.get(KexProposal.Param.MAC_S2C)));
     Mac s2cMac = s2cMf.create(mac_s2c);
     if (s2cMac == null) {
       throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR,
-          "Unsupported S2C MAC: " + kp.get(KexInitProposal.Param.MAC_S2C));
+          "Unsupported S2C MAC: " + kp.get(KexProposal.Param.MAC_S2C));
     }
     session.setS2cMac(s2cMac);
     session.setS2cMacSize(s2cMf.getBlkSize());
@@ -221,11 +221,11 @@ public class RequestHandler extends AbstractRequestHandler {
 
     // client to server MAC
     MacFactories c2sMf;
-    c2sMf = Objects.requireNonNull(MacFactories.from(kp.get(KexInitProposal.Param.MAC_C2S)));
+    c2sMf = Objects.requireNonNull(MacFactories.from(kp.get(KexProposal.Param.MAC_C2S)));
     Mac c2sMac = c2sMf.create(mac_c2s);
     if (c2sMac == null) {
       throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR,
-          "Unsupported C2S MAC: " + kp.get(KexInitProposal.Param.MAC_C2S));
+          "Unsupported C2S MAC: " + kp.get(KexProposal.Param.MAC_C2S));
     }
     session.setC2sMac(c2sMac);
     session.setC2sMacSize(c2sMf.getBlkSize());
@@ -236,13 +236,13 @@ public class RequestHandler extends AbstractRequestHandler {
     // Comrpession
     // server to client compression
     CompressionFactories s2cCmf;
-    s2cCmf = Objects.requireNonNull(CompressionFactories.from(kp.get(KexInitProposal.Param.COMPRESSION_S2C)));
+    s2cCmf = Objects.requireNonNull(CompressionFactories.from(kp.get(KexProposal.Param.COMPRESSION_S2C)));
     Compression s2cCompression = s2cCmf.create();
     session.setS2cCompression(s2cCompression);
 
     // client to server compression
     CompressionFactories c2sCmf;
-    c2sCmf = Objects.requireNonNull(CompressionFactories.from(kp.get(KexInitProposal.Param.COMPRESSION_C2S)));
+    c2sCmf = Objects.requireNonNull(CompressionFactories.from(kp.get(KexProposal.Param.COMPRESSION_C2S)));
     Compression c2sCompression = c2sCmf.create();
     session.setC2sCompression(c2sCompression);
 

@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class KexHandlerTest {
+public class KexGroupTest {
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();

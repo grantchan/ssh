@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
+public enum KexGroupFactories implements NamedObject, KexGroupFactory {
 
   /*
    * This ECDH method may be implemented because it is smaller and faster than using large FFC
@@ -29,7 +29,7 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    */
   ecdh521("ecdh-sha2-nistp521") {
     @Override
-    public KexHandler create(AbstractSession session) {
+    public KexGroup create(AbstractSession session) {
       return getKexHandler(DigestFactories.sha512.create(), new ECDH(ECurve.nistp521), session);
     }
   },
@@ -49,8 +49,8 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    */
 //  ecdh384("ecdh-sha2-nistp384") {
 //    @Override
-//    public KexHandler create(AbstractSession session) {
-//      return getKexHandler(DigestFactories.sha384.create(), new ECDH(ECurve.nistp384), session);
+//    public KexGroup create(AbstractSession session) {
+//      return getKexGroup(DigestFactories.sha384.create(), new ECDH(ECurve.nistp384), session);
 //    }
 //  },
 
@@ -71,8 +71,8 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    */
 //  ecdh256("ecdh-sha2-nistp256") {
 //    @Override
-//    public KexHandler create(AbstractSession session) {
-//      return getKexHandler(DigestFactories.sha256.create(), new ECDH(ECurve.nistp256), session);
+//    public KexGroup create(AbstractSession session) {
+//      return getKexGroup(DigestFactories.sha256.create(), new ECDH(ECurve.nistp256), session);
 //    }
 //  },
 
@@ -89,8 +89,8 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    */
 //  dhg18sha512("diffie-hellman-group18-sha512") {
 //    @Override
-//    public KexHandler create(AbstractSession session) {
-//      return getKexHandler(DigestFactories.sha512.create(), new DH(DhGroup.P18), session);
+//    public KexGroup create(AbstractSession session) {
+//      return getKexGroup(DigestFactories.sha512.create(), new DH(DhGroup.P18), session);
 //    }
 //  },
 
@@ -107,8 +107,8 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    */
 //  dhg17sha512("diffie-hellman-group17-sha512") {
 //    @Override
-//    public KexHandler create(AbstractSession session) {
-//      return getKexHandler(DigestFactories.sha512.create(), new DH(DhGroup.P17), session);
+//    public KexGroup create(AbstractSession session) {
+//      return getKexGroup(DigestFactories.sha512.create(), new DH(DhGroup.P17), session);
 //    }
 //  },
 
@@ -128,8 +128,8 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    */
 //  dhg16sha512("diffie-hellman-group16-sha512") {
 //    @Override
-//    public KexHandler create(AbstractSession session) {
-//      return getKexHandler(DigestFactories.sha512.create(), new DH(DhGroup.P16), session);
+//    public KexGroup create(AbstractSession session) {
+//      return getKexGroup(DigestFactories.sha512.create(), new DH(DhGroup.P16), session);
 //    }
 //  },
 
@@ -149,8 +149,8 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    */
 //  dhg15sha512("diffie-hellman-group15-sha512") {
 //    @Override
-//    public KexHandler create(AbstractSession session) {
-//      return getKexHandler(DigestFactories.sha512.create(), new DH(DhGroup.P15), session);
+//    public KexGroup create(AbstractSession session) {
+//      return getKexGroup(DigestFactories.sha512.create(), new DH(DhGroup.P15), session);
 //    }
 //  },
 
@@ -169,7 +169,7 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    */
   dhg14sha256("diffie-hellman-group14-sha256") {
     @Override
-    public KexHandler create(AbstractSession session) {
+    public KexGroup create(AbstractSession session) {
       return getKexHandler(DigestFactories.sha256.create(), new DH(DhGroup.P14), session);
     }
   },
@@ -189,8 +189,8 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    */
 //  dhg14sha1("diffie-hellman-group14-sha1") {
 //    @Override
-//    public KexHandler create(AbstractSession session) {
-//      return getKexHandler(DigestFactories.sha1.create(), new DH(DhGroup.P14), session);
+//    public KexGroup create(AbstractSession session) {
+//      return getKexGroup(DigestFactories.sha1.create(), new DH(DhGroup.P14), session);
 //    }
 //  },
 
@@ -211,8 +211,8 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    */
 //  dhg1sha1("diffie-hellman-group1-sha1") {
 //    @Override
-//    public KexHandler create(AbstractSession session) {
-//      return getKexHandler(DigestFactories.sha1.create(), new DH(DhGroup.P1), session);
+//    public KexGroup create(AbstractSession session) {
+//      return getKexGroup(DigestFactories.sha1.create(), new DH(DhGroup.P1), session);
 //    }
 //  },
 
@@ -230,7 +230,7 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    */
 //  dhgexsha256("diffie-hellman-group-exchange-sha256") {
 //    @Override
-//    public KexHandler create(AbstractSession s) {
+//    public KexGroup create(AbstractSession s) {
 //      return new ServerDhGroupEx(DigestFactories.sha256.create(), s);
 //    }
 //  },
@@ -249,24 +249,24 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
    */
 //  dhgexsha1("diffie-hellman-group-exchange-sha1") {
 //    @Override
-//    public KexHandler create(AbstractSession s) {
+//    public KexGroup create(AbstractSession s) {
 //      return new ServerDhGroupEx(DigestFactories.sha1.create(), s);
 //    }
 //  }
 ;
 
-  private static KexHandler getKexHandler(MessageDigest md, KeyExchange ke, AbstractSession session) {
+  private static KexGroup getKexHandler(MessageDigest md, Kex ke, AbstractSession session) {
     return session instanceof ServerSession ?
         new ServerDhGroup(md, ke, (ServerSession)session) :
         new ClientDhGroup(md, ke, (ClientSession)session);
   }
 
-  public static final Set<KexHandlerFactories> values =
-      Collections.unmodifiableSet(EnumSet.allOf(KexHandlerFactories.class));
+  public static final Set<KexGroupFactories> values =
+      Collections.unmodifiableSet(EnumSet.allOf(KexGroupFactories.class));
 
   public String name;
 
-  KexHandlerFactories(String name) {
+  KexGroupFactories(String name) {
     this.name = name;
   }
 
@@ -279,8 +279,8 @@ public enum KexHandlerFactories implements NamedObject, KexHandlerFactory {
     return NamedObject.getNames(values);
   }
 
-  public static KexHandler create(String name, AbstractSession s) {
-    KexHandlerFactories f = NamedObject.find(name, values, String.CASE_INSENSITIVE_ORDER);
+  public static KexGroup create(String name, AbstractSession s) {
+    KexGroupFactories f = NamedObject.find(name, values, String.CASE_INSENSITIVE_ORDER);
     return (f == null) ? null : f.create(s);
   }
 }

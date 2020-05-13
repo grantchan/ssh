@@ -132,6 +132,26 @@ public final class SshMessage {
   public static final int SSH_DISCONNECT_ILLEGAL_USER_NAME              = 15;
 
   /**
+   * Checks if the given class is one of the numeric classes - Byte, Short, Integer, Long, Float,
+   * Double.
+   *
+   * @param clazz The class to check its type
+   * @return      True if {@code clazz} belongs to the class set mentioned above, otherwise false.
+   */
+  private static boolean isNumeric(Class<?> clazz) {
+    if (clazz == null) {
+      return false;
+    }
+
+    if (Number.class.isAssignableFrom(clazz)) {
+      return true;
+    }
+
+    return Arrays.asList(Byte.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE,
+        Float.TYPE, Double.TYPE).indexOf(clazz) >= 0;
+  }
+
+  /**
    * Reflect current class to invert all public, final, static and numeric fields(variables) that
    * satisfies the eligible condition.
    *
@@ -171,34 +191,6 @@ public final class SshMessage {
         }
       };
 
-  private static final LazySupplier<Map<Integer, List<String>>> DISCONNECT_REASON_INDEX =
-      new LazySupplier<Map<Integer, List<String>>>() {
-        @Override
-        protected Map<Integer, List<String>> initialize() {
-          return invertFields(f -> f.getName().startsWith("SSH_DISCONNECT_"));
-        }
-      };
-
-  /**
-   * Checks if the given class is one of the numeric classes - Byte, Short, Integer, Long, Float,
-   * Double.
-   *
-   * @param clazz The class to check its type
-   * @return      True if {@code clazz} belongs to the class set mentioned above, otherwise false.
-   */
-  private static boolean isNumeric(Class<?> clazz) {
-    if (clazz == null) {
-      return false;
-    }
-
-    if (Number.class.isAssignableFrom(clazz)) {
-      return true;
-    }
-
-    return Arrays.asList(Byte.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE,
-        Float.TYPE, Double.TYPE).indexOf(clazz) >= 0;
-  }
-
   /**
    * Gets the message string from a command value
    *
@@ -213,6 +205,14 @@ public final class SshMessage {
 
     return Integer.valueOf(cmd).toString();
   }
+
+  private static final LazySupplier<Map<Integer, List<String>>> DISCONNECT_REASON_INDEX =
+      new LazySupplier<Map<Integer, List<String>>>() {
+        @Override
+        protected Map<Integer, List<String>> initialize() {
+          return invertFields(f -> f.getName().startsWith("SSH_DISCONNECT_"));
+        }
+      };
 
   /**
    * Gets the disconnect reason from a code value

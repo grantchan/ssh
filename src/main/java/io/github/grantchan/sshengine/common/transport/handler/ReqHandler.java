@@ -1,9 +1,10 @@
 package io.github.grantchan.sshengine.common.transport.handler;
 
 import io.github.grantchan.sshengine.arch.SshMessage;
+import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.Service;
 import io.github.grantchan.sshengine.common.SshException;
-import io.github.grantchan.sshengine.common.transport.kex.KexHandler;
+import io.github.grantchan.sshengine.common.transport.kex.KexGroup;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.github.grantchan.sshengine.util.buffer.LengthBytesBuilder;
 import io.netty.buffer.ByteBuf;
@@ -14,19 +15,21 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.Objects;
 
-public interface RequestHandler extends SessionHolder, Service {
+public interface ReqHandler extends SessionHolder, Service {
 
-  Logger logger = LoggerFactory.getLogger(RequestHandler.class);
+  Logger logger = LoggerFactory.getLogger(ReqHandler.class);
 
   // The numbers 30-49 are key exchange specific and may be redefined by other kex methods.
   byte SSH_MSG_KEXDH_FIRST = 30;
   byte SSH_MSG_KEXDH_LAST  = 49;
 
-  KexHandler getKexHandler();
+  KexGroup getKexGroup();
 
   @Override
   default void handle(int cmd, ByteBuf req) throws Exception {
-    logger.info("[{}] Handling message - {} ...", getSession(), SshMessage.from(cmd));
+    AbstractSession session = getSession();
+
+    logger.info("[{}] Handling message - {} ...", session, SshMessage.from(cmd));
 
     switch (cmd) {
       case SshMessage.SSH_MSG_DISCONNECT:
@@ -57,10 +60,9 @@ public interface RequestHandler extends SessionHolder, Service {
 
       default:
         if (cmd >= SSH_MSG_KEXDH_FIRST && cmd <= SSH_MSG_KEXDH_LAST) {
-          Objects.requireNonNull(getKexHandler(), "Kex handler is not initialized").handle(cmd, req);
+          Objects.requireNonNull(getKexGroup(), "Kex handler is not initialized").handle(cmd, req);
         } else {
-          Service svc = Objects.requireNonNull(getSession(), "Session is not initialized")
-                               .getService();
+          Service svc = Objects.requireNonNull(session, "Session is not initialized").getService();
           if (svc != null) {
             svc.handle(cmd, req);
           } else {
@@ -81,11 +83,18 @@ public interface RequestHandler extends SessionHolder, Service {
   void handleNewKeys(ByteBuf req) throws SshException;
 
   /**
-   * Negotiate the key exchange method, public key algorithm, symmetric encryption algorithm,
-   * message authentication algorithm, and hash algorithm supported by both parties.
+   * Negotiates the
+   * <ul><li>key exchange method,</li>
+   *     <li>public key algorithm,</li>
+   *     <li>symmetric encryption algorithm,</li>
+   *     <li>message authentication algorithm,</li>
+   *     <li>hash algorithm</li></ul>
+   * supported by both parties.
    *
-   * It iterates over client's kex algorithms, on at a time, choose the first algorithm that the
-   * server also supports.
+   * <p>
+   * It iterates over client's kex algorithms, on at a time, choose the first
+   * algorithm that the server also supports.
+   * </p>
    *
    * @param c2s kex algorithms sent by client
    * @param s2c kex algorithms sent by server

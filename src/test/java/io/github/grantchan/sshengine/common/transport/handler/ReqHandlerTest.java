@@ -8,20 +8,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class RequestHandlerTest {
+public class ReqHandlerTest {
 
   @Test
   public void testNegotiateNormalCase() {
-    assertEquals("c", RequestHandler.negotiate("a,b,c", "e,c"));
+    assertEquals("c", ReqHandler.negotiate("a,b,c", "e,c"));
   }
 
   @Test
   public void testNegotiateWhenNothingInCommon() {
-    assertNull(RequestHandler.negotiate("a,b,d", "e,c"));
+    assertNull(ReqHandler.negotiate("a,b,d", "e,c"));
   }
 
   @Test
   public void whenNamesHaveSamePrefix_shouldBeAbleToDistinguish() {
-    assertNull(RequestHandler.negotiate("a,b,c", "c1,d"));
+    assertNull(ReqHandler.negotiate("a,b,c", "c1,d"));
   }
 }

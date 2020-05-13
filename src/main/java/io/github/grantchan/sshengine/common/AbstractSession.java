@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractSession extends AbstractLogger
                               implements UsernameHolder {
 
+  /** the network connection between client and server */
   protected Channel channel;
 
   private final static Set<AbstractSession> sessions = new CopyOnWriteArraySet<>();
@@ -36,7 +37,8 @@ public abstract class AbstractSession extends AbstractLogger
     }, 1, 1, TimeUnit.SECONDS);
   }
 
-  private byte[] id;
+  /** the id represents this session */
+  private byte[] rawId;
 
   /*
    * RFC 4253:
@@ -44,21 +46,56 @@ public abstract class AbstractSession extends AbstractLogger
    * printable US-ASCII characters, with the exception of whitespace
    * characters and the minus sign (-).
    */
-  private String clientId = null;  // client identification
-  private String serverId = null;  // server identification
+  /** client identification */
+  private String clientId = null;
+  /** server identification */
+  private String serverId = null;
 
-  private byte[] c2sKex = null; // the payload of the client's SSH_MSG_KEXINIT
-  private byte[] s2cKex = null; // the payload of the server's SSH_MSG_KEXINIT
+  /** the payload of the client's SSH_MSG_KEXINIT */
+  private byte[] rawC2sKex = null;
+  /** the payload of the server's SSH_MSG_KEXINIT*/
+  private byte[] rawS2cKex = null;
+
   private List<String> kexInit;
 
-  private Cipher c2sCipher, s2cCipher;
-  private int c2sCipherSize = 8, s2cCipherSize = 8;
+  /*
+   * Cipher - algorithm to perform encryption & decryption
+   */
+  /** Cipher for packet from client to server */
+  private Cipher c2sCipher;
+  /** Cipher for packet from server to client */
+  private Cipher s2cCipher;
 
-  private Mac c2sMac, s2cMac;
-  private int c2sMacSize = 0, s2cMacSize = 0;
-  private int c2sDefMacSize = 0, s2cDefMacSize = 0;
+  /** Cipher initial vector size for packet from client to server */
+  private int c2sCipherSize = 8;
+  /** Cipher initial vector size for packet from server to client */
+  private int s2cCipherSize = 8;
 
-  private Compression c2sCompression, s2cCompression;
+  /*
+   * MAC - Message authentication code, a piece of information used to authenticate a message
+   */
+  /** Mac for packet from client to server */
+  private Mac c2sMac;
+  /** Mac for packet from server to client */
+  private Mac s2cMac;
+
+  /** Block size of MAC for packet from client to server */
+  private int c2sMacSize = 0;
+  /** Block size of MAC for packet from server to client */
+  private int s2cMacSize = 0;
+  /** Default block size of MAC for packet from client to server */
+  private int c2sDefMacSize = 0;
+  /** Default block size of MAC for packet from server to client */
+  private int s2cDefMacSize = 0;
+
+  /*
+   * Compression - data compression, to encode the packet using fewer bits than the original
+   * representation
+   */
+  /** Compression algorithm for packet from client to server */
+  private Compression c2sCompression;
+  /** Compression algorithm for packet from server to client */
+  private Compression s2cCompression;
 
   private Service service;
   private String username;
@@ -66,6 +103,11 @@ public abstract class AbstractSession extends AbstractLogger
 
   private long authStartTime = System.currentTimeMillis();
   private volatile boolean isAuthed = false;
+
+  /**
+   *  The active state of this session to indicate connection status.
+   *  When the connection is established, it's true; when disconnected, false.
+   */
   private volatile boolean isActive = false;
 
   // constructor
@@ -74,12 +116,12 @@ public abstract class AbstractSession extends AbstractLogger
     sessions.add(this);
   }
 
-  public byte[] getId() {
-    return id;
+  public byte[] getRawId() {
+    return rawId;
   }
 
-  public void setId(byte[] id) {
-    this.id = id;
+  public void setRawId(byte[] rawId) {
+    this.rawId = rawId;
   }
 
   @Override
@@ -108,122 +150,155 @@ public abstract class AbstractSession extends AbstractLogger
     this.serverId = serverId;
   }
 
-  public byte[] getC2sKex() {
-    return c2sKex;
+  public byte[] getRawC2sKex() {
+    return rawC2sKex;
   }
 
-  public void setC2sKex(byte[] c2sKex) {
-    this.c2sKex = c2sKex;
+  public void setRawC2sKex(byte[] rawC2sKex) {
+    this.rawC2sKex = rawC2sKex;
   }
 
-  public byte[] getS2cKex() {
-    return s2cKex;
+  public byte[] getRawS2cKex() {
+    return rawS2cKex;
   }
 
-  public void setS2cKex(byte[] s2cKex) {
-    this.s2cKex = s2cKex;
-  }
-
-  public void setKexInit(List<String> kexInit) {
-    this.kexInit = kexInit;
+  public void setRawS2cKex(byte[] rawS2cKex) {
+    this.rawS2cKex = rawS2cKex;
   }
 
   public List<String> getKexInit() {
     return kexInit;
   }
 
+  public void setKexInit(List<String> kexInit) {
+    this.kexInit = kexInit;
+  }
+
+  /*
+   * Cipher
+   */
+  // Cipher from client to server
+  /** Returns the cipher object used for packet comes from client to server */
   public Cipher getC2sCipher() {
     return c2sCipher;
   }
-
+  /** Replaces the cipher object used for packet comes from client to server */
   public void setC2sCipher(Cipher c2sCipher) {
     this.c2sCipher = c2sCipher;
   }
 
+  // Cipher from server to client
+  /** Returns the cipher object used for packet comes from server to client */
   public Cipher getS2cCipher() {
     return s2cCipher;
   }
-
+  /** Replaces the cipher object used for packet comes from server to client */
   public void setS2cCipher(Cipher s2cCipher) {
     this.s2cCipher = s2cCipher;
   }
 
+  // Size of the cipher initial vector from client to server
+  /** Returns the size of initial vector of the cipher from client to server */
   public int getC2sCipherSize() {
     return c2sCipherSize;
   }
-
+  /** Replaces the size of initial vector of the cipher from client to server */
   public void setC2sCipherSize(int c2sCipherSize) {
     this.c2sCipherSize = c2sCipherSize;
   }
 
+  // Size of the cipher initial vector from server to client
+  /** Returns the size of initial vector of the cipher from server to client */
   public int getS2cCipherSize() {
     return s2cCipherSize;
   }
-
+  /** Replaces the size of initial vector of the cipher from server to client */
   public void setS2cCipherSize(int s2cCipherSize) {
     this.s2cCipherSize = s2cCipherSize;
   }
 
+  /*
+   * MAC
+   */
+  // MAC from client to server
+  /** Returns the MAC object, which is used for authenticating packet from client to server */
   public Mac getC2sMac() {
     return c2sMac;
   }
-
+  /** Replaces the MAC object, which is used for authenticating packet from client to server */
   public void setC2sMac(Mac c2sMac) {
     this.c2sMac = c2sMac;
   }
 
+  // MAC from server to client
+  /** Returns the MAC object, which is used for authenticating packet from server to client */
   public Mac getS2cMac() {
     return s2cMac;
   }
-
+  /** Replaces the MAC object, which is used for authenticating packet from server to client */
   public void setS2cMac(Mac s2cMac) {
     this.s2cMac = s2cMac;
   }
 
+  // Size of the MAC's block from client to server
+  /** Returns the block size of the MAC for packet from client to server */
   public int getC2sMacSize() {
     return c2sMacSize;
   }
-
+  /** Replaces the block size of the MAC for packet from client to server */
   public void setC2sMacSize(int c2sMacSize) {
     this.c2sMacSize = c2sMacSize;
   }
 
+  // Size of the MAC's block from server to client
+  /** Returns the block size of the MAC for packet from server to client */
   public int getS2cMacSize() {
     return s2cMacSize;
   }
-
+  /** Replaces the block size of the MAC for packet from server to client */
   public void setS2cMacSize(int s2cMacSize) {
     this.s2cMacSize = s2cMacSize;
   }
 
+  // Default size of the MAC's block from client to server
+  /** Returns the default block size of the MAC for packet from client to server */
   public int getC2sDefMacSize() {
     return c2sDefMacSize;
   }
-
+  /** Replaces the default block size of the MAC for packet from client to server */
   public void setC2sDefMacSize(int c2sDefMacSize) {
     this.c2sDefMacSize = c2sDefMacSize;
   }
 
+  // Default size of the MAC's block from server to client
+  /** Returns the default block size of the MAC for packet from server to client */
   public int getS2cDefMacSize() {
     return s2cDefMacSize;
   }
-
+  /** Replaces the default block size of the MAC for packet from server to client */
   public void setS2cDefMacSize(int s2cDefMacSize) {
     this.s2cDefMacSize = s2cDefMacSize;
   }
 
+  /*
+   * Compression
+   */
+  // Compression from client to server
+  /** Returns the compression object for packet packet from client to server */
   public Compression getC2sCompression() {
     return c2sCompression;
   }
-
+  /** Replaces the compression object for packet packet from client to server */
   public void setC2sCompression(Compression c2sCompression) {
     this.c2sCompression = c2sCompression;
   }
 
+  // Compression from server to client
+  /** Returns the compression object for packet packet from server to client */
   public Compression getS2cCompression() {
     return s2cCompression;
   }
-
+  /** Replaces the compression object for packet packet from server to client */
   public void setS2cCompression(Compression s2cCompression) {
     this.s2cCompression = s2cCompression;
   }
@@ -240,10 +315,12 @@ public abstract class AbstractSession extends AbstractLogger
     this.isAuthed = authed;
   }
 
+  /** Returns the connection state of this session, when connected, true; otherwise, false. */
   public boolean isActive() {
     return isActive;
   }
 
+  /** Sets the active state of the connection within this session */
   public void setActive(boolean isActive) {
     this.isActive = isActive;
   }
@@ -279,6 +356,9 @@ public abstract class AbstractSession extends AbstractLogger
     channel.writeAndFlush(buf);
   }
 
+  /**
+   * Obtains the remote ip address where this channel is connected to.
+   */
   private String getRemoteAddress() {
     if (remoteAddr == null) {
       SocketAddress sa = channel.remoteAddress();
@@ -354,7 +434,7 @@ public abstract class AbstractSession extends AbstractLogger
 
     cs.writeInt(channelId);
 
-    logger.debug("[{}] Replying SSH_MSG_CHANNEL_SUCCESS... channel id:{}", this, channelId);
+    logger.debug("[{}] Replying SSH_MSG_CHANNEL_SUCCESS... channel rawId:{}", this, channelId);
 
     channel.writeAndFlush(cs);
   }
@@ -364,19 +444,41 @@ public abstract class AbstractSession extends AbstractLogger
 
     cs.writeInt(channelId);
 
-    logger.debug("[{}] Replying SSH_MSG_CHANNEL_FAILURE... channel id:{}", this, channelId);
+    logger.debug("[{}] Replying SSH_MSG_CHANNEL_FAILURE... channel rawId:{}", this, channelId);
 
     channel.writeAndFlush(cs);
   }
 
+  /**
+   * Creates a {@link ByteBuf} object - netty data container, whose length is 256 bytes.
+   *
+   * <p>
+   *   Internally, it calls the {@link #createBuffer(int)} with parameter 256 bytes.
+   * </p>
+   *
+   * @return a newly created {@link ByteBuf} object
+   *
+   * @see #createBuffer(int)
+   */
   public ByteBuf createBuffer() {
-    return channel.alloc().buffer();
+    return createBuffer(256);
   }
 
+  /**
+   * Creates a {@link ByteBuf} object - netty data container, with the given size.
+   *
+   * @param size size of the buffer to create
+   * @return a newly created {@link ByteBuf} object
+   *
+   * @see #createBuffer()
+   */
   public ByteBuf createBuffer(int size) {
     return channel.alloc().buffer(size);
   }
 
+  /**
+   * Creates a {@link ByteBuf} object to represent a SSH message.
+   */
   protected ByteBuf createMessage(byte messageId) {
     ByteBuf msg = createBuffer();
 

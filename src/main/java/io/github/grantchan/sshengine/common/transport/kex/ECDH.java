@@ -10,7 +10,7 @@ import java.security.spec.ECPublicKeySpec;
 import java.security.spec.KeySpec;
 import java.util.Objects;
 
-public class ECDH extends KeyExchange {
+public class ECDH extends Kex {
 
   private ECParameterSpec spec;
 

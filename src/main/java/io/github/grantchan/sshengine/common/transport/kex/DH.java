@@ -9,7 +9,7 @@ import java.security.*;
 import java.security.spec.KeySpec;
 import java.util.Objects;
 
-public class DH extends KeyExchange {
+public class DH extends Kex {
 
   private BigInteger p; // safe prime;
   private BigInteger g; // generator for subgroup

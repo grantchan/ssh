@@ -85,17 +85,22 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter
 
       ChannelPipeline cp = ctx.pipeline();
 
-      LoggingHandler loggingHandler = cp.get(LoggingHandler.class);
+      LoggingHandler logHandler = cp.get(LoggingHandler.class);
       cp.remove(LoggingHandler.class);
 
-      cp.addLast(new ServerPacketDecoder(session),
-                 loggingHandler,
-                 new RequestHandler(session),
-                 new ServerPacketEncoder(session));
+      cp.addLast(new ServerPacketDecoder(session),  /* First step for incoming packet - decode */
+                 logHandler,                        /* In debug mode, second step for both incoming
+                                                       & outgoing packet:
+                                                       # if receiving, print the decoded packet in
+                                                         hexadecimal format
+                                                       # if sending, print the encoded packet in
+                                                         hexadecimal format */
+                 new ReqHandler(session),           /* request handler */
+                 new ServerPacketEncoder(session)); /* First step for outgoing packet - encode */
       cp.remove(this);
 
       byte[] ki = IdExHandler.kexInit();
-      session.setS2cKex(Bytes.concat(new byte[] {SshMessage.SSH_MSG_KEXINIT}, ki));
+      session.setRawS2cKex(Bytes.concat(new byte[] {SshMessage.SSH_MSG_KEXINIT}, ki));
 
       session.sendKexInit(ki);
 

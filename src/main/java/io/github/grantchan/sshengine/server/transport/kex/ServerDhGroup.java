@@ -3,9 +3,9 @@ package io.github.grantchan.sshengine.server.transport.kex;
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.AbstractLogger;
 import io.github.grantchan.sshengine.common.SshException;
-import io.github.grantchan.sshengine.common.transport.kex.KexHandler;
-import io.github.grantchan.sshengine.common.transport.kex.KexInitProposal;
-import io.github.grantchan.sshengine.common.transport.kex.KeyExchange;
+import io.github.grantchan.sshengine.common.transport.kex.KexGroup;
+import io.github.grantchan.sshengine.common.transport.kex.KexProposal;
+import io.github.grantchan.sshengine.common.transport.kex.Kex;
 import io.github.grantchan.sshengine.common.transport.signature.Signature;
 import io.github.grantchan.sshengine.common.transport.signature.SignatureFactories;
 import io.github.grantchan.sshengine.server.ServerSession;
@@ -25,16 +25,16 @@ import static io.github.grantchan.sshengine.util.buffer.Bytes.md5;
 import static io.github.grantchan.sshengine.util.buffer.Bytes.sha256;
 
 public class ServerDhGroup extends AbstractLogger
-                           implements KexHandler {
+                           implements KexGroup {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final MessageDigest md;
 
-  protected final KeyExchange kex;
+  protected final Kex kex;
   protected final ServerSession session;
 
-  public ServerDhGroup(MessageDigest md, KeyExchange kex, ServerSession session) {
+  public ServerDhGroup(MessageDigest md, Kex kex, ServerSession session) {
     this.md = md;
     this.kex = kex;
     this.session = session;
@@ -46,7 +46,7 @@ public class ServerDhGroup extends AbstractLogger
   }
 
   @Override
-  public KeyExchange getKex() {
+  public Kex getKex() {
     return kex;
   }
 
@@ -101,8 +101,8 @@ public class ServerDhGroup extends AbstractLogger
      */
     String v_c = session.getClientId();
     String v_s = session.getServerId();
-    byte[] i_c = session.getC2sKex();
-    byte[] i_s = session.getS2cKex();
+    byte[] i_c = session.getRawC2sKex();
+    byte[] i_s = session.getRawS2cKex();
 
     KeyPairGenerator kpg;
     try {
@@ -128,14 +128,14 @@ public class ServerDhGroup extends AbstractLogger
 
     md.update(h_s, 0, h_s.length);
     byte[] h = md.digest();
-    session.setId(h);
+    session.setRawId(h);
 
     List<String> kexParams = session.getKexInit();
 
-    Signature sig = SignatureFactories.create(kexParams.get(KexInitProposal.Param.SERVER_HOST_KEY),
+    Signature sig = SignatureFactories.create(kexParams.get(KexProposal.Param.SERVER_HOST_KEY),
         kp.getPrivate());
     if (sig == null) {
-      throw new IllegalArgumentException("Unknown signature: " + KexInitProposal.Param.SERVER_HOST_KEY);
+      throw new IllegalArgumentException("Unknown signature: " + KexProposal.Param.SERVER_HOST_KEY);
     }
 
     byte[] sigH = null;
