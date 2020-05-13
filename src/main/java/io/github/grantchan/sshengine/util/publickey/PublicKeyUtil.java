@@ -1,7 +1,7 @@
 package io.github.grantchan.sshengine.util.publickey;
 
 import io.github.grantchan.sshengine.common.transport.kex.ECurve;
-import io.github.grantchan.sshengine.util.buffer.LengthBytesBuilder;
+import io.github.grantchan.sshengine.util.buffer.Bytes;
 import sun.security.provider.DSAPublicKey;
 
 import java.security.PublicKey;
@@ -233,12 +233,10 @@ public final class PublicKeyUtil {
     Objects.requireNonNull(pubKey, "Invalid parameter - pubKey is null");
 
     DSAParams params = pubKey.getParams();
-    return new LengthBytesBuilder().append("ssh-dsa")
-                                   .append(params.getP(),
-                                           params.getQ(),
-                                           params.getG(),
-                                           pubKey.getY())
-                                   .toBytes();
+    return Bytes.concat(
+        Bytes.addLen("ssh-dsa"),
+        Bytes.joinWithLength(params.getP(), params.getQ(), params.getG(), pubKey.getY())
+    );
   }
 
   /**
@@ -254,10 +252,10 @@ public final class PublicKeyUtil {
   private static byte[] bytesOf(RSAPublicKey pubKey) {
     Objects.requireNonNull(pubKey, "Invalid parameter - pubKey is null");
 
-    return new LengthBytesBuilder().append("ssh-rsa")
-                                   .append(pubKey.getPublicExponent(),
-                                           pubKey.getModulus())
-                                   .toBytes();
+    return Bytes.concat(
+        Bytes.addLen("ssh-rsa"),
+        Bytes.joinWithLength(pubKey.getPublicExponent(), pubKey.getModulus())
+    );
   }
 
   /**
@@ -278,10 +276,10 @@ public final class PublicKeyUtil {
 
     ECParameterSpec params = pubKey.getParams();
     ECurve curve = ECurve.from(params);
-    return curve == null ? null :
-        new LengthBytesBuilder().append("ecdsa-sha2-" + curve.name(), curve.name())
-                                .append(ECurve.bytesOf(pubKey.getW(), params.getCurve()))
-                                .toBytes();
+    return curve == null ? null : Bytes.concat(
+            Bytes.joinWithLength("ecdsa-sha2-" + curve.name(), curve.name()),
+            Bytes.addLen(ECurve.bytesOf(pubKey.getW(), params.getCurve()))
+        );
   }
 
   /* Private constructor to prevent this class from being explicitly instantiated */

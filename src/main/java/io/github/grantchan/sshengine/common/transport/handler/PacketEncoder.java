@@ -80,7 +80,7 @@ public interface PacketEncoder extends SessionHolder {
     Mac mac = getMac();
     if (mac != null) {
       int macSize = getMacSize();
-      mac.update(Bytes.htonl(seq.get()));
+      mac.update(Bytes.toBigEndian(seq.get()));
       mac.update(packet);
       byte[] tmp = mac.doFinal();
       if (macSize != getDefMacSize()) {

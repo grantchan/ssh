@@ -7,14 +7,13 @@ import io.github.grantchan.sshengine.common.transport.cipher.CipherFactories;
 import io.github.grantchan.sshengine.common.transport.compression.Compression;
 import io.github.grantchan.sshengine.common.transport.compression.CompressionFactories;
 import io.github.grantchan.sshengine.common.transport.handler.AbstractReqHandler;
+import io.github.grantchan.sshengine.common.transport.kex.Kex;
 import io.github.grantchan.sshengine.common.transport.kex.KexGroup;
 import io.github.grantchan.sshengine.common.transport.kex.KexProposal;
-import io.github.grantchan.sshengine.common.transport.kex.Kex;
 import io.github.grantchan.sshengine.common.transport.mac.MacFactories;
 import io.github.grantchan.sshengine.server.ServerSession;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
-import io.github.grantchan.sshengine.util.buffer.LengthBytesBuilder;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -150,7 +149,7 @@ public class ReqHandler extends AbstractReqHandler {
     BigInteger k = kex.getSecretKey();
 
     byte[] buf = Bytes.concat(
-        LengthBytesBuilder.concat(k),
+        Bytes.addLen(k),
         id,
         new byte[]{(byte) 0x41},
         id

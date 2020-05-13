@@ -4,13 +4,13 @@ import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.client.ClientSession;
 import io.github.grantchan.sshengine.common.AbstractLogger;
 import io.github.grantchan.sshengine.common.SshException;
-import io.github.grantchan.sshengine.common.transport.kex.KexHandler;
-import io.github.grantchan.sshengine.common.transport.kex.KexInitProposal;
-import io.github.grantchan.sshengine.common.transport.kex.KeyExchange;
+import io.github.grantchan.sshengine.common.transport.kex.Kex;
+import io.github.grantchan.sshengine.common.transport.kex.KexGroup;
+import io.github.grantchan.sshengine.common.transport.kex.KexProposal;
 import io.github.grantchan.sshengine.common.transport.signature.Signature;
 import io.github.grantchan.sshengine.common.transport.signature.SignatureFactories;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
-import io.github.grantchan.sshengine.util.buffer.LengthBytesBuilder;
+import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.github.grantchan.sshengine.util.publickey.decoder.PublicKeyDecoder;
 import io.netty.buffer.ByteBuf;
 
@@ -26,16 +26,16 @@ import static io.github.grantchan.sshengine.util.buffer.Bytes.md5;
 import static io.github.grantchan.sshengine.util.buffer.Bytes.sha256;
 
 public class ClientDhGroup extends AbstractLogger
-                           implements KexHandler {
+                           implements KexGroup {
 
   private final MessageDigest md;
 
-  protected final KeyExchange kex;
+  protected final Kex kex;
   protected final ClientSession session;
 
   private byte expect = SshMessage.SSH_MSG_KEXDH_INIT;
 
-  public ClientDhGroup(MessageDigest md, KeyExchange kex, ClientSession session) {
+  public ClientDhGroup(MessageDigest md, Kex kex, ClientSession session) {
     this.md = md;
     this.kex = kex;
     this.session = session;
@@ -47,7 +47,7 @@ public class ClientDhGroup extends AbstractLogger
   }
 
   @Override
-  public KeyExchange getKex() {
+  public Kex getKex() {
     return kex;
   }
 
@@ -130,8 +130,8 @@ public class ClientDhGroup extends AbstractLogger
 
     String v_c = session.getClientId();
     String v_s = session.getServerId();
-    byte[] i_c = session.getC2sKex();
-    byte[] i_s = session.getS2cKex();
+    byte[] i_c = session.getRawC2sKex();
+    byte[] i_s = session.getRawS2cKex();
 
     PublicKey pubKey = null;
     try {
@@ -140,22 +140,22 @@ public class ClientDhGroup extends AbstractLogger
       e1.printStackTrace();
     }
 
-    LengthBytesBuilder lbb = new LengthBytesBuilder();
-    byte[] h_s = lbb.append(v_c, v_s)
-                    .append(i_c, i_s, k_s)
-                    .append(kex.getPubKey(), e, kex.getSecretKey())
-                    .toBytes();
+    byte[] h_s = Bytes.concat(
+        Bytes.joinWithLength(v_c, v_s),
+        Bytes.joinWithLength(i_c, i_s, k_s),
+        Bytes.joinWithLength(kex.getPubKey(), e, kex.getSecretKey())
+    );
 
     md.update(h_s);
     byte[] h = md.digest();
-    session.setId(h);
+    session.setRawId(h);
 
     List<String> kexParams = session.getKexInit();
 
-    Signature verif = SignatureFactories.create(kexParams.get(KexInitProposal.Param.SERVER_HOST_KEY), pubKey);
+    Signature verif = SignatureFactories.create(kexParams.get(KexProposal.Param.SERVER_HOST_KEY), pubKey);
     if (verif == null) {
       throw new IllegalArgumentException("Unknown signature: " +
-          kexParams.get(KexInitProposal.Param.SERVER_HOST_KEY));
+          kexParams.get(KexProposal.Param.SERVER_HOST_KEY));
     }
 
     try {

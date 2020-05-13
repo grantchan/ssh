@@ -111,7 +111,7 @@ public interface PacketDecoder extends SessionHolder {
     // The packet is fully decrypted here, we verify its integrity by the MAC
     Mac mac = getMac();
     if (mac != null) {
-      mac.update(Bytes.htonl(seq.get()));
+      mac.update(Bytes.toBigEndian(seq.get()));
 
       byte[] decryptedPacket = new byte[SSH_PACKET_LENGTH + len];
       msg.getBytes(rIdx, decryptedPacket);
@@ -134,7 +134,7 @@ public interface PacketDecoder extends SessionHolder {
     int pad = msg.readByte() & 0xFF;
     len -= (Byte.BYTES + pad);
 
-    ByteBuf packet = null;
+    ByteBuf packet;
 
     Compression compression = getCompression();
     if (compression != null && getSession().isAuthed() && len > 0) {

@@ -2,15 +2,43 @@ package io.github.grantchan.sshengine.util.buffer;
 
 import io.github.grantchan.sshengine.common.transport.digest.DigestFactories;
 
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Objects;
+import java.util.function.Function;
 
 public final class Bytes {
 
+  /** An single byte immutable array, in which the value is zero */
+  private static final byte[] ZERO = new byte[] {0};
+  /** An single byte immutable array, in which the value is one */
+  private static final byte[] ONE = new byte[] {1};
+
+  static final Function<byte[], byte[]> SEPARATE_BY_LENGTH =
+      e -> Bytes.toBigEndian(e.length);
+
+  static final Function<byte[], byte[]> MP_SEPARATE_BY_LENGTH =
+      e -> {
+        if ((e[0] & 0x80) != 0) {
+          return concat(toBigEndian(e.length + 1), ZERO);
+        } else {
+          return toBigEndian(e.length);
+        }
+      };
+
   /**
-   * Resize an array.
+   * Returns an single byte array, in which if the parameter {@code b} is true, the byte is 1,
+   * otherwise, 0.
+   */
+  public static byte[] toArray(boolean b) {
+    return b ? ONE : ZERO;
+  }
+
+  /**
+   * Resizes an array.
    *
    * <ul>
    *   <li>If the new size is smaller than original, extra bytes will be truncated.</li>
@@ -22,7 +50,9 @@ public final class Bytes {
    * @return        A new resized array or the original array.
    */
   public static byte[] resize(byte[] array, int newSize) {
-    if (Objects.requireNonNull(array).length > newSize) {
+    Objects.requireNonNull(array, "Invalid parameter - array is null");
+
+    if (array.length > newSize) {
       byte[] tmp = new byte[newSize];
       System.arraycopy(array, 0, tmp, 0, newSize);
 
@@ -32,89 +62,108 @@ public final class Bytes {
   }
 
   /**
-   * Convert an unsigned integer from little-endian(host byte order) to big-endian (network byte
-   * order) byte array
+   * Convert an unsigned integer from little-endian(host byte order) to big-endian
+   * (network byte order) byte array
    *
-   * @param i The unsigned integer in host byte order
-   * @return  The network byte order byte array of {@code i}
+   * @param num The unsigned integer in host byte order
+   * @return    The network byte order byte array of {@code num}
    *
    * @see <a href="https://en.wikipedia.org/wiki/Endianness">Endianness</a>
    */
-  public static byte[] htonl(long i) {
+  public static byte[] toBigEndian(long num) {
     byte[] n = new byte[4];
-    n[0] = (byte) (i >>> 24);
-    n[1] = (byte) (i >>> 16);
-    n[2] = (byte) (i >>> 8);
-    n[3] = (byte) i;
+    n[0] = (byte) (num >>> 24);
+    n[1] = (byte) (num >>> 16);
+    n[2] = (byte) (num >>> 8);
+    n[3] = (byte) num;
 
     return n;
   }
 
   /**
-   * Read a network byte order(big-endian) integer from a byte array.
+   * Converts and combines a set of integers into a byte array in big-endian ordering
+   * representative.
    *
-   * <p>Internally, this invokes {@link #nl(byte[], int, int)}</p>
+   * Internally, for each integer in parameters, it calls the {@link #toBigEndian(long)} to
+   * convert it to byte array.
    *
-   * @param buf The byte array, has the integer in network byte order, to be read from.
-   *            <p>
-   *              Note: When {@code buf} contains more than {@link Integer#BYTES} bytes,
-   *              only the first {@link Integer#BYTES} will be used.
-   *            </p>
-   * @return    The unsigned {@code long} integer
-   * @throws IllegalArgumentException if {@code buf} contains less than {@link Integer#BYTES} bytes
+   * @param nums A set of integers to concatenate, from left to right
+   * @return     The newly constructed byte array
    *
-   * @see #nl(byte[], int, int)
+   * @see #toBigEndian(long)
    */
-  public static long nl(byte[] buf) {
-    return nl(buf, 0, buf.length);
+  public static byte[] toBigEndian(int... nums) {
+    Objects.requireNonNull(nums, "Invalid parameter - nums is null");
+
+    byte[] res = new byte[nums.length * Integer.BYTES];
+    for (int i = 0, off = 0; i < nums.length; i++, off += Integer.BYTES) {
+      System.arraycopy(toBigEndian(nums[i]), 0, res, off, Integer.BYTES);
+    }
+
+    return res;
   }
 
   /**
-   * Read a network byte order(big-endian) integer from a byte array.
+   * Reads a network byte order(big-endian) integer from a byte array.
    *
-   * @param buf  the byte array, has the integer in network byte order, to be read from
-   *             <p>
-   *               Note: When {@param buf} contains more than {@link Integer#BYTES} bytes,
-   *               only the first {@link Integer#BYTES} will be used.
-   *             </p>
-   * @param off  The offset in {@param buf}
-   * @param len  Length of data in {@param buf} to use to read
-   * @return     The unsigned {@code long} integer
-   * @throws IllegalArgumentException if {@code param} contains less than {@link Integer#BYTES} bytes
+   * <p>Internally, this invokes {@link #readBigEndian(byte[], int, int)}</p>
+   *
+   * @param array The byte array, has the integer in network byte order, to be read from.
+   *              <p>
+   *                Note: When {@code buf} contains more than {@link Integer#BYTES} bytes, only the
+   *                first {@link Integer#BYTES} will be used.
+   *              </p>
+   * @return      The unsigned {@code long} integer
+   * @throws IllegalArgumentException if the given array contains less than {@link Integer#BYTES}
+   *                                  bytes
+   *
+   * @see #readBigEndian(byte[], int, int)
    */
-  public static long nl(byte[] buf, int off, int len) {
-    Objects.requireNonNull(buf);
+  public static long readBigEndian(byte[] array) {
+    return readBigEndian(array, 0, array.length);
+  }
+
+  /**
+   * Reads a network byte order(big-endian) integer from a byte array.
+   *
+   * @param array The byte array, has the integer in network byte order, to be read from
+   *              <p>
+   *                Note: When {@param array} contains more than {@link Integer#BYTES} bytes,
+   *                only the first {@link Integer#BYTES} will be used.
+   *              </p>
+   * @param off   The offset in {@param array}
+   * @param len   Length of data in {@param array} to use to read
+   * @return      The unsigned {@code long} integer
+   * @throws IllegalArgumentException if the given array contains less than {@link Integer#BYTES}
+   *                                  bytes
+   */
+  public static long readBigEndian(byte[] array, int off, int len) {
+    Objects.requireNonNull(array);
 
     if (len < Integer.BYTES) {
       throw new IllegalArgumentException("Not enough data to convert to an unsigned integer, " +
-          "required: " + Integer.BYTES + ", actual: " + buf.length);
+          "required: " + Integer.BYTES + ", actual: " + array.length);
     }
 
     long n = 0;
     for (int i = 0, sh = Integer.SIZE - Byte.SIZE; i < Integer.BYTES; i++, sh -= Byte.SIZE) {
-      n |= (buf[off + i] & 0xFFL) << sh;
+      n |= (array[off + i] & 0xFFL) << sh;
     }
 
     return n;
   }
 
-  /**
-   * Concatenate a set of byte arrays.
-   *
-   * @param bufs byte arrays to concatenate, from left to right
-   * @return     The new constructed byte array with its value being the concatenation of
-   *             {@code bufs}
-   */
-  public static byte[] concat(final byte[]... bufs) {
-    if (bufs == null) {
-      return null;
-    }
+  public static byte[] join(Function<byte[], byte[]> separator, byte[]... arrays) {
+    Objects.requireNonNull(arrays, "Invalid parameter - arrays is null");
 
     // sum up the total length
     int size = 0;
-    for (byte[] buf : bufs) {
-      if (buf != null) {
-        size += buf.length;
+    for (byte[] array : arrays) {
+      if (array != null) {
+        size += array.length;
+        if (separator != null) {
+          size += separator.apply(array).length;
+        }
       }
     }
 
@@ -124,10 +173,18 @@ public final class Bytes {
 
     byte[] res = new byte[size];
     int off = 0;
-    for (byte[] buf : bufs) {
-      if (buf != null) {
-        System.arraycopy(buf, 0, res, off, buf.length);
-        off += buf.length;
+    for (byte[] array : arrays) {
+      if (array != null) {
+        if (separator != null) {
+          // write separator
+          byte[] sep = separator.apply(array);
+          System.arraycopy(sep, 0, res, off, sep.length);
+          off += sep.length;
+        }
+
+        // write the actual buffer
+        System.arraycopy(array, 0, res, off, array.length);
+        off += array.length;
       }
     }
 
@@ -135,9 +192,63 @@ public final class Bytes {
   }
 
   /**
+   * Combines a set of byte arrays into a new array.
+   *
+   * <p>
+   *   For example,<br/>
+   *   {@code concat(new byte[]{a}, null, new byte[]{b, c})} returns an array {@code {a, b, c}}
+   * </p>
+   *
+   * @param arrays Byte arrays to concatenate, from left to right
+   * @return       The new constructed byte array with its value being the concatenation of
+   *               {@code arrays}
+   */
+  public static byte[] concat(byte[]... arrays) {
+    return join(null, arrays);
+  }
+
+  public static byte[] joinWithLength(byte[]... arrays) {
+    return join(SEPARATE_BY_LENGTH, arrays);
+  }
+
+  public static byte[] joinWithLength(String... utf8) {
+    byte[][] arrays = new byte[utf8.length][];
+    for (int i = 0; i < utf8.length; i++) {
+      if (utf8[i] != null) {
+        arrays[i] = utf8[i].getBytes(StandardCharsets.UTF_8);
+      }
+    }
+
+    return join(SEPARATE_BY_LENGTH, arrays);
+  }
+
+  public static byte[] joinWithLength(BigInteger... nums) {
+    byte[][] arrays = new byte[nums.length][];
+    for (int i = 0; i < nums.length; i++) {
+      if (nums[i] != null) {
+        arrays[i] = nums[i].toByteArray();
+      }
+    }
+
+    return join(MP_SEPARATE_BY_LENGTH, arrays);
+  }
+
+  public static byte[] addLen(byte[] buf) {
+    return joinWithLength(buf);
+  }
+
+  public static byte[] addLen(String str) {
+    return joinWithLength(str);
+  }
+
+  public static byte[] addLen(BigInteger num) {
+    return joinWithLength(num);
+  }
+
+  /**
    * Returns the last N bytes of data in an byte array
    */
-  public static byte[] last(final byte[] buf, int len) {
+  public static byte[] last(byte[] buf, int len) {
     if (Objects.requireNonNull(buf).length <= len) {
       return buf;
     }
@@ -195,7 +306,7 @@ public final class Bytes {
    *
    * @see <a href="https://en.wikipedia.org/wiki/Fingerprint_(computing)">Fingerprint (computing)</a>
    */
-  private static byte[] fingerPrint(final byte[] data, MessageDigest md) {
+  private static byte[] fingerPrint(byte[] data, MessageDigest md) {
     if (data == null) {
       throw new IllegalArgumentException("Invalid parameter - data is null");
     }
@@ -220,7 +331,7 @@ public final class Bytes {
    * @see #hex(byte[])
    * @see #fingerPrint(byte[], MessageDigest)
    */
-  public static String md5(final byte[] data) {
+  public static String md5(byte[] data) {
     if (data == null) {
       throw new IllegalArgumentException("Invalid key parameter - key is null");
     }
@@ -239,7 +350,7 @@ public final class Bytes {
    * @see <a href="https://en.wikipedia.org/wiki/SHA-2">SHA-2</a>
    * @see #fingerPrint(byte[], MessageDigest)
    */
-  public static String sha256(final byte[] data) {
+  public static String sha256(byte[] data) {
     if (data == null) {
       throw new IllegalArgumentException("Invalid key parameter - key is null");
     }

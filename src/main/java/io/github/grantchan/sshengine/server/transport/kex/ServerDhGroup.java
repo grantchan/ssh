@@ -3,14 +3,14 @@ package io.github.grantchan.sshengine.server.transport.kex;
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.AbstractLogger;
 import io.github.grantchan.sshengine.common.SshException;
+import io.github.grantchan.sshengine.common.transport.kex.Kex;
 import io.github.grantchan.sshengine.common.transport.kex.KexGroup;
 import io.github.grantchan.sshengine.common.transport.kex.KexProposal;
-import io.github.grantchan.sshengine.common.transport.kex.Kex;
 import io.github.grantchan.sshengine.common.transport.signature.Signature;
 import io.github.grantchan.sshengine.common.transport.signature.SignatureFactories;
 import io.github.grantchan.sshengine.server.ServerSession;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
-import io.github.grantchan.sshengine.util.buffer.LengthBytesBuilder;
+import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.github.grantchan.sshengine.util.publickey.PublicKeyUtil;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
@@ -120,11 +120,11 @@ public class ServerDhGroup extends AbstractLogger
     logger.debug("[{}] Host RSA public key fingerprint MD5: {}, SHA256: {}",
         session, md5(k_s), sha256(k_s));
 
-    LengthBytesBuilder lbb = new LengthBytesBuilder();
-    byte[] h_s = lbb.append(v_c, v_s)
-                    .append(i_c, i_s, k_s)
-                    .append(e, kex.getPubKey(), kex.getSecretKey())
-                    .toBytes();
+    byte[] h_s = Bytes.concat(
+        Bytes.joinWithLength(v_c, v_s),
+        Bytes.joinWithLength(i_c, i_s, k_s),
+        Bytes.joinWithLength(e, kex.getPubKey(), kex.getSecretKey())
+    );
 
     md.update(h_s, 0, h_s.length);
     byte[] h = md.digest();
@@ -142,11 +142,10 @@ public class ServerDhGroup extends AbstractLogger
     try {
       sig.update(h);
 
-      lbb.clear();
-      sigH = lbb.append(kexParams.get(KexInitProposal.Param.SERVER_HOST_KEY))
-                .append(sig.sign())
-                .toBytes();
-
+      sigH = Bytes.concat(
+          Bytes.addLen(kexParams.get(KexProposal.Param.SERVER_HOST_KEY)),
+          Bytes.addLen(sig.sign())
+      );
     } catch (SignatureException ex) {
       ex.printStackTrace();
     }

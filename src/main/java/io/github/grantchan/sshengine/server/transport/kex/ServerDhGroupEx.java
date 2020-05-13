@@ -4,14 +4,14 @@ import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.AbstractLogger;
 import io.github.grantchan.sshengine.common.SshException;
 import io.github.grantchan.sshengine.common.transport.kex.DH;
+import io.github.grantchan.sshengine.common.transport.kex.Kex;
 import io.github.grantchan.sshengine.common.transport.kex.KexGroup;
 import io.github.grantchan.sshengine.common.transport.kex.KexProposal;
-import io.github.grantchan.sshengine.common.transport.kex.Kex;
 import io.github.grantchan.sshengine.common.transport.signature.Signature;
 import io.github.grantchan.sshengine.common.transport.signature.SignatureFactories;
 import io.github.grantchan.sshengine.server.ServerSession;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
-import io.github.grantchan.sshengine.util.buffer.LengthBytesBuilder;
+import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.github.grantchan.sshengine.util.publickey.PublicKeyUtil;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
@@ -249,19 +249,22 @@ public class ServerDhGroupEx extends AbstractLogger
 
     byte[] k_s = PublicKeyUtil.bytesOf(pubKey);
 
-    LengthBytesBuilder lbb = new LengthBytesBuilder();
-    lbb.append(v_c, v_s)
-       .append(i_c, i_s, k_s);
+    byte[] h_s = Bytes.concat(
+        Bytes.joinWithLength(v_c, v_s),
+        Bytes.joinWithLength(i_c, i_s, k_s)
+    );
 
     if (min == -1 || max == -1) { // old request
-      lbb.append(n);
+      h_s = Bytes.concat(h_s, Bytes.toBigEndian(n));
     } else {
-      lbb.append(min, n, max);
+      h_s = Bytes.concat(h_s, Bytes.toBigEndian(min, n, max));
     }
 
-    byte[] h_s = lbb.append(((DH)kex).getP(), ((DH)kex).getG(), kex.getReceivedPubKey(),
-                            kex.getPubKey(), kex.getSecretKey())
-                    .toBytes();
+    h_s = Bytes.concat(
+        h_s,
+        Bytes.joinWithLength(((DH)kex).getP(), ((DH)kex).getG(), kex.getReceivedPubKey(),
+            kex.getPubKey(), kex.getSecretKey())
+    );
 
     md.update(h_s, 0, h_s.length);
     byte[] h = md.digest();
@@ -280,10 +283,10 @@ public class ServerDhGroupEx extends AbstractLogger
     try {
       sig.update(h);
 
-      lbb.clear();
-      sigH = lbb.append(kexParams.get(KexInitProposal.Param.SERVER_HOST_KEY))
-                .append(sig.sign())
-                .toBytes();
+      sigH = Bytes.concat(
+          Bytes.addLen(kexParams.get(KexProposal.Param.SERVER_HOST_KEY)),
+          Bytes.addLen(sig.sign())
+      );
     } catch (SignatureException ex) {
       ex.printStackTrace();
     }

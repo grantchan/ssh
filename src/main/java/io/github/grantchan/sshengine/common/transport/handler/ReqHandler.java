@@ -6,7 +6,6 @@ import io.github.grantchan.sshengine.common.Service;
 import io.github.grantchan.sshengine.common.SshException;
 import io.github.grantchan.sshengine.common.transport.kex.KexGroup;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
-import io.github.grantchan.sshengine.util.buffer.LengthBytesBuilder;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,7 +115,7 @@ public interface ReqHandler extends SessionHolder, Service {
 
   static byte[] hashKey(byte[] e, int blockSize, BigInteger k, byte[] id, MessageDigest md) {
     while (e.length < blockSize) {
-      byte[] b = Bytes.concat(LengthBytesBuilder.concat(k), id, e);
+      byte[] b = Bytes.concat(Bytes.addLen(k), id, e);
 
       md.update(b);
       e = Bytes.concat(e, md.digest());

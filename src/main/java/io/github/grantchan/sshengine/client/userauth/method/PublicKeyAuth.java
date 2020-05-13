@@ -7,7 +7,6 @@ import io.github.grantchan.sshengine.common.transport.signature.Signature;
 import io.github.grantchan.sshengine.common.transport.signature.SignatureFactories;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
-import io.github.grantchan.sshengine.util.buffer.LengthBytesBuilder;
 import io.github.grantchan.sshengine.util.publickey.PublicKeyUtil;
 import io.github.grantchan.sshengine.util.publickey.decoder.PublicKeyDecoder;
 import io.netty.buffer.ByteBuf;
@@ -82,6 +81,9 @@ public class PublicKeyAuth extends AbstractLogger
     String method = "publickey";
 
     String algo = PublicKeyUtil.typeOf(pubKey);
+    if (algo == null) {
+      throw new IllegalArgumentException("Invalid public key type");
+    }
 
     Signature signer = SignatureFactories.create(keyType, current.getPrivate());
     Objects.requireNonNull(signer);
@@ -104,19 +106,19 @@ public class PublicKeyAuth extends AbstractLogger
      * check whether the signature is correct.
      */
     byte[] data = Bytes.concat(
-        LengthBytesBuilder.concat(session.getId()),
+        Bytes.addLen(session.getRawId()),
         new byte[] {SshMessage.SSH_MSG_USERAUTH_REQUEST},
-        LengthBytesBuilder.concat(user, service, "publickey"),
-        LengthBytesBuilder.concat(true),
-        LengthBytesBuilder.concat(keyType),
-        LengthBytesBuilder.concat(blob)
+        Bytes.joinWithLength(user, service, "publickey"),
+        Bytes.toArray(true),
+        Bytes.addLen(keyType),
+        Bytes.addLen(blob)
     );
 
     signer.update(data);
 
     byte[] sig = Bytes.concat(
-        LengthBytesBuilder.concat(algo),
-        LengthBytesBuilder.concat(signer.sign())
+        Bytes.addLen(algo),
+        Bytes.addLen(signer.sign())
     );
 
     session.requestUserAuthRequest(user, service, method, algo, pubKey, sig);

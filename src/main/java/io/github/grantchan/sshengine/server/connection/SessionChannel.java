@@ -8,6 +8,7 @@ import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -169,7 +170,7 @@ public class SessionChannel extends AbstractChannel {
 
       TtyMode mode = TtyMode.from(opcode);
       if (mode != null) {
-        ttyModes.put(mode, (int) Bytes.nl(modes, i, Integer.BYTES));
+        ttyModes.put(mode, (int) Bytes.readBigEndian(modes, i, Integer.BYTES));
       } else {
         logger.warn("[{}] Unsupported tty mode - opcode: {}", this, opcode);
       }
@@ -215,4 +216,42 @@ public class SessionChannel extends AbstractChannel {
 
     return true;
   }
+
+  @Override
+  public void handleData(ByteBuf req) throws IOException {
+
+    /*
+     * Data transfer is done with messages of the following type.
+     *
+     *    byte      SSH_MSG_CHANNEL_DATA
+     *    uint32    recipient channel
+     *    string    data
+     *
+     * The maximum amount of data allowed is determined by the maximum
+     * packet size for the channel, and the current window size, whichever
+     * is smaller.  The window size is decremented by the amount of data
+     * sent.  Both parties MAY ignore all extra data sent after the allowed
+     * window is empty.
+     *
+     * Implementations are expected to have some limit on the SSH transport
+     * layer packet size (any limit for received packets MUST be 32768 bytes
+     * or larger, as described in [SSH-TRANS]).  The implementation of the
+     * SSH connection layer
+     *
+     * o  MUST NOT advertise a maximum packet size that would result in
+     *    transport packets larger than its transport layer is willing to
+     *    receive.
+     *
+     * o  MUST NOT generate data packets larger than its transport layer is
+     *    willing to send, even if the remote end would be willing to accept
+     *    very large packets.
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc4254#section-5.2">Data Transfer</a>
+     */
+    if (!isOpen()) {
+      logger.debug("[{}] The channel is not open, handleData ignored", this);
+    }
+
+  }
+
 }

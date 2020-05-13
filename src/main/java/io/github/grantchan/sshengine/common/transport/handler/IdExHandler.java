@@ -1,16 +1,14 @@
 package io.github.grantchan.sshengine.common.transport.handler;
 
-import io.github.grantchan.sshengine.common.transport.kex.KexInitProposal;
+import io.github.grantchan.sshengine.arch.SshConstant;
+import io.github.grantchan.sshengine.common.transport.kex.KexProposal;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
-import io.github.grantchan.sshengine.util.buffer.LengthBytesBuilder;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ByteProcessor;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Objects;
-
-import static io.github.grantchan.sshengine.arch.SshConstant.MSG_KEX_COOKIE_SIZE;
 
 public interface IdExHandler extends SessionHolder {
 
@@ -108,19 +106,20 @@ public interface IdExHandler extends SessionHolder {
   static byte[] kexInit() {
     SecureRandom rand = new SecureRandom();
 
-    byte[] cookie = new byte[MSG_KEX_COOKIE_SIZE];
+    byte[] cookie = new byte[SshConstant.MSG_KEX_COOKIE_SIZE];
     rand.nextBytes(cookie);
 
-    LengthBytesBuilder lbb = new LengthBytesBuilder();
-    KexInitProposal.ALL.forEach(p -> {
-      lbb.append(p.getProposals().get());
-    });
+    int i = 0;
+    String[] pp = new String[KexProposal.ALL.size()];
+    for (KexProposal p : KexProposal.ALL) {
+      pp[i++] = p.getProposals().get();
+    }
 
     return Bytes.concat(
         cookie,
-        lbb.toBytes(),
+        Bytes.joinWithLength(pp),
         new byte[]{0},  // first factory packet follows
-        Bytes.htonl(0)  // reserved (FFU)
+        Bytes.toBigEndian(0)  // reserved (FFU)
     );
   }
 }
