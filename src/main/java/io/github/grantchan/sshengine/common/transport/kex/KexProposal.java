@@ -23,7 +23,7 @@ public enum KexProposal implements NamedObject {
   LANGUAGE_C2S    (Param.LANGUAGE_C2S,    "Language C2S",     () -> ""),
   LANGUAGE_S2C    (Param.LANGUAGE_S2C,    "Language S2C",     () -> "");
 
-  public final static Set<KexProposal> ALL = EnumSet.allOf(KexProposal.class);
+  public static final Set<KexProposal> ALL = EnumSet.allOf(KexProposal.class);
 
   private int id;
   private String name;

@@ -26,8 +26,8 @@ public abstract class AbstractSession extends AbstractLogger
   /** the network connection between client and server */
   protected Channel channel;
 
-  private final static Set<AbstractSession> sessions = new CopyOnWriteArraySet<>();
-  private final static ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
+  private static final Set<AbstractSession> sessions = new CopyOnWriteArraySet<>();
+  private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
 
   static {
     timer.scheduleAtFixedRate(() -> {

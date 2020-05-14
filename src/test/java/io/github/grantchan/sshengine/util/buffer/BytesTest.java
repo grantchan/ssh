@@ -4,6 +4,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.*;
@@ -168,6 +169,42 @@ public class BytesTest {
                                   null,
                                   null
                                 ));
+  }
+
+  @Test
+  public void testJoinBigInteger() {
+    byte[] expected = {
+        (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+
+        (byte) 1,
+
+        (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+
+        (byte) 0
+    };
+
+    assertArrayEquals(expected, Bytes.joinWithLength(BigInteger.ONE, BigInteger.ZERO));
+
+    expected = new byte[] {
+        (byte) 0, (byte) 0, (byte) 0, (byte) 27,
+
+        (byte) 4, (byte) 94, (byte) -75, (byte) 10, (byte) 8, (byte) 3, (byte) 2, (byte) 21,
+        (byte) -18, (byte) 22, (byte) 50, (byte) 60, (byte) 65, (byte) 108, (byte) 86, (byte) 45,
+        (byte) -112, (byte) -59, (byte) 46, (byte) -128, (byte) 90, (byte) 35, (byte) -57, (byte) -27,
+        (byte) -122, (byte) 41, (byte) 76,
+
+        (byte) 0, (byte) 0, (byte) 0, (byte) 27,
+
+        (byte) 20, (byte) 119, (byte) -102, (byte) 119, (byte) -87, (byte) 46, (byte) 32, (byte) -88,
+        (byte) -32, (byte) 58, (byte) 10, (byte) -72, (byte) -61, (byte) -11, (byte) 115, (byte) -102,
+        (byte) -20, (byte) -30, (byte) -22, (byte) -40, (byte) 78, (byte) 117, (byte) 34, (byte) -60,
+        (byte) -108, (byte) -38, (byte) -42
+    };
+
+    assertArrayEquals(expected, Bytes.joinWithLength(
+            new BigInteger("1797693134862315907708391567937874531978602960487560117064444236"),
+            new BigInteger("8419718021615851936894783379586492554150218056548598050364644054"))
+        );
   }
 
   @Test

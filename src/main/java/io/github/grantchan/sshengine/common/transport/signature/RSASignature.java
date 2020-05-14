@@ -1,6 +1,5 @@
 package io.github.grantchan.sshengine.common.transport.signature;
 
-import com.sun.xml.internal.txw2.IllegalSignatureException;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -37,7 +36,7 @@ public class RSASignature extends Signature {
   @Override
   public boolean verify(byte[] sig) throws SignatureException {
     if (sig == null) {
-      throw new IllegalSignatureException("Empty signature data");
+      throw new SignatureException("Empty signature data");
     }
 
     /*

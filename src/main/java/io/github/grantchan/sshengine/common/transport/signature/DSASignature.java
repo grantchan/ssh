@@ -1,6 +1,5 @@
 package io.github.grantchan.sshengine.common.transport.signature;
 
-import com.sun.xml.internal.txw2.IllegalSignatureException;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
@@ -12,8 +11,8 @@ import java.util.Objects;
 
 public class DSASignature extends Signature {
 
-  private final int DSA_SIGNATURE_LENGTH = 40;
-  private final int BLOB_STRING_LENGTH = 20;
+  private static final int DSA_SIGNATURE_LENGTH = 40;
+  private static final int BLOB_STRING_LENGTH = 20;
 
   public DSASignature(Key key) {
     this("SHA1withDSA", key);
@@ -26,7 +25,7 @@ public class DSASignature extends Signature {
   @Override
   public boolean verify(byte[] sig) throws SignatureException {
     if (sig == null) {
-      throw new IllegalSignatureException("Empty signature data");
+      throw new SignatureException("Empty signature data");
     }
 
     /*
@@ -67,14 +66,15 @@ public class DSASignature extends Signature {
    * The whole buffer is formatted as:<br/>
    * 0x02 [actual length of signature] 0x00 [signature trimmed zero in front]
    */
-  private byte[] encode(byte[] data, int off, int len) {
+  private byte[] encode(byte[] data, int off, int len) throws SignatureException {
     while (len > 0 && data[off] == 0) {
       ++off;
       --len;
     }
 
     if (len <= 0) {
-      throw new IllegalSignatureException("Invalid signature length, length: " + len);
+      throw new SignatureException("Invalid signature length - length should be bigger than zero," +
+          " actual: " + len);
     }
 
     boolean needPad = (data[off] & 0x80) != 0;
