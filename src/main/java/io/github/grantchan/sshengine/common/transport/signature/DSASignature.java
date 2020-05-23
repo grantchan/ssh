@@ -73,7 +73,7 @@ public class DSASignature extends Signature {
     }
 
     if (len <= 0) {
-      throw new SignatureException("Invalid signature length - length should be bigger than zero," +
+      throw new SignatureException("Invalid signature length - it must be bigger than zero," +
           " actual: " + len);
     }
 

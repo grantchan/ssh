@@ -1,7 +1,6 @@
 package io.github.grantchan.sshengine.common.transport.kex;
 
 import io.github.grantchan.sshengine.util.buffer.Bytes;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.math.BigInteger;
 import java.security.spec.ECFieldFp;
@@ -334,7 +333,7 @@ public enum ECurve {
 
     if (buf[i] != 0x04) {
       if (buf[i] == 0x02 || buf[i] == 0x03) {
-        throw new NotImplementedException();  // only support uncompress data
+        throw new UnsupportedOperationException("Compress data is not supported at this moment");
       } else {
         throw new IllegalArgumentException("Unknown ECPoint data compression: " + buf[i]);
       }
