@@ -123,6 +123,7 @@ public class ReqHandler extends AbstractReqHandler {
     super.handleNewKeys(req);
 
     KexGroup kexGroup = Objects.requireNonNull(getKexGroup(), "Kex handler is not initialized");
+
     /*
      * RFC 4253:
      * The client sends SSH_MSG_NEWKEYS:

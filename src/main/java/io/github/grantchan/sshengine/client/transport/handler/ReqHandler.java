@@ -184,7 +184,7 @@ public class ReqHandler extends AbstractReqHandler {
   public void handleNewKeys(ByteBuf req) throws SshException {
     super.handleNewKeys(req);
 
-    KexGroup kexGroup = Objects.requireNonNull(getKexGroup(), "Kex handler is not initalized");
+    KexGroup kexGroup = Objects.requireNonNull(getKexGroup(), "Kex handler is not initialized");
 
     /*
      * RFC 4253:

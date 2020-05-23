@@ -197,6 +197,24 @@ public abstract class AbstractSession extends AbstractLogger
     this.s2cCipher = s2cCipher;
   }
 
+  /**
+   * <p>For caller to obtain the cipher object, it simplifies the function call by abstracting the
+   * session type, client or server. The server session should return the C2S cipher, while the
+   * client session should return the S2C cipher.</p>
+   *
+   * @return the cipher object for incoming packet.
+   */
+  public abstract Cipher getInCipher();
+
+  /**
+   * <p>For caller to obtain the cipher object, it simplifies the function call by abstracting the
+   * session type, client or server. The server session should return the S2C cipher, while the
+   * client session should return the C2S cipher.</p>
+   *
+   * @return the cipher object for outgoing packet.
+   */
+  public abstract Cipher getOutCipher();
+
   // Size of the cipher initial vector from client to server
   /** Returns the size of initial vector of the cipher from client to server */
   public int getC2sCipherSize() {
@@ -216,6 +234,28 @@ public abstract class AbstractSession extends AbstractLogger
   public void setS2cCipherSize(int s2cCipherSize) {
     this.s2cCipherSize = s2cCipherSize;
   }
+
+  /**
+   * By abstracting the session type - client or server, this method simplifies the function to get
+   * the cipher block size.
+   *
+   * <p>For server session, it should return the C2S cipher block size, since C2S is the incoming
+   * direction, while client session, it should return the S2C cipher block size.</p>
+   *
+   * @return the block size of the incoming cipher
+   */
+  public abstract int getInCipherBlkSize();
+
+  /**
+   * By abstracting the session type - client or server, this method simplifies the function to get
+   * the cipher block size.
+   *
+   * <p>For server session, it should return the S2C cipher block size, since S2C is the outgoing
+   * direction, while client session, it should return the C2S cipher block size.</p>
+   *
+   * @return the block size of the outgoing cipher
+   */
+  public abstract int getOutCipherBlkSize();
 
   /*
    * MAC
@@ -240,6 +280,28 @@ public abstract class AbstractSession extends AbstractLogger
     this.s2cMac = s2cMac;
   }
 
+  /**
+   * By abstracting the session type - client or server, this method simplifies the function to get
+   * the MAC object.
+   *
+   * <p>For server session, it should return the C2S MAC, since C2S is the incoming direction, while
+   * client session, it should return the S2C MAC.</p>
+   *
+   * @return the MAC object for incoming packet
+   */
+  public abstract Mac getInMac();
+
+  /**
+   * By abstracting the session type - client or server, this method simplifies the function to get
+   * the MAC object.
+   *
+   * <p>For server session, it should return the S2C MAC, since S2C is the outgoing direction, while
+   * client session, it should return the C2S MAC.</p>
+   *
+   * @return the Mac object for outgoing packet
+   */
+  public abstract Mac getOutMac();
+
   // Size of the MAC's block from client to server
   /** Returns the block size of the MAC for packet from client to server */
   public int getC2sMacSize() {
@@ -260,6 +322,28 @@ public abstract class AbstractSession extends AbstractLogger
     this.s2cMacSize = s2cMacSize;
   }
 
+  /**
+   * By abstracting the session type - client or server, this method simplifies the function to get
+   * the MAC size.
+   *
+   * <p>For server session, it should return the C2S MAC size, since C2S is the incoming direction,
+   * while client session, it should return the S2C MAC size.</p>
+   *
+   * @return the MAC size for incoming MAC
+   */
+  public abstract int getInMacSize();
+
+  /**
+   * By abstracting the session type - client or server, this method simplifies the function to get
+   * the MAC size.
+   *
+   * <p>For server session, it should return the S2C MAC size, since S2C is the outgoing direction,
+   * while client session, it should return the C2S MAC size.</p>
+   *
+   * @return the Mac size for outgoing MAC
+   */
+  public abstract int getOutMacSize();
+
   // Default size of the MAC's block from client to server
   /** Returns the default block size of the MAC for packet from client to server */
   public int getC2sDefMacSize() {
@@ -279,6 +363,17 @@ public abstract class AbstractSession extends AbstractLogger
   public void setS2cDefMacSize(int s2cDefMacSize) {
     this.s2cDefMacSize = s2cDefMacSize;
   }
+
+  /**
+   * By abstracting the session type - client or server, this method simplifies the function to get
+   * the default MAC size.
+   *
+   * <p>For server session, it should return the S2C default MAC size, since S2C is the outgoing
+   * direction, while client session, it should return the C2S default MAC size.</p>
+   *
+   * @return the default Mac size for outgoing MAC
+   */
+  public abstract int getOutDefMacSize();
 
   /*
    * Compression
@@ -302,6 +397,28 @@ public abstract class AbstractSession extends AbstractLogger
   public void setS2cCompression(Compression s2cCompression) {
     this.s2cCompression = s2cCompression;
   }
+
+  /**
+   * By abstracting the session type - client or server, this method simplifies the function to get
+   * the compression object.
+   *
+   * <p>For server session, it should return the C2S compression, since C2S is the incoming
+   * direction, while client session, it should return the S2C compression.</p>
+   *
+   * @return the compression object for incoming packet
+   */
+  public abstract Compression getInCompression();
+
+  /**
+   * By abstracting the session type - client or server, this method simplifies the function to get
+   * the compression object.
+   *
+   * <p>For server session, it should return the S2C compression, since S2C is the outgoing
+   * direction, while client session, it should return the C2S compression.</p>
+   *
+   * @return the compression object for outgoing packet
+   */
+  public abstract Compression getOutCompression();
 
   public boolean isAuthed() {
     return isAuthed;
@@ -479,12 +596,12 @@ public abstract class AbstractSession extends AbstractLogger
   /**
    * Creates a {@link ByteBuf} object to represent a SSH message.
    */
-  protected ByteBuf createMessage(byte messageId) {
+  protected ByteBuf createMessage(byte msgId) {
     ByteBuf msg = createBuffer();
 
     msg.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
     msg.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-    msg.writeByte(messageId);
+    msg.writeByte(msgId);
 
     return msg;
   }

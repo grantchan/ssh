@@ -2,16 +2,74 @@ package io.github.grantchan.sshengine.server;
 
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.AbstractSession;
+import io.github.grantchan.sshengine.common.transport.compression.Compression;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 
+import javax.crypto.Cipher;
+import javax.crypto.Mac;
 import java.math.BigInteger;
 
 public class ServerSession extends AbstractSession {
 
   public ServerSession(Channel channel) {
     super(channel);
+  }
+
+  @Override
+  public Cipher getInCipher() {
+    return getC2sCipher();
+  }
+
+  @Override
+  public Cipher getOutCipher() {
+    return getS2cCipher();
+  }
+
+  @Override
+  public int getInCipherBlkSize() {
+    return getC2sCipherSize();
+  }
+
+  @Override
+  public int getOutCipherBlkSize() {
+    return getS2cCipherSize();
+  }
+
+  @Override
+  public Mac getInMac() {
+    return getC2sMac();
+  }
+
+  @Override
+  public Mac getOutMac() {
+    return getS2cMac();
+  }
+
+  @Override
+  public int getInMacSize() {
+    return getC2sMacSize();
+  }
+
+  @Override
+  public int getOutMacSize() {
+    return getS2cMacSize();
+  }
+
+  @Override
+  public int getOutDefMacSize() {
+    return getS2cDefMacSize();
+  }
+
+  @Override
+  public Compression getInCompression() {
+    return getC2sCompression();
+  }
+
+  @Override
+  public Compression getOutCompression() {
+    return getS2cCompression();
   }
 
   /**
