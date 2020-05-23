@@ -2,6 +2,7 @@ package io.github.grantchan.sshengine.common.transport.handler;
 
 import io.github.grantchan.sshengine.arch.SshConstant;
 import io.github.grantchan.sshengine.arch.SshMessage;
+import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.SshException;
 import io.github.grantchan.sshengine.common.transport.compression.Compression;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
@@ -59,11 +60,12 @@ public interface PacketDecoder extends SessionHolder {
     //    otherwise, return null.
     // 2. decode the rest of the buffer
     //
+    AbstractSession session = getSession();
 
     if (step.get() == 0 && cipher != null) {
       StringBuilder sb = new StringBuilder();
       ByteBufUtil.appendPrettyHexDump(sb, msg);
-      logger.debug("[{}] Encrypted packet received: \n{}", getSession(), sb.toString());
+      logger.debug("[{}] Encrypted packet received: \n{}", session, sb.toString());
 
       // decrypt the first block of the packet
       msg.setBytes(rIdx, cipher.update(buf, 0, cipherSize));
@@ -78,7 +80,7 @@ public interface PacketDecoder extends SessionHolder {
 
     if (len < SshConstant.SSH_PACKET_HEADER_LENGTH || len > SshConstant.SSH_PACKET_MAX_LENGTH) {
       // It's an invalid packet if it's less than 5 bytes or bigger than 256k bytes
-      logger.error("[{}] Illegal packet to decode - invalid packet length: {}", getSession(), len);
+      logger.error("[{}] Illegal packet to decode - invalid packet length: {}", session, len);
 
       throw new SshException(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
           "Invalid packet length: " + len);
@@ -101,8 +103,7 @@ public interface PacketDecoder extends SessionHolder {
       // 2. subtracting a block size
       int cipLen = SSH_PACKET_LENGTH + len - cipherSize;
       if (cipLen > 0) {
-        msg.setBytes(rIdx + cipherSize,
-            cipher.update(buf, rIdx + cipherSize, cipLen));
+        msg.setBytes(rIdx + cipherSize, cipher.update(buf, rIdx + cipherSize, cipLen));
       }
     }
 
@@ -122,7 +123,7 @@ public interface PacketDecoder extends SessionHolder {
       // Go through the MAC segment, which is at the end of the packet, to verify
       while (i-- > 0) {
         if (macBlk[j++] != buf[k++]) {
-          logger.error("[{}] Failed to verify the packet at position: {}", getSession(), k - 1);
+          logger.error("[{}] Failed to verify the packet at position: {}", session, k - 1);
 
           throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR, "MAC Error");
         }
@@ -137,21 +138,21 @@ public interface PacketDecoder extends SessionHolder {
     ByteBuf packet;
 
     Compression compression = getCompression();
-    if (compression != null && getSession().isAuthed() && len > 0) {
+    if (compression != null && session.isAuthed() && len > 0) {
       byte[] zipped = new byte[len];
       msg.readBytes(zipped);
       byte[] unzipped = compression.decompress(zipped);
 
-      packet = getSession().createBuffer(unzipped.length);
+      packet = session.createBuffer(unzipped.length);
 
       packet.writeBytes(unzipped);
 
       StringBuilder sb = new StringBuilder();
       ByteBufUtil.appendPrettyHexDump(sb, packet);
-      logger.debug("[{}] Decompressed packet ({} -> {} bytes): \n{}",
-          getSession(), zipped.length, unzipped.length, sb.toString());
+      logger.debug("[{}] Decompressed packet ({} -> {} bytes): \n{}", session, zipped.length,
+          unzipped.length, sb.toString());
     } else {
-      packet = getSession().createBuffer(len);
+      packet = session.createBuffer(len);
 
       msg.readBytes(packet);
     }

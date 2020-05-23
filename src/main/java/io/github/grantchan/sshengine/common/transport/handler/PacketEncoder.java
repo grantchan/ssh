@@ -1,5 +1,6 @@
 package io.github.grantchan.sshengine.common.transport.handler;
 
+import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.transport.compression.Compression;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
@@ -36,8 +37,9 @@ public interface PacketEncoder extends SessionHolder {
     int len = msg.readableBytes();
     int off = msg.readerIndex() - SSH_PACKET_HEADER_LENGTH;
 
+    AbstractSession session = getSession();
     Compression comp = getCompression();
-    if (comp != null && getSession().isAuthed() && len > 0) {
+    if (comp != null && session.isAuthed() && len > 0) {
       byte[] plain = new byte[len];
       msg.readBytes(plain);
 
@@ -45,7 +47,7 @@ public interface PacketEncoder extends SessionHolder {
       msg.writerIndex(SSH_PACKET_HEADER_LENGTH);
 
       byte[] zipped = comp.compress(plain);
-      logger.debug("[{}] Compressed packet: ({} -> {} bytes)", getSession(), plain.length,
+      logger.debug("[{}] Compressed packet: ({} -> {} bytes)", session, plain.length,
           zipped.length);
 
       msg.writeBytes(zipped);
@@ -94,7 +96,7 @@ public interface PacketEncoder extends SessionHolder {
     if (cipher != null) {
       StringBuilder sb = new StringBuilder();
       ByteBufUtil.appendPrettyHexDump(sb, msg);
-      logger.debug("[{}] Packet before encryption: \n{}", getSession(), sb.toString());
+      logger.debug("[{}] Packet before encryption: \n{}", session, sb.toString());
 
       byte[] tmp = new byte[len + 4 - off];
       msg.getBytes(off, tmp);
