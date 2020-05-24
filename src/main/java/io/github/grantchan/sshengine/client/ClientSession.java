@@ -26,18 +26,38 @@ public class ClientSession extends AbstractSession {
   }
 
   @Override
+  public void setInCipher(Cipher inCipher) {
+    setS2cCipher(inCipher);
+  }
+
+  @Override
   public Cipher getOutCipher() {
     return getC2sCipher();
   }
 
   @Override
+  public void setOutCipher(Cipher outCipher) {
+    setC2sCipher(outCipher);
+  }
+
+  @Override
   public int getInCipherBlkSize() {
-    return getS2cCipherSize();
+    return getS2cCipherBlkSize();
+  }
+
+  @Override
+  public void setInCipherBlkSize(int inCipherBlkSize) {
+    setS2cCipherBlkSize(inCipherBlkSize);
   }
 
   @Override
   public int getOutCipherBlkSize() {
-    return getC2sCipherSize();
+    return getC2sCipherBlkSize();
+  }
+
+  @Override
+  public void setOutCipherBlkSize(int outCipherBlkSize) {
+    setC2sCipherBlkSize(outCipherBlkSize);
   }
 
   @Override
@@ -46,8 +66,18 @@ public class ClientSession extends AbstractSession {
   }
 
   @Override
+  public void setInMac(Mac inMac) {
+    setS2cMac(inMac);
+  }
+
+  @Override
   public Mac getOutMac() {
     return getC2sMac();
+  }
+
+  @Override
+  public void setOutMac(Mac outMac) {
+    setC2sMac(outMac);
   }
 
   @Override
@@ -56,8 +86,23 @@ public class ClientSession extends AbstractSession {
   }
 
   @Override
+  public void setInMacSize(int inMacSize) {
+    setS2cMacSize(inMacSize);
+  }
+
+  @Override
   public int getOutMacSize() {
     return getC2sMacSize();
+  }
+
+  @Override
+  public void setOutMacSize(int outMacSize) {
+    setC2sMacSize(outMacSize);
+  }
+
+  @Override
+  public void setInDefMacSize(int inDefMacSize) {
+    setS2cDefMacSize(inDefMacSize);
   }
 
   @Override
@@ -66,8 +111,18 @@ public class ClientSession extends AbstractSession {
   }
 
   @Override
+  public void setOutDefMacSize(int outDefMacSize) {
+    setC2sDefMacSize(outDefMacSize);
+  }
+
+  @Override
   public Compression getInCompression() {
     return getS2cCompression();
+  }
+
+  @Override
+  public void setInCompression(Compression inCompression) {
+    setS2cCompression(inCompression);
   }
 
   @Override
@@ -75,6 +130,10 @@ public class ClientSession extends AbstractSession {
     return getC2sCompression();
   }
 
+  @Override
+  public void setOutCompression(Compression outCompression) {
+    setC2sCompression(outCompression);
+  }
 
   /**
    * Sends the {@link SshMessage#SSH_MSG_KEXDH_INIT} message to the server
@@ -89,6 +148,11 @@ public class ClientSession extends AbstractSession {
     logger.debug("[{}] Requesting SSH_MSG_KEXDH_INIT...", this);
 
     channel.writeAndFlush(req);
+  }
+
+  @Override
+  public void replyAccept(String svcName) {
+    throw new UnsupportedOperationException("Client is not capable of replying accept message");
   }
 
   /**

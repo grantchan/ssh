@@ -98,13 +98,13 @@ public class PacketCodecTest {
 
       // Set up cipher setting in client session
       Cipher clientC2sCip = cipFactories.create(secretKey, iv, Cipher.ENCRYPT_MODE);
-      clientSession.setC2sCipher(clientC2sCip);
-      clientSession.setC2sCipherSize(cipFactories.getIvSize());
+      clientSession.setOutCipher(clientC2sCip);
+      clientSession.setOutCipherBlkSize(cipFactories.getIvSize());
 
       // Set up cipher setting in server session
       Cipher serverC2sCip = cipFactories.create(secretKey, iv, Cipher.DECRYPT_MODE);
-      serverSession.setC2sCipher(serverC2sCip);
-      serverSession.setC2sCipherSize(cipFactories.getIvSize());
+      serverSession.setInCipher(serverC2sCip);
+      serverSession.setInCipherBlkSize(cipFactories.getIvSize());
     }
 
     byte[] macKey;
@@ -115,24 +115,24 @@ public class PacketCodecTest {
 
       // Set up MAC setting in client session
       Mac clientC2sMac = macFactories.create(macKey);
-      clientSession.setC2sMac(clientC2sMac);
-      clientSession.setC2sMacSize(macFactories.getBlkSize());
-      clientSession.setC2sDefMacSize(macFactories.getDefBlkSize());
+      clientSession.setOutMac(clientC2sMac);
+      clientSession.setOutMacSize(macFactories.getBlkSize());
+      clientSession.setOutDefMacSize(macFactories.getDefBlkSize());
 
       // Setup MAC setting in server session
       Mac serverC2sMac = macFactories.create(macKey);
-      serverSession.setC2sMac(serverC2sMac);
-      serverSession.setC2sMacSize(macFactories.getBlkSize());
-      serverSession.setC2sDefMacSize(macFactories.getDefBlkSize());
+      serverSession.setInMac(serverC2sMac);
+      serverSession.setInMacSize(macFactories.getBlkSize());
+      serverSession.setInDefMacSize(macFactories.getDefBlkSize());
     }
 
     if (compFactories != null) {
       Compression clientComp = compFactories.create();
-      clientSession.setC2sCompression(clientComp);
+      clientSession.setOutCompression(clientComp);
       clientSession.setAuthed(true);
 
       Compression serverComp = compFactories.create();
-      serverSession.setC2sCompression(serverComp);
+      serverSession.setInCompression(serverComp);
       serverSession.setAuthed(true);
     }
   }

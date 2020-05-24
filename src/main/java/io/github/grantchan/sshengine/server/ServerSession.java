@@ -23,18 +23,38 @@ public class ServerSession extends AbstractSession {
   }
 
   @Override
+  public void setInCipher(Cipher inCipher) {
+    setC2sCipher(inCipher);
+  }
+
+  @Override
   public Cipher getOutCipher() {
     return getS2cCipher();
   }
 
   @Override
+  public void setOutCipher(Cipher outCipher) {
+    setS2cCipher(outCipher);
+  }
+
+  @Override
   public int getInCipherBlkSize() {
-    return getC2sCipherSize();
+    return getC2sCipherBlkSize();
+  }
+
+  @Override
+  public void setInCipherBlkSize(int inBlkSize) {
+    setC2sCipherBlkSize(inBlkSize);
   }
 
   @Override
   public int getOutCipherBlkSize() {
-    return getS2cCipherSize();
+    return getS2cCipherBlkSize();
+  }
+
+  @Override
+  public void setOutCipherBlkSize(int outBlkSize) {
+    setS2cCipherBlkSize(outBlkSize);
   }
 
   @Override
@@ -43,8 +63,18 @@ public class ServerSession extends AbstractSession {
   }
 
   @Override
+  public void setInMac(Mac inMac) {
+    setC2sMac(inMac);
+  }
+
+  @Override
   public Mac getOutMac() {
     return getS2cMac();
+  }
+
+  @Override
+  public void setOutMac(Mac outMac) {
+    setS2cMac(outMac);
   }
 
   @Override
@@ -53,8 +83,23 @@ public class ServerSession extends AbstractSession {
   }
 
   @Override
+  public void setInMacSize(int inMacSize) {
+    setC2sMacSize(inMacSize);
+  }
+
+  @Override
   public int getOutMacSize() {
     return getS2cMacSize();
+  }
+
+  @Override
+  public void setOutMacSize(int outMacSize) {
+    setS2cMacSize(outMacSize);
+  }
+
+  @Override
+  public void setInDefMacSize(int inDefMacSize) {
+    setC2sDefMacSize(inDefMacSize);
   }
 
   @Override
@@ -63,13 +108,28 @@ public class ServerSession extends AbstractSession {
   }
 
   @Override
+  public void setOutDefMacSize(int outDefMacSize) {
+    setS2cDefMacSize(outDefMacSize);
+  }
+
+  @Override
   public Compression getInCompression() {
     return getC2sCompression();
   }
 
   @Override
+  public void setInCompression(Compression inCompression) {
+    setC2sCompression(inCompression);
+  }
+
+  @Override
   public Compression getOutCompression() {
     return getS2cCompression();
+  }
+
+  @Override
+  public void setOutCompression(Compression outCompression) {
+    setS2cCompression(outCompression);
   }
 
   /**
@@ -122,6 +182,16 @@ public class ServerSession extends AbstractSession {
     logger.debug("[{}] Replying SSH_MSG_KEX_DH_GEX_REPLY...", this);
 
     channel.writeAndFlush(reply);
+  }
+
+  @Override
+  public void requestUserAuthRequest(String user, String service, String method) {
+    throw new UnsupportedOperationException("Server doesn't support sending user auth request");
+  }
+
+  @Override
+  public void requestServiceRequest() {
+    throw new UnsupportedOperationException("Server doesn't support sending service request");
   }
 
   /**

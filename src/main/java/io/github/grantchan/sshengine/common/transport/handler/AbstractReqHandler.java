@@ -23,7 +23,14 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
+  protected AbstractSession session;
+
   private KexGroup kexGroup;
+
+  @Override
+  public AbstractSession getSession() {
+    return session;
+  }
 
   @Override
   public KexGroup getKexGroup() {

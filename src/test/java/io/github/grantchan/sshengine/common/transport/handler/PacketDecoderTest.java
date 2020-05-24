@@ -1,6 +1,7 @@
 package io.github.grantchan.sshengine.common.transport.handler;
 
 import io.github.grantchan.sshengine.arch.SshMessage;
+import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.SshException;
 import io.github.grantchan.sshengine.server.ServerSession;
 import io.netty.buffer.ByteBuf;
@@ -30,8 +31,8 @@ public class PacketDecoderTest {
     thrown.expect(hasProperty("reason"));
     thrown.expect(hasProperty("reason", is(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR)));
 
-    ServerSession session = Mockito.mock(ServerSession.class);
-    Mockito.when(session.getC2sCipherSize()).thenReturn(8);
+    AbstractSession session = Mockito.mock(ServerSession.class);
+    Mockito.when(session.getInCipherBlkSize()).thenReturn(8);
     Mockito.when(session.createBuffer()).thenReturn(Unpooled.buffer());
 
     ChannelHandlerContext ctx = Mockito.mock(ChannelHandlerContext.class);

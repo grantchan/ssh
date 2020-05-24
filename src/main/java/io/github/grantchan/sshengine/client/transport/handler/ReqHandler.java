@@ -40,18 +40,11 @@ public class ReqHandler extends AbstractReqHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private ClientSession session;
-
   private ByteBuf accrued;
   private String username;
 
   public ReqHandler(String username) {
     this.username = username;
-  }
-
-  @Override
-  public AbstractSession getSession() {
-    return session;
   }
 
   @Override
@@ -256,8 +249,8 @@ public class ReqHandler extends AbstractReqHandler {
     e_c2s = hashKey(e_c2s, c2sCf.getBlkSize(), k, id, md);
     Cipher c2sCip = Objects.requireNonNull(c2sCf.create(e_c2s, iv_c2s, Cipher.ENCRYPT_MODE));
 
-    session.setC2sCipher(c2sCip);
-    session.setC2sCipherSize(c2sCf.getIvSize());
+    session.setOutCipher(c2sCip);
+    session.setOutCipherBlkSize(c2sCf.getIvSize());
 
     // server to client cipher
     CipherFactories s2cCf;
@@ -265,10 +258,11 @@ public class ReqHandler extends AbstractReqHandler {
     e_s2c = hashKey(e_s2c, s2cCf.getBlkSize(), k, id, md);
     Cipher s2cCip = Objects.requireNonNull(s2cCf.create(e_s2c, iv_s2c, Cipher.DECRYPT_MODE));
 
-    session.setS2cCipher(s2cCip);
-    session.setS2cCipherSize(s2cCf.getIvSize());
+    session.setInCipher(s2cCip);
+    session.setInCipherBlkSize(s2cCf.getIvSize());
 
-    logger.debug("[{}] Session Cipher(C2S): {}, Session Cipher(S2C): {}", session, c2sCf, s2cCf);
+    logger.debug("[{}] Session Cipher(outgoing): {}, Session Cipher(incoming): {}", session, c2sCf,
+        s2cCf);
 
     // MAC
     // client to server MAC
@@ -279,9 +273,9 @@ public class ReqHandler extends AbstractReqHandler {
       throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR,
           "Unsupported C2S MAC: " + kp.get(KexProposal.Param.MAC_C2S));
     }
-    session.setC2sMac(c2sMac);
-    session.setC2sMacSize(c2sMf.getBlkSize());
-    session.setC2sDefMacSize(c2sMf.getDefBlkSize());
+    session.setOutMac(c2sMac);
+    session.setOutMacSize(c2sMf.getBlkSize());
+    session.setOutDefMacSize(c2sMf.getDefBlkSize());
 
     // server to client MAC
     MacFactories s2cMf;
@@ -291,26 +285,27 @@ public class ReqHandler extends AbstractReqHandler {
       throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR,
           "Unsupported S2C MAC: " + kp.get(KexProposal.Param.MAC_S2C));
     }
-    session.setS2cMac(s2cMac);
-    session.setS2cMacSize(s2cMf.getBlkSize());
-    session.setS2cDefMacSize(s2cMf.getDefBlkSize());
+    session.setInMac(s2cMac);
+    session.setInMacSize(s2cMf.getBlkSize());
+    session.setInDefMacSize(s2cMf.getDefBlkSize());
 
-    logger.debug("[{}] Session MAC(C2S): {}, Sesson MAC(S2C): {}",session, c2sMf, s2cMf);
+    logger.debug("[{}] Session MAC(outgoing): {}, Session MAC(incoming): {}",session, c2sMf, s2cMf);
 
     // Compression
     // client to server compression
     CompressionFactories c2sCmf;
     c2sCmf = Objects.requireNonNull(CompressionFactories.from(kp.get(KexProposal.Param.COMPRESSION_C2S)));
     Compression c2sCompression = c2sCmf.create();
-    session.setC2sCompression(c2sCompression);
+    session.setOutCompression(c2sCompression);
 
     // server to client compression
     CompressionFactories s2cCmf;
     s2cCmf = Objects.requireNonNull(CompressionFactories.from(kp.get(KexProposal.Param.COMPRESSION_S2C)));
     Compression s2cCompression = s2cCmf.create();
-    session.setS2cCompression(s2cCompression);
+    session.setInCompression(s2cCompression);
 
-    logger.debug("[{}] Session Compression(C2S): {}, Session Compression(S2C): {}", session, c2sCmf, s2cCmf);
+    logger.debug("[{}] Session Compression(outgoing): {}, Session Compression(incoming): {}",
+        session, c2sCmf, s2cCmf);
 
     session.requestServiceRequest();
   }

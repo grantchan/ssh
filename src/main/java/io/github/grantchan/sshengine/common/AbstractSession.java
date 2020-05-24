@@ -21,7 +21,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractSession extends AbstractLogger
-                              implements UsernameHolder {
+                                      implements UsernameHolder {
 
   /** the network connection between client and server */
   protected Channel channel;
@@ -67,9 +67,9 @@ public abstract class AbstractSession extends AbstractLogger
   private Cipher s2cCipher;
 
   /** Cipher initial vector size for packet from client to server */
-  private int c2sCipherSize = 8;
+  private int c2sCipherBlkSize = 8;
   /** Cipher initial vector size for packet from server to client */
-  private int s2cCipherSize = 8;
+  private int s2cCipherBlkSize = 8;
 
   /*
    * MAC - Message authentication code, a piece of information used to authenticate a message
@@ -179,21 +179,21 @@ public abstract class AbstractSession extends AbstractLogger
    */
   // Cipher from client to server
   /** Returns the cipher object used for packet comes from client to server */
-  public Cipher getC2sCipher() {
+  protected Cipher getC2sCipher() {
     return c2sCipher;
   }
   /** Replaces the cipher object used for packet comes from client to server */
-  public void setC2sCipher(Cipher c2sCipher) {
+  protected void setC2sCipher(Cipher c2sCipher) {
     this.c2sCipher = c2sCipher;
   }
 
   // Cipher from server to client
   /** Returns the cipher object used for packet comes from server to client */
-  public Cipher getS2cCipher() {
+  protected Cipher getS2cCipher() {
     return s2cCipher;
   }
   /** Replaces the cipher object used for packet comes from server to client */
-  public void setS2cCipher(Cipher s2cCipher) {
+  protected void setS2cCipher(Cipher s2cCipher) {
     this.s2cCipher = s2cCipher;
   }
 
@@ -206,6 +206,8 @@ public abstract class AbstractSession extends AbstractLogger
    */
   public abstract Cipher getInCipher();
 
+  public abstract void setInCipher(Cipher inCipher);
+
   /**
    * <p>For caller to obtain the cipher object, it simplifies the function call by abstracting the
    * session type, client or server. The server session should return the S2C cipher, while the
@@ -215,24 +217,26 @@ public abstract class AbstractSession extends AbstractLogger
    */
   public abstract Cipher getOutCipher();
 
+  public abstract void setOutCipher(Cipher outCipher);
+
   // Size of the cipher initial vector from client to server
   /** Returns the size of initial vector of the cipher from client to server */
-  public int getC2sCipherSize() {
-    return c2sCipherSize;
+  protected int getC2sCipherBlkSize() {
+    return c2sCipherBlkSize;
   }
   /** Replaces the size of initial vector of the cipher from client to server */
-  public void setC2sCipherSize(int c2sCipherSize) {
-    this.c2sCipherSize = c2sCipherSize;
+  protected void setC2sCipherBlkSize(int c2sCipherBlkSize) {
+    this.c2sCipherBlkSize = c2sCipherBlkSize;
   }
 
   // Size of the cipher initial vector from server to client
   /** Returns the size of initial vector of the cipher from server to client */
-  public int getS2cCipherSize() {
-    return s2cCipherSize;
+  protected int getS2cCipherBlkSize() {
+    return s2cCipherBlkSize;
   }
   /** Replaces the size of initial vector of the cipher from server to client */
-  public void setS2cCipherSize(int s2cCipherSize) {
-    this.s2cCipherSize = s2cCipherSize;
+  protected void setS2cCipherBlkSize(int s2cCipherBlkSize) {
+    this.s2cCipherBlkSize = s2cCipherBlkSize;
   }
 
   /**
@@ -246,6 +250,8 @@ public abstract class AbstractSession extends AbstractLogger
    */
   public abstract int getInCipherBlkSize();
 
+  public abstract void setInCipherBlkSize(int inCipherBlkSize);
+
   /**
    * By abstracting the session type - client or server, this method simplifies the function to get
    * the cipher block size.
@@ -257,26 +263,28 @@ public abstract class AbstractSession extends AbstractLogger
    */
   public abstract int getOutCipherBlkSize();
 
+  public abstract void setOutCipherBlkSize(int outCipherBlkSize);
+
   /*
    * MAC
    */
   // MAC from client to server
   /** Returns the MAC object, which is used for authenticating packet from client to server */
-  public Mac getC2sMac() {
+  protected Mac getC2sMac() {
     return c2sMac;
   }
   /** Replaces the MAC object, which is used for authenticating packet from client to server */
-  public void setC2sMac(Mac c2sMac) {
+  protected void setC2sMac(Mac c2sMac) {
     this.c2sMac = c2sMac;
   }
 
   // MAC from server to client
   /** Returns the MAC object, which is used for authenticating packet from server to client */
-  public Mac getS2cMac() {
+  protected Mac getS2cMac() {
     return s2cMac;
   }
   /** Replaces the MAC object, which is used for authenticating packet from server to client */
-  public void setS2cMac(Mac s2cMac) {
+  protected void setS2cMac(Mac s2cMac) {
     this.s2cMac = s2cMac;
   }
 
@@ -291,6 +299,8 @@ public abstract class AbstractSession extends AbstractLogger
    */
   public abstract Mac getInMac();
 
+  public abstract void setInMac(Mac inMac);
+
   /**
    * By abstracting the session type - client or server, this method simplifies the function to get
    * the MAC object.
@@ -302,23 +312,25 @@ public abstract class AbstractSession extends AbstractLogger
    */
   public abstract Mac getOutMac();
 
+  public abstract void setOutMac(Mac outMac);
+
   // Size of the MAC's block from client to server
   /** Returns the block size of the MAC for packet from client to server */
-  public int getC2sMacSize() {
+  protected int getC2sMacSize() {
     return c2sMacSize;
   }
   /** Replaces the block size of the MAC for packet from client to server */
-  public void setC2sMacSize(int c2sMacSize) {
+  protected void setC2sMacSize(int c2sMacSize) {
     this.c2sMacSize = c2sMacSize;
   }
 
   // Size of the MAC's block from server to client
   /** Returns the block size of the MAC for packet from server to client */
-  public int getS2cMacSize() {
+  protected int getS2cMacSize() {
     return s2cMacSize;
   }
   /** Replaces the block size of the MAC for packet from server to client */
-  public void setS2cMacSize(int s2cMacSize) {
+  protected void setS2cMacSize(int s2cMacSize) {
     this.s2cMacSize = s2cMacSize;
   }
 
@@ -333,6 +345,8 @@ public abstract class AbstractSession extends AbstractLogger
    */
   public abstract int getInMacSize();
 
+  public abstract void setInMacSize(int inMacSize);
+
   /**
    * By abstracting the session type - client or server, this method simplifies the function to get
    * the MAC size.
@@ -344,25 +358,29 @@ public abstract class AbstractSession extends AbstractLogger
    */
   public abstract int getOutMacSize();
 
+  public abstract void setOutMacSize(int outMacSize);
+
   // Default size of the MAC's block from client to server
   /** Returns the default block size of the MAC for packet from client to server */
-  public int getC2sDefMacSize() {
+  protected int getC2sDefMacSize() {
     return c2sDefMacSize;
   }
   /** Replaces the default block size of the MAC for packet from client to server */
-  public void setC2sDefMacSize(int c2sDefMacSize) {
+  protected void setC2sDefMacSize(int c2sDefMacSize) {
     this.c2sDefMacSize = c2sDefMacSize;
   }
 
   // Default size of the MAC's block from server to client
   /** Returns the default block size of the MAC for packet from server to client */
-  public int getS2cDefMacSize() {
+  protected int getS2cDefMacSize() {
     return s2cDefMacSize;
   }
   /** Replaces the default block size of the MAC for packet from server to client */
-  public void setS2cDefMacSize(int s2cDefMacSize) {
+  protected void setS2cDefMacSize(int s2cDefMacSize) {
     this.s2cDefMacSize = s2cDefMacSize;
   }
+
+  public abstract void setInDefMacSize(int inDefMacSize);
 
   /**
    * By abstracting the session type - client or server, this method simplifies the function to get
@@ -375,26 +393,28 @@ public abstract class AbstractSession extends AbstractLogger
    */
   public abstract int getOutDefMacSize();
 
+  public abstract void setOutDefMacSize(int outDefMacSize);
+
   /*
    * Compression
    */
   // Compression from client to server
   /** Returns the compression object for packet packet from client to server */
-  public Compression getC2sCompression() {
+  protected Compression getC2sCompression() {
     return c2sCompression;
   }
   /** Replaces the compression object for packet packet from client to server */
-  public void setC2sCompression(Compression c2sCompression) {
+  protected void setC2sCompression(Compression c2sCompression) {
     this.c2sCompression = c2sCompression;
   }
 
   // Compression from server to client
   /** Returns the compression object for packet packet from server to client */
-  public Compression getS2cCompression() {
+  protected Compression getS2cCompression() {
     return s2cCompression;
   }
   /** Replaces the compression object for packet packet from server to client */
-  public void setS2cCompression(Compression s2cCompression) {
+  protected void setS2cCompression(Compression s2cCompression) {
     this.s2cCompression = s2cCompression;
   }
 
@@ -409,6 +429,8 @@ public abstract class AbstractSession extends AbstractLogger
    */
   public abstract Compression getInCompression();
 
+  public abstract void setInCompression(Compression inCompression);
+
   /**
    * By abstracting the session type - client or server, this method simplifies the function to get
    * the compression object.
@@ -419,6 +441,9 @@ public abstract class AbstractSession extends AbstractLogger
    * @return the compression object for outgoing packet
    */
   public abstract Compression getOutCompression();
+
+  public abstract void setOutCompression(Compression outCompression);
+
 
   public boolean isAuthed() {
     return isAuthed;
@@ -503,6 +528,10 @@ public abstract class AbstractSession extends AbstractLogger
     }
 */
   }
+
+  public abstract void requestUserAuthRequest(String username, String service, String method);
+
+  public abstract void requestServiceRequest();
 
   /**
    * Sends the {@link SshMessage#SSH_MSG_KEX_DH_GEX_GROUP} message to the client, along with p and g
@@ -639,6 +668,8 @@ public abstract class AbstractSession extends AbstractLogger
           "Bad service requested - '" + name + "'");
     }
   }
+
+  public abstract void replyAccept(String svcName);
 
   public Service getService() {
     return this.service;
