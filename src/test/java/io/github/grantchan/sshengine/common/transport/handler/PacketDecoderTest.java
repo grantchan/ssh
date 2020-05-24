@@ -3,7 +3,6 @@ package io.github.grantchan.sshengine.common.transport.handler;
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.SshException;
 import io.github.grantchan.sshengine.server.ServerSession;
-import io.github.grantchan.sshengine.server.transport.handler.ServerPacketDecoder;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -40,7 +39,7 @@ public class PacketDecoderTest {
     ByteBuf packet = Unpooled.buffer();
     packet.writeBytes(new byte[9]);
 
-    ServerPacketDecoder decoder = new ServerPacketDecoder(session);
+    PacketDecoder decoder = new PacketDecoder(session);
     decoder.handlerAdded(ctx);
 
     decoder.channelRead(ctx, packet);

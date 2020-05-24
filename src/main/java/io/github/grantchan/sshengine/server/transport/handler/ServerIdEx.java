@@ -2,6 +2,8 @@ package io.github.grantchan.sshengine.server.transport.handler;
 
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.AbstractSession;
+import io.github.grantchan.sshengine.common.transport.handler.PacketEncoder;
+import io.github.grantchan.sshengine.common.transport.handler.PacketDecoder;
 import io.github.grantchan.sshengine.common.transport.handler.IdExHandler;
 import io.github.grantchan.sshengine.server.ServerSession;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
@@ -88,15 +90,15 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter
       LoggingHandler logHandler = cp.get(LoggingHandler.class);
       cp.remove(LoggingHandler.class);
 
-      cp.addLast(new ServerPacketDecoder(session),  /* First step for incoming packet - decode */
-                 logHandler,                        /* In debug mode, second step for both incoming
-                                                       & outgoing packet:
-                                                       # if receiving, print the decoded packet in
-                                                         hexadecimal format
-                                                       # if sending, print the encoded packet in
-                                                         hexadecimal format */
-                 new ReqHandler(session),           /* request handler */
-                 new ServerPacketEncoder(session)); /* First step for outgoing packet - encode */
+      cp.addLast(new PacketDecoder(session),  /* First step for incoming packet - decode */
+                 logHandler,                  /* In debug mode, second step for both incoming
+                                                 & outgoing packet:
+                                                 # if receiving, print the decoded packet in
+                                                   hexadecimal format
+                                                 # if sending, print the encoded packet in
+                                                   hexadecimal format */
+                 new ReqHandler(session),     /* request handler */
+                 new PacketEncoder(session)); /* First step for outgoing packet - encode */
       cp.remove(this);
 
       byte[] ki = IdExHandler.kexInit();

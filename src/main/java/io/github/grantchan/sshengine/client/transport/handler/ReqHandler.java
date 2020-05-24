@@ -7,6 +7,8 @@ import io.github.grantchan.sshengine.common.SshException;
 import io.github.grantchan.sshengine.common.transport.cipher.CipherFactories;
 import io.github.grantchan.sshengine.common.transport.compression.Compression;
 import io.github.grantchan.sshengine.common.transport.compression.CompressionFactories;
+import io.github.grantchan.sshengine.common.transport.handler.PacketEncoder;
+import io.github.grantchan.sshengine.common.transport.handler.PacketDecoder;
 import io.github.grantchan.sshengine.common.transport.handler.AbstractReqHandler;
 import io.github.grantchan.sshengine.common.transport.handler.IdExHandler;
 import io.github.grantchan.sshengine.common.transport.kex.Kex;
@@ -107,8 +109,8 @@ public class ReqHandler extends AbstractReqHandler {
     ctx.writeAndFlush(Unpooled.wrappedBuffer((session.getClientId() + "\r\n")
                                                      .getBytes(StandardCharsets.UTF_8)));
 
-    ctx.pipeline().addFirst(new ClientPacketDecoder(session));
-    ctx.pipeline().addLast(new ClientPacketEncoder(session));
+    ctx.pipeline().addFirst(new PacketDecoder(session));
+    ctx.pipeline().addLast(new PacketEncoder(session));
 
     byte[] ki = IdExHandler.kexInit();
     session.setRawC2sKex(Bytes.concat(new byte[] {SshMessage.SSH_MSG_KEXINIT}, ki));

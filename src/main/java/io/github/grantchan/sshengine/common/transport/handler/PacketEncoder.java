@@ -17,13 +17,25 @@ import javax.crypto.Mac;
 import java.security.SecureRandom;
 import java.util.concurrent.atomic.AtomicLong;
 
-public abstract class AbstractPacketEncoder extends ChannelOutboundHandlerAdapter
-                                            implements SessionHolder {
+public class PacketEncoder extends ChannelOutboundHandlerAdapter
+                           implements SessionHolder {
 
-  public static final Logger logger = LoggerFactory.getLogger(AbstractPacketEncoder.class);
+  private static final Logger logger = LoggerFactory.getLogger(PacketEncoder.class);
 
   private static final SecureRandom rand = new SecureRandom();
+
+  private final AbstractSession session;
+
   private AtomicLong seq = new AtomicLong(0); // packet sequence number
+
+  public PacketEncoder(AbstractSession session) {
+    this.session = session;
+  }
+
+  @Override
+  public AbstractSession getSession() {
+    return session;
+  }
 
   @Override
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
@@ -35,8 +47,6 @@ public abstract class AbstractPacketEncoder extends ChannelOutboundHandlerAdapte
   private ByteBuf encode(ByteBuf msg) {
     int len = msg.readableBytes();
     int off = msg.readerIndex() - SshConstant.SSH_PACKET_HEADER_LENGTH;
-
-    AbstractSession session = getSession();
 
     Compression comp = session.getOutCompression();
     if (comp != null && session.isAuthed() && len > 0) {

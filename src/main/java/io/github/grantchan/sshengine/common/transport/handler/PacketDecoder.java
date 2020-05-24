@@ -16,25 +16,34 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static io.github.grantchan.sshengine.arch.SshConstant.SSH_PACKET_LENGTH;
 
-public abstract class AbstractPacketDecoder extends ChannelInboundHandlerAdapter
-                                            implements SessionHolder {
+public class PacketDecoder extends ChannelInboundHandlerAdapter
+                                   implements SessionHolder {
 
-  public static final Logger logger = LoggerFactory.getLogger(AbstractPacketDecoder.class);
+  private static final Logger logger = LoggerFactory.getLogger(PacketDecoder.class);
+
+  private final AbstractSession session;
 
   private ByteBuf accrued;
 
   private AtomicInteger step = new AtomicInteger(0);
   private AtomicLong seq = new AtomicLong(0); // packet sequence number
 
+  public PacketDecoder(AbstractSession session) {
+    this.session = session;
+  }
+
+  @Override
+  public AbstractSession getSession() {
+    return session;
+  }
+
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) {
-    AbstractSession session = Objects.requireNonNull(getSession(), "Session is not initialized");
     accrued = session.createBuffer();
   }
 
