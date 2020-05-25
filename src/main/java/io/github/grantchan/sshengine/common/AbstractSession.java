@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractSession extends AbstractLogger
                                       implements UsernameHolder {
+  private static final int DEFAULT_BUFFER_SIZE = 256;
 
   /** the network connection between client and server */
   protected Channel channel;
@@ -607,7 +608,7 @@ public abstract class AbstractSession extends AbstractLogger
    * @see #createBuffer(int)
    */
   public ByteBuf createBuffer() {
-    return createBuffer(256);
+    return createBuffer(DEFAULT_BUFFER_SIZE);
   }
 
   /**
@@ -674,7 +675,106 @@ public abstract class AbstractSession extends AbstractLogger
   public Service getService() {
     return this.service;
   }
+  
+  /**
+   * RFC 4254:<br/>
+   * Data transfer is done with messages of the following type.
+   * <pre>
+   *    byte      SSH_MSG_CHANNEL_DATA
+   *    uint32    recipient channel
+   *    string    data
+   * </pre>
+   *
+   * <p>
+   * The maximum amount of data allowed is determined by the maximum
+   * packet size for the channel, and the current window size, whichever
+   * is smaller.  The window size is decremented by the amount of data
+   * sent.  Both parties MAY ignore all extra data sent after the allowed
+   * window is empty.
+   * </p>
+   *
+   * <p>
+   * Implementations are expected to have some limit on the SSH transport
+   * layer packet size (any limit for received packets MUST be 32768 bytes
+   * or larger, as described in [SSH-TRANS]).  The implementation of the
+   * SSH connection layer
+   * <ul>
+   *   <li>MUST NOT advertise a maximum packet size that would result in
+   *    transport packets larger than its transport layer is willing to
+   *    receive.</li>
+   *   <li>MUST NOT generate data packets larger than its transport layer is
+   *    willing to send, even if the remote end would be willing to accept
+   *    very large packets.
+   * </ul>
+   * </p>
+   * @see <a href="https://tools.ietf.org/html/rfc4254#section-5.2">Data Transfer</a>
+   */
+  public void replyChannelData(int recipient, byte[] data, int off, int len) {
+    ByteBuf cd = createMessage(SshMessage.SSH_MSG_CHANNEL_DATA);
 
+    cd.writeInt(recipient);
+    cd.writeInt(data.length);
+    cd.writeBytes(data, off, len);
+
+    channel.writeAndFlush(cd);
+  }
+
+  /**
+   * RFC 4254:<br/>
+   * Additionally, some channels can transfer several types of data.  An
+   * example of this is stderr data from interactive sessions.  Such data
+   * can be passed with SSH_MSG_CHANNEL_EXTENDED_DATA messages, where a
+   * separate integer specifies the type of data.  The available types and
+   * their interpretation depend on the type of channel.
+   * <pre>
+   *    byte      SSH_MSG_CHANNEL_EXTENDED_DATA
+   *    uint32    recipient channel
+   *    uint32    data_type_code
+   *    string    data
+   * </pre>
+   *
+   * <p>
+   * Data sent with these messages consumes the same window as ordinary
+   * data.
+   * </p>
+   *
+   * <p>
+   * Currently, only the following type is defined.  Note that the value
+   * for the 'data_type_code' is given in decimal format for readability,
+   * but the values are actually uint32 values.
+   * <pre>
+   *             Symbolic name                  data_type_code
+   *             -------------                  --------------
+   *           SSH_EXTENDED_DATA_STDERR               1
+   * </pre>
+   * </p>
+   * <p>
+   * Extended Channel Data Transfer 'data_type_code' values MUST be
+   * assigned sequentially.  Requests for assignments of new Extended
+   * Channel Data Transfer 'data_type_code' values and their associated
+   * Extended Channel Data Transfer 'data' strings, in the range of
+   * 0x00000002 to 0xFDFFFFFF, MUST be done through the IETF CONSENSUS
+   * method as described in [RFC2434].  The IANA will not assign Extended
+   * Channel Data Transfer 'data_type_code' values in the range of
+   * 0xFE000000 to 0xFFFFFFFF.  Extended Channel Data Transfer
+   * 'data_type_code' values in that range are left for PRIVATE USE, as
+   * described in [RFC2434].  As is noted, the actual instructions to the
+   * IANA are in [SSH-NUMBERS].
+   * </p>
+   *
+   * @see <a href="https://tools.ietf.org/html/rfc4254#section-5.2">Data Transfer</a>
+   */
+  public void replyChannelExtendedData(int recipient, byte[] data, int off, int len) {
+    ByteBuf ced = createMessage(SshMessage.SSH_MSG_CHANNEL_EXTENDED_DATA);
+
+    ced.writeInt(recipient);
+    ced.writeInt(SshConstant.SSH_EXTENDED_DATA_STDERR);
+    ced.writeInt(data.length);
+    ced.writeBytes(data, off, len);
+
+    channel.writeAndFlush(ced);
+  }
+  
   @Override
   public String toString() {
     return getUsername() + "@" + getRemoteAddress();
