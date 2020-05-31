@@ -3,7 +3,6 @@ package io.github.grantchan.sshengine.util.buffer;
 import io.github.grantchan.sshengine.util.publickey.PublicKeyUtil;
 import io.netty.buffer.ByteBuf;
 
-import javax.activation.UnsupportedDataTypeException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -172,7 +171,7 @@ public final class ByteBufIo {
 
     byte[] keyBytes = PublicKeyUtil.bytesOf(pubKey);
     if (keyBytes == null) {
-      throw new UnsupportedDataTypeException("Unsupported public key type - " + pubKey.getAlgorithm());
+      throw new UnsupportedOperationException("Unsupported public key type - " + pubKey.getAlgorithm());
     }
 
     buf.writeBytes(keyBytes);

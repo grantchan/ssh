@@ -9,9 +9,8 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <java.major.version>1</java.major.version>
-        <java.minor.version>8</java.minor.version>
-        <javac.source>${java.major.version}.${java.minor.version}</javac.source>
+        <java.version>11</java.version>
+        <javac.source>${java.version}</javac.source>
         <javac.target>${javac.source}</javac.target>
         <slf4j.version>1.7.25</slf4j.version>
         <netty.version>4.1.42.Final</netty.version>
@@ -70,6 +69,8 @@
                     <fork>true</fork>
                     <compilerArgs>
                         <arg>-XDignore.symbol.file</arg>
+                        <arg>--add-exports=java.base/sun.security.provider=ALL-UNNAMED</arg>
+                        <arg>--add-exports=java.base/sun.security.util=ALL-UNNAMED</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
