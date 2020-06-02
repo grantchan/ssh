@@ -46,7 +46,7 @@ public abstract class AbstractChannel extends AbstractLogger
     return session;
   }
 
-  protected int getPeerId() {
+  public int getPeerId() {
     return peerId;
   }
 
@@ -94,8 +94,8 @@ public abstract class AbstractChannel extends AbstractLogger
   }
 
   @Override
-  public boolean isOpen() {
-    return state.get() == State.OPENED;
+  public boolean isClosed() {
+    return state.get() != State.OPENED;
   }
 
   /**
@@ -126,6 +126,7 @@ public abstract class AbstractChannel extends AbstractLogger
         future.complete(true);
       }
     });
+
     return future;
   }
 

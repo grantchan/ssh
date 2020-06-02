@@ -2,8 +2,10 @@ package io.github.grantchan.sshengine.common.connection;
 
 import io.github.grantchan.sshengine.util.LazySupplier;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -134,5 +136,17 @@ public enum TtyMode {
 
   public static TtyMode from(int opcode) {
     return MODE_INDEX.get().get(opcode);
+  }
+
+  public static Set<TtyMode> filterOptions(Map<TtyMode, ?> modes, Set<TtyMode> options) {
+    if (modes == null || modes.isEmpty() || options == null || options.isEmpty()) {
+      return Collections.emptySet();
+    }
+
+    return options.stream()
+        .filter(e -> {
+          Object v = modes.get(e);
+          return v instanceof Number && ((Number)v).intValue() != 0;
+        }).collect(Collectors.toSet());
   }
 }

@@ -9,6 +9,7 @@ import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,16 +20,27 @@ public class SessionChannel extends AbstractChannel {
 
   private final Map<TtyMode, Integer> ttyModes = new ConcurrentHashMap<>();
 
+  private TtyProcessShell shell;
+
   public SessionChannel(AbstractSession session) {
     super(session);
   }
 
   @Override
   public void doOpen(int rwndsize, int rpksize) throws Exception {
+    super.doOpen(rwndsize, rpksize);
+
     localWnd = new Window(this);
     remoteWnd = new Window(this, rwndsize, rpksize);
+  }
 
-    super.doOpen(rwndsize, rpksize);
+  @Override
+  protected void doClose() throws Exception {
+    super.doClose();
+
+    if (shell != null) {
+      shell.shutdown();
+    }
   }
 
   @Override
@@ -146,7 +158,7 @@ public class SessionChannel extends AbstractChannel {
      * The client SHOULD ignore pty requests.
      */
 
-    if (!isOpen()) {
+    if (isClosed()) {
       logger.debug("[{}] The channel is not open, request(pytreq) ignored", this);
 
       return false;
@@ -202,9 +214,11 @@ public class SessionChannel extends AbstractChannel {
      *
      * This message will request that the user's default shell (typically
      * defined in /etc/passwd in UNIX systems) be started at the other end.
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc4254#section-6.2">Requesting a Pseudo-Terminal</a>
      */
 
-    if (!isOpen()) {
+    if (isClosed()) {
       logger.debug("[{}] The channel is not open, request(shell) ignored", this);
 
       return false;
@@ -213,6 +227,19 @@ public class SessionChannel extends AbstractChannel {
     boolean wantReply = req.readBoolean();
 
     logger.debug("[{}] Received shell request. want reply:{}", this, wantReply);
+
+    shell = new TtyProcessShell(System.in,
+                                new ChannelOutputStream(this, false),
+                                new ChannelOutputStream(this, true),
+                                "/bin/sh", "-i", "-l");
+
+    // extra TTY mode for putty client
+    Map<TtyMode, Integer> modes = new HashMap<>(ttyModes);
+    modes.put(TtyMode.ECHO, 1);
+    modes.put(TtyMode.ICRNL, 1);
+    modes.put(TtyMode.ONLCR, 1);
+
+    shell.start(modes);
 
     return true;
   }
@@ -248,10 +275,9 @@ public class SessionChannel extends AbstractChannel {
      *
      * @see <a href="https://tools.ietf.org/html/rfc4254#section-5.2">Data Transfer</a>
      */
-    if (!isOpen()) {
+    if (isClosed()) {
       logger.debug("[{}] The channel is not open, handleData ignored", this);
     }
-
   }
 
 }

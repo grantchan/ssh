@@ -69,7 +69,7 @@ public interface Channel extends IdHolder, SessionHolder {
   /**
    * @return {@code true} if the channel is open, otherwise {@code false}
    */
-  boolean isOpen();
+  boolean isClosed();
 
   /**
    * @return the local window
