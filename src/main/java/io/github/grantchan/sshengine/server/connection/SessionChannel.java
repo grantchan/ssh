@@ -20,6 +20,8 @@ public class SessionChannel extends AbstractChannel {
 
   private final Map<TtyMode, Integer> ttyModes = new ConcurrentHashMap<>();
 
+  private final ChannelInputStream dataSink = new ChannelInputStream();
+
   private TtyProcessShell shell;
 
   public SessionChannel(AbstractSession session) {
@@ -228,7 +230,7 @@ public class SessionChannel extends AbstractChannel {
 
     logger.debug("[{}] Received shell request. want reply:{}", this, wantReply);
 
-    shell = new TtyProcessShell(System.in,
+    shell = new TtyProcessShell(dataSink,
                                 new ChannelOutputStream(this, false),
                                 new ChannelOutputStream(this, true),
                                 "/bin/sh", "-i", "-l");
@@ -275,9 +277,14 @@ public class SessionChannel extends AbstractChannel {
      *
      * @see <a href="https://tools.ietf.org/html/rfc4254#section-5.2">Data Transfer</a>
      */
+    byte[] data = ByteBufIo.readBytes(req);
+    logger.debug("[{}] SSH_MSG_CHANNEL_DATA len = {}", this, data.length);
+
     if (isClosed()) {
       logger.debug("[{}] The channel is not open, handleData ignored", this);
+      return;
     }
-  }
 
+    dataSink.write(data);
+  }
 }

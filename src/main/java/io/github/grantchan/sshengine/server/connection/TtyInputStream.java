@@ -7,7 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-public class TtyInputStream extends FilterInputStream {
+public class TtyInputStream extends FilterInputStream
+                            implements WritableStream {
 
   private static final Set<TtyMode> MODE_OPTIONS =
       Collections.unmodifiableSet(EnumSet.of(TtyMode.ONLCR, TtyMode.OCRNL, TtyMode.ONLRET, TtyMode.ONOCR));
@@ -29,14 +30,9 @@ public class TtyInputStream extends FilterInputStream {
     this.CR = modes.contains(TtyMode.OCRNL) ? (int) '\n' : (int) '\r';
   }
 
+  @Override
   public void write(int b) {
     fifo.add((byte) b);
-  }
-
-  public void write(byte[] buf, int off, int len) {
-    for (int i = off; i < off + len; i++) {
-      fifo.add(buf[i]);
-    }
   }
 
   @Override

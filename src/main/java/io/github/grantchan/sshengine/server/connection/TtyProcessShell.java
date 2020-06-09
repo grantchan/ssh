@@ -72,7 +72,7 @@ public class TtyProcessShell extends AbstractLogger {
           break;
         }
 
-        Thread.sleep(500);
+        Thread.sleep(50);
       }
       shutdown();
     } catch (Exception e) {
