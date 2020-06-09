@@ -26,7 +26,17 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter
 
   private final AbstractSession session;
 
-  private AtomicLong seq = new AtomicLong(0); // packet sequence number
+  /** Packet sequence number */
+  private AtomicLong seq = new AtomicLong(0);
+
+  /** Total number of bytes of the packet sent */
+  private AtomicLong bytesOfPacket = new AtomicLong(0);
+
+  /** Total number of bytes of compressed data sent */
+  private AtomicLong bytesOfZippedData = new AtomicLong(0);
+
+  /** Total number of bytes of uncompressed data sent or data before being compressed */
+  private AtomicLong bytesOfData = new AtomicLong(0);
 
   public PacketEncoder(AbstractSession session) {
     this.session = session;
@@ -48,6 +58,8 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter
     int len = msg.readableBytes();
     int off = msg.readerIndex() - SshConstant.SSH_PACKET_HEADER_LENGTH;
 
+    bytesOfData.addAndGet(len);
+
     Compression comp = session.getOutCompression();
     if (comp != null && session.isAuthed() && len > 0) {
       byte[] plain = new byte[len];
@@ -62,6 +74,8 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter
 
       msg.writeBytes(zipped);
       len = msg.readableBytes();
+
+      bytesOfZippedData.addAndGet(len);
     }
 
     // Calculate padding length
@@ -104,9 +118,11 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter
 
     Cipher cipher = session.getOutCipher();
     if (cipher != null) {
-      StringBuilder sb = new StringBuilder();
-      ByteBufUtil.appendPrettyHexDump(sb, msg);
-      logger.debug("[{}] Packet before encryption: \n{}", session, sb.toString());
+      if (logger.isDebugEnabled()) {
+        StringBuilder sb = new StringBuilder();
+        ByteBufUtil.appendPrettyHexDump(sb, msg);
+        logger.debug("[{}] Packet before encryption: \n{}", session, sb.toString());
+      }
 
       byte[] tmp = new byte[len + 4 - off];
       msg.getBytes(off, tmp);
@@ -114,7 +130,9 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter
       msg.setBytes(off, cipher.update(tmp));
     }
 
-    seq.set(seq.incrementAndGet() & 0xffffffffL);
+    seq.incrementAndGet();
+
+    bytesOfPacket.addAndGet(msg.readableBytes());
 
     return msg;
   }
