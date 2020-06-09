@@ -500,7 +500,7 @@ public abstract class AbstractSession extends AbstractLogger
   }
 
   /**
-   * Obtains the remote ip address where this channel is connected to.
+   * Obtains the remote ip address and port where this channel is connected to.
    */
   private String getRemoteAddress() {
     if (remoteAddr == null) {
@@ -508,7 +508,7 @@ public abstract class AbstractSession extends AbstractLogger
       if (sa instanceof InetSocketAddress) {
         InetSocketAddress isa = (InetSocketAddress) sa;
 
-        remoteAddr = isa.getAddress().getHostAddress();
+        remoteAddr = isa.getAddress().getHostAddress() + ":" + isa.getPort();
       } else {
         remoteAddr = sa.toString();
       }
