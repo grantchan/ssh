@@ -13,8 +13,6 @@ import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.github.grantchan.sshengine.util.publickey.PublicKeyUtil;
 import io.netty.buffer.ByteBuf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.security.*;
@@ -26,8 +24,6 @@ import static io.github.grantchan.sshengine.util.buffer.Bytes.sha256;
 
 public class ServerDhGroup extends AbstractLogger
                            implements KexGroup {
-
-  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final MessageDigest md;
 

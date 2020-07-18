@@ -29,13 +29,15 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter
   private ByteBuf accrued;
 
  /**
-  * An indicator remembers which decoding step is currently at.
+  * <p>An indicator remembers which decoding step is currently at.</p>
   *
-  * There are two decode steps:
-  * 1. decode the first block of the packet, the size of a block is the cipher size.
-  *    In the first block, we check if the packet is fully received, if yes, we move on to step 2,
-  *    otherwise, return null.
-  * 2. decode the rest of the buffer
+  * <p>There are two decode steps:</p>
+  * <ol>
+  *   <li>decode the first block of the packet, the size of a block is the cipher size.
+  *       In the first block, we check if the packet is fully received, if yes, we move on to step 2,
+  *       otherwise, return null.</li>
+  *   <li>decode the rest of the buffer</li>
+  * </ol>
   */
   private AtomicInteger step = new AtomicInteger(0);
 
@@ -111,7 +113,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter
     Cipher cipher = session.getInCipher();
     int blkSize = session.getInCipherBlkSize();
 
-    // Decrypt the first block if necessary
+    // Decrypt the first block, if necessary
     if (step.get() == 0 && cipher != null) {
       if (logger.isDebugEnabled()) {
         StringBuilder sb = new StringBuilder();

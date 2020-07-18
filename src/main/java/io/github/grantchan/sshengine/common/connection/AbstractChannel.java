@@ -11,20 +11,22 @@ import java.util.concurrent.atomic.AtomicReference;
 public abstract class AbstractChannel extends AbstractLogger
                                       implements Channel {
 
-  // Channel identifier
+  /** Channel identifier */
   private final int id;
 
+  /** The session that this channel belongs to */
   private final AbstractSession session;
 
+  /** The channel identifier used when talking to remote peer */
   private int peerId;
 
-  // The executor to run open/close tasks in asynchronous mode
+  /** The executor to run open/close tasks in asynchronous mode */
   private static final ExecutorService executor = Executors.newFixedThreadPool(3);
 
-  // Channel states
+  /** Channel states */
   protected enum State { OPENED, CLOSING, CLOSED }
 
-  // Current state, initially "Closed"
+  /** Current state, initiated "Closed" */
   private final AtomicReference<State> state = new AtomicReference<>(State.CLOSED);
 
   public AbstractChannel(AbstractSession session) {
@@ -46,35 +48,42 @@ public abstract class AbstractChannel extends AbstractLogger
     return session;
   }
 
+  /**
+   * @return the channel identifier of remote side
+   */
   public int getPeerId() {
     return peerId;
   }
 
+  /**
+   * Open a channel asynchronously
+   */
   @Override
   public CompletableFuture<Boolean> open(int peerId, int rwndsize, int rpksize) {
     CompletableFuture<Boolean> future = new CompletableFuture<>();
 
     executor.submit(() -> {
       if (state.compareAndSet(State.CLOSED, State.OPENED)) {
-        logger.debug("[{}] Channel is being opened...", this);
+        logger.debug("[{}] Channel ({}) is being opened...", session, this);
 
         try {
           this.peerId = peerId;
 
           doOpen(rwndsize, rpksize);
 
-          logger.debug("[{}] Channel is opened - {}", this, state.get());
+          logger.debug("[{}] Channel ({}) is opened - status:{}", session, this, state.get());
 
           future.complete(true);
         } catch (Exception e) {
           unRegister(id);
 
-          logger.debug("[{}] Failed to open channel - {}", this, state.get());
+          logger.debug("[{}] Failed to open channel ({}) - status:{}", session, this, state.get());
 
           future.completeExceptionally(e);
         }
       } else {
-        logger.debug("[{}] This channel is already opened - {}", this, state.get());
+        logger.debug("[{}] This channel ({}) is already opened - status:{}", session, this,
+            state.get());
 
         future.complete(true);
       }
@@ -94,8 +103,8 @@ public abstract class AbstractChannel extends AbstractLogger
   }
 
   @Override
-  public boolean isClosed() {
-    return state.get() != State.OPENED;
+  public boolean isOpen() {
+    return state.get() == State.OPENED;
   }
 
   /**
@@ -138,6 +147,8 @@ public abstract class AbstractChannel extends AbstractLogger
   protected void doClose() throws Exception {
     unRegister(this.id);  // In a session, once the channel is closed, its id will never be used
                           // again
+
+    logger.debug("[{}] channel ({}) is unregistered.", session, this);
 
     state.set(State.CLOSED);
   }
