@@ -43,6 +43,7 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
 
   /**
    * Deserialize the text format public key file into {@link PublicKey} array
+   *
    * @param authorizedKeysFile  public key file
    * @return                    Array of {@link PublicKey} parsed from {@code authorizedKeyFiles}
    */
@@ -107,7 +108,13 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
 
     String type = fields[0];
     Base64.Decoder base64 = Base64.getDecoder();
-    byte[] data = base64.decode(fields[1]);
+    byte[] data;
+    try {
+      data = base64.decode(fields[1]);
+    } catch (IllegalArgumentException e) {
+      logger.debug("Unable to parse key record - {}, ignored", line);
+      return null;
+    }
 
     PublicKeyDecoder<?> decoder = PublicKeyDecoder.ALL;
     if (!decoder.support(type)) {
