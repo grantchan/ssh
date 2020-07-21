@@ -24,7 +24,9 @@ public class TtyOutputStream extends FilterOutputStream {
   public TtyOutputStream(OutputStream out, TtyInputStream echo, Set<TtyMode> modes) {
     super(out);
 
-    this.echo = modes.contains(TtyMode.ECHO) ? Objects.requireNonNull(echo, "Invalid parameter - echo is null") : null;
+    this.echo = modes.contains(TtyMode.ECHO) ?
+        Objects.requireNonNull(echo, "Invalid parameter - echo is null") : null;
+
     this.modes = modes;
 
     if (modes.contains(TtyMode.ICRNL)) {

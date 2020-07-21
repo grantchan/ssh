@@ -26,6 +26,8 @@ public class TtyProcessShell extends AbstractLogger {
   private TtyInputStream ttyErr;
   private TtyOutputStream ttyOut;
 
+  private ExitCallback callback;
+
   private static final ExecutorService threadpool = Executors.newFixedThreadPool(5);
 
   public TtyProcessShell(InputStream in, OutputStream out, OutputStream err, String... cmds) {
@@ -51,6 +53,14 @@ public class TtyProcessShell extends AbstractLogger {
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  public String[] getCmds() {
+    return this.cmds;
+  }
+
+  public boolean isAlive() {
+    return process != null && process.isAlive();
   }
 
   private void drain() {
@@ -104,6 +114,10 @@ public class TtyProcessShell extends AbstractLogger {
     return false;
   }
 
+  public void setExitCallback(ExitCallback callback) {
+    this.callback = callback;
+  }
+
   public void shutdown() throws IOException {
     if (process != null) {
       process.destroy();
@@ -111,6 +125,12 @@ public class TtyProcessShell extends AbstractLogger {
 
     for (Closeable c : Arrays.asList(ttyIn, ttyOut, ttyErr)) {
       c.close();
+    }
+
+    // notify the session channel, owner of this process, that the process is going to shutdown,
+    // so that it can do some cleanup
+    if (process != null && callback != null) {
+      callback.onExit(process.exitValue());
     }
   }
 }

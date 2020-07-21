@@ -29,18 +29,23 @@ public class ConnectionService extends AbstractLogger
 
     switch (cmd) {
       case SshMessage.SSH_MSG_CHANNEL_OPEN:
-        handleChannelOpen(req);
+        channelOpen(req);
         break;
 
       case SshMessage.SSH_MSG_CHANNEL_DATA:
-        handleChannelData(req);
+        channelData(req);
+        break;
+
+      case SshMessage.SSH_MSG_CHANNEL_EOF:
+        channelEof(req);
         break;
 
       case SshMessage.SSH_MSG_CHANNEL_CLOSE:
+        channelClose(req);
         break;
 
       case SshMessage.SSH_MSG_CHANNEL_REQUEST:
-        handleChannelRequest(req);
+        channelRequest(req);
         break;
 
       case SshMessage.SSH_MSG_CHANNEL_SUCCESS:
@@ -54,7 +59,7 @@ public class ConnectionService extends AbstractLogger
     }
   }
 
-  private void handleChannelOpen(ByteBuf req) {
+  private void channelOpen(ByteBuf req) {
 
     /*
      * 5.1.  Open a Channel
@@ -102,7 +107,9 @@ public class ConnectionService extends AbstractLogger
              if (isOpened != null && isOpened) {
                Window wnd = channel.getLocalWindow();
 
-               session.replyChannelOpenConfirmation(peerId, channel.getId(), wnd.getSize(),
+               session.replyChannelOpenConfirmation(peerId,
+                                                    channel.getId(),
+                                                    wnd.getSize(),
                                                     wnd.getPacketSize());
              } else {
                // failed to open
@@ -119,7 +126,7 @@ public class ConnectionService extends AbstractLogger
            });
   }
 
-  private void handleChannelData(ByteBuf req) throws IOException {
+  private void channelData(ByteBuf req) throws IOException {
     int id = req.readInt();
 
     Channel channel = Channel.get(id);
@@ -130,7 +137,31 @@ public class ConnectionService extends AbstractLogger
     channel.handleData(req);
   }
 
-  private void handleChannelRequest(ByteBuf req) throws IOException {
+  private void channelEof(ByteBuf req) throws IOException {
+    int id = req.readInt();
+
+    Channel channel = Channel.get(id);
+    if (channel == null) {
+      logger.debug("[{}] Channel (id={}) not found, ignored", session, id);
+      return;
+    }
+
+    channel.handleEof(req);
+  }
+
+  private void channelClose(ByteBuf req) throws IOException {
+    int id = req.readInt();
+
+    Channel channel = Channel.get(id);
+    if (channel == null) {
+      logger.debug("[{}] Channel (id={}) not found, ignored", session, id);
+      return;
+    }
+
+    channel.handleClose(req);
+  }
+
+  private void channelRequest(ByteBuf req) throws IOException {
     int id = req.readInt();
 
     Channel channel = Channel.get(id);

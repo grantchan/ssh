@@ -19,6 +19,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractSession extends AbstractLogger
                                       implements UsernameHolder {
@@ -109,7 +110,7 @@ public abstract class AbstractSession extends AbstractLogger
    *  The active state of this session to indicate connection status.
    *  When the connection is established, it's true; when disconnected, false.
    */
-  private volatile boolean isActive = false;
+  private AtomicBoolean isActive = new AtomicBoolean(false);
 
   // constructor
   public AbstractSession(Channel channel) {
@@ -445,7 +446,6 @@ public abstract class AbstractSession extends AbstractLogger
 
   public abstract void setOutCompression(Compression outCompression);
 
-
   public boolean isAuthed() {
     return isAuthed;
   }
@@ -458,17 +458,20 @@ public abstract class AbstractSession extends AbstractLogger
     this.isAuthed = authed;
   }
 
-  /** Returns the connection state of this session, when connected, true; otherwise, false. */
-  public boolean isActive() {
-    return isActive;
-  }
-
   /** Sets the active state of the connection within this session */
   public void setActive(boolean isActive) {
-    this.isActive = isActive;
+    logger.debug("[{}] active state: {} -> {}", this, this.isActive.getAndSet(isActive), isActive);
+  }
+
+  private void checkActive(String funcName) {
+    if (!isActive.get()) {
+      logger.debug("[{}] {}, session is inactive, operation skipped", funcName, this);
+    }
   }
 
   public void sendKexInit(byte[] payload) {
+    checkActive("sendKexInit");
+
     ByteBuf buf = createMessage(SshMessage.SSH_MSG_KEXINIT);
 
     buf.writeBytes(payload);
@@ -490,6 +493,8 @@ public abstract class AbstractSession extends AbstractLogger
    * @see <a href="https://tools.ietf.org/html/rfc4253#section-11.1">Disconnection Message</a>
    */
   public void notifyDisconnect(int reason, String message) {
+    checkActive("notifyDisconnect");
+
     ByteBuf buf = createMessage(SshMessage.SSH_MSG_DISCONNECT);
 
     buf.writeInt(reason);
@@ -543,6 +548,8 @@ public abstract class AbstractSession extends AbstractLogger
    * @see <a href="https://tools.ietf.org/html/rfc4419#section-3">Diffie-Hellman Group and Key Exchange</a>
    */
   public void replyDhGexGroup(BigInteger p, BigInteger g) {
+    checkActive("replyDhGexGroup");
+
     ByteBuf pg = createMessage(SshMessage.SSH_MSG_KEX_DH_GEX_GROUP);
 
     ByteBufIo.writeMpInt(pg, p);
@@ -569,6 +576,8 @@ public abstract class AbstractSession extends AbstractLogger
    * @see <a href="https://tools.ietf.org/html/rfc4253#section-7.3">Taking Keys Into Use</a>
    */
   public void requestKexNewKeys() {
+    checkActive("requestKexNewKeys");
+
     ByteBuf newKeys = createMessage(SshMessage.SSH_MSG_NEWKEYS);
 
     logger.debug("[{}] Requesting SSH_MSG_NEWKEYS...", this);
@@ -577,6 +586,8 @@ public abstract class AbstractSession extends AbstractLogger
   }
 
   public void replyChannelSuccess(int channelId) {
+    checkActive("replyChannelSuccess");
+
     ByteBuf cs = createMessage(SshMessage.SSH_MSG_CHANNEL_SUCCESS);
 
     cs.writeInt(channelId);
@@ -587,6 +598,8 @@ public abstract class AbstractSession extends AbstractLogger
   }
 
   public void replyChannelFailure(int channelId) {
+    checkActive("replyChannelFailure");
+
     ByteBuf cs = createMessage(SshMessage.SSH_MSG_CHANNEL_FAILURE);
 
     cs.writeInt(channelId);
@@ -649,8 +662,17 @@ public abstract class AbstractSession extends AbstractLogger
     channel.close()
            .addListener(f -> {
              if (f.isSuccess()) {
-               setActive(false);
+               if (isActive.getAndSet(false)) {
+                 logger.debug("[{}] is disconnected", this);
+               }
              }
+
+             for (io.github.grantchan.sshengine.common.connection.Channel c :
+                 io.github.grantchan.sshengine.common.connection.Channel.find(this)) {
+               c.close();
+             }
+
+             sessions.remove(this);
            });
   }
 
@@ -710,6 +732,8 @@ public abstract class AbstractSession extends AbstractLogger
    * @see <a href="https://tools.ietf.org/html/rfc4254#section-5.2">Data Transfer</a>
    */
   public void replyChannelData(int recipient, byte[] data, int off, int len) {
+    checkActive("replyChannelData");
+
     ByteBuf cd = createMessage(SshMessage.SSH_MSG_CHANNEL_DATA);
 
     cd.writeInt(recipient);
@@ -765,6 +789,8 @@ public abstract class AbstractSession extends AbstractLogger
    * @see <a href="https://tools.ietf.org/html/rfc4254#section-5.2">Data Transfer</a>
    */
   public void replyChannelExtendedData(int recipient, byte[] data, int off, int len) {
+    checkActive("replyChannelExtendedData");
+
     ByteBuf ced = createMessage(SshMessage.SSH_MSG_CHANNEL_EXTENDED_DATA);
 
     ced.writeInt(recipient);
@@ -774,7 +800,103 @@ public abstract class AbstractSession extends AbstractLogger
 
     channel.writeAndFlush(ced);
   }
-  
+
+  /**
+   * Closing a Channel
+   *
+   * When a party will no longer send more data to a channel, it SHOULD
+   * send SSH_MSG_CHANNEL_EOF.
+   *
+   *    byte      SSH_MSG_CHANNEL_EOF
+   *    uint32    recipient channel
+   *
+   * No explicit response is sent to this message.  However, the
+   * application may send EOF to whatever is at the other end of the
+   * channel.  Note that the channel remains open after this message, and
+   * more data may still be sent in the other direction.  This message
+   * does not consume window space and can be sent even if no window space
+   * is available.
+   *
+   * @see <a href="https://tools.ietf.org/html/rfc4254#section-5.3">Closing a Channel</a>
+   */
+  public void sendEof(int recipient) {
+    checkActive("sendEof");
+
+    ByteBuf eof = createMessage(SshMessage.SSH_MSG_CHANNEL_EOF);
+    eof.writeInt(recipient);
+
+    logger.debug("[{}] Sending SSH_MSG_CHANNEL_EOF... recipient:{}", this, recipient);
+
+    channel.writeAndFlush(eof);
+  }
+
+  /**
+   * Returning Exit Status
+   *
+   * When the command running at the other end terminates, the following
+   * message can be sent to return the exit status of the command.
+   * Returning the status is RECOMMENDED.  No acknowledgement is sent for
+   * this message.  The channel needs to be closed with
+   * SSH_MSG_CHANNEL_CLOSE after this message.
+   *
+   * The client MAY ignore these messages.
+   *
+   *    byte      SSH_MSG_CHANNEL_REQUEST
+   *    uint32    recipient channel
+   *    string    "exit-status"
+   *    boolean   FALSE
+   *    uint32    exit_status
+   *
+   * @see <a href="https://tools.ietf.org/html/rfc4254#section-6.10">Returning Exit Status</a>
+   */
+  public void sendExitStatus(int recipient, int exitVal) {
+    checkActive("sendExitStatus");
+
+    ByteBuf exitStatus = createMessage(SshMessage.SSH_MSG_CHANNEL_REQUEST);
+
+    exitStatus.writeInt(recipient);
+    ByteBufIo.writeUtf8(exitStatus, "exit-status");
+    exitStatus.writeBoolean(false);
+    exitStatus.writeInt(exitVal);
+
+    logger.debug("[{}] Sending SSH_MSG_CHANNEL_REQUEST... recipient:{}, want-reply: {}, exit value: {}", this, recipient, "false", exitVal);
+
+    channel.writeAndFlush(exitStatus);
+  }
+
+  /**
+   * When either party wishes to terminate the channel, it sends
+   * SSH_MSG_CHANNEL_CLOSE.  Upon receiving this message, a party MUST
+   * send back an SSH_MSG_CHANNEL_CLOSE unless it has already sent this
+   * message for the channel.  The channel is considered closed for a
+   * party when it has both sent and received SSH_MSG_CHANNEL_CLOSE, and
+   * the party may then reuse the channel number.  A party MAY send
+   * SSH_MSG_CHANNEL_CLOSE without having sent or received
+   * SSH_MSG_CHANNEL_EOF.
+   *
+   *    byte      SSH_MSG_CHANNEL_CLOSE
+   *    uint32    recipient channel
+   *
+   * This message does not consume window space and can be sent even if no
+   * window space is available.
+   *
+   * It is RECOMMENDED that all data sent before this message be delivered
+   * to the actual destination, if possible.
+   *
+   * @see <a href="https://tools.ietf.org/html/rfc4254#section-5.3">Closing a Channel</a>
+   */
+  public void sendChannelClose(int recipient) {
+    checkActive("sendChannelClose");
+
+    ByteBuf close = createMessage(SshMessage.SSH_MSG_CHANNEL_CLOSE);
+
+    close.writeInt(recipient);
+
+    logger.debug("[{}] Sending SSH_MSG_CHANNEL_CLOSE... recipient:{}", this, recipient);
+
+    channel.writeAndFlush(close);
+  }
+
   @Override
   public String toString() {
     return getUsername() + "@" + getRemoteAddress();

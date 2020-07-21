@@ -46,6 +46,11 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
   }
 
   @Override
+  public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    session.disconnect(SshMessage.SSH_DISCONNECT_CONNECTION_LOST, "Disconnected by peer");
+  }
+
+  @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable t) {
     AbstractSession session = Objects.requireNonNull(getSession(), "Session is not initialized");
 

@@ -8,7 +8,9 @@ import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +22,9 @@ public class SessionChannel extends AbstractChannel {
 
   private final Map<TtyMode, Integer> ttyModes = new ConcurrentHashMap<>();
 
-  private final ChannelInputStream dataSink = new ChannelInputStream();
+  private final ChannelInputStream chIn = new ChannelInputStream();
+  private final ChannelOutputStream chOut = new ChannelOutputStream(this, false);
+  private final ChannelOutputStream chErr = new ChannelOutputStream(this, true);
 
   private TtyProcessShell shell;
 
@@ -38,11 +42,21 @@ public class SessionChannel extends AbstractChannel {
 
   @Override
   protected void doClose() throws Exception {
-    super.doClose();
+    AbstractSession session = getSession();
 
-    if (shell != null) {
+    if (shell != null && shell.isAlive()) {
+      logger.debug("[{}] Shutting down shell process - {}", session, shell.getCmds());
+
       shell.shutdown();
     }
+
+    for (Closeable c : Arrays.asList(localWnd, remoteWnd)) {
+      c.close();
+    }
+
+    session.sendChannelClose(getPeerId());
+
+    super.doClose();
   }
 
   @Override
@@ -102,7 +116,7 @@ public class SessionChannel extends AbstractChannel {
      */
     String type = ByteBufIo.readUtf8(req);
 
-    logger.debug("[{}] Received SSH_MSG_CHANNEL_REQUEST. request type:{}", this, type);
+    logger.debug("[{}] Received SSH_MSG_CHANNEL_REQUEST. request type:{}", getSession(), type);
 
     boolean wantReply = req.getBoolean(req.readerIndex());
 
@@ -160,7 +174,7 @@ public class SessionChannel extends AbstractChannel {
      * The client SHOULD ignore pty requests.
      */
 
-    if (isClosed()) {
+    if (!isOpen()) {
       logger.debug("[{}] The channel is not open, request(pytreq) ignored", this);
 
       return false;
@@ -194,7 +208,7 @@ public class SessionChannel extends AbstractChannel {
 
     logger.debug("[{}] Received pty-req request. want reply:{}, terminal:{}, " +
             "terminal columns:{}, terminal rows:{}, terminal width:{}, terminal height:{}, modes:{}",
-        this, wantReply, term, termCols, termRows, termWidth, termHeight, ttyModes);
+        getSession(), wantReply, term, termCols, termRows, termWidth, termHeight, ttyModes);
 
     return true;
   }
@@ -220,7 +234,7 @@ public class SessionChannel extends AbstractChannel {
      * @see <a href="https://tools.ietf.org/html/rfc4254#section-6.2">Requesting a Pseudo-Terminal</a>
      */
 
-    if (isClosed()) {
+    if (!isOpen()) {
       logger.debug("[{}] The channel is not open, request(shell) ignored", this);
 
       return false;
@@ -230,16 +244,33 @@ public class SessionChannel extends AbstractChannel {
 
     logger.debug("[{}] Received shell request. want reply:{}", this, wantReply);
 
-    shell = new TtyProcessShell(dataSink,
-                                new ChannelOutputStream(this, false),
-                                new ChannelOutputStream(this, true),
-                                "/bin/sh", "-i", "-l");
+    shell = new TtyProcessShell(chIn, chOut, chErr, "/bin/sh", "-i", "-l");
 
-    // extra TTY mode for putty client
+    // additional TTY modes for putty
     Map<TtyMode, Integer> modes = new HashMap<>(ttyModes);
     modes.put(TtyMode.ECHO, 1);
     modes.put(TtyMode.ICRNL, 1);
     modes.put(TtyMode.ONLCR, 1);
+
+    shell.setExitCallback(ev -> {
+      if (isOpen()) {
+        AbstractSession session = getSession();
+        session.sendEof(getPeerId());
+        session.sendExitStatus(getPeerId(), ev);
+
+        close().whenComplete((isClosed, ex) -> {
+          if (isClosed) {
+            try {
+              for (Closeable c : Arrays.asList(chIn, chOut, chErr)) {
+                c.close();
+              }
+            } catch (IOException e) {
+              // ignore
+            }
+          }
+        });
+      }
+    });
 
     shell.start(modes);
 
@@ -280,11 +311,23 @@ public class SessionChannel extends AbstractChannel {
     byte[] data = ByteBufIo.readBytes(req);
     logger.debug("[{}] SSH_MSG_CHANNEL_DATA len = {}", this, data.length);
 
-    if (isClosed()) {
-      logger.debug("[{}] The channel is not open, handleData ignored", this);
+    if (isOpen()) {
+      chIn.write(data);
       return;
     }
 
-    dataSink.write(data);
+    logger.debug("[{}] The channel is not open, handleData ignored", this);
   }
+
+  @Override
+  public void handleEof(ByteBuf req) throws IOException {
+
+  }
+
+  @Override
+  public void handleClose(ByteBuf req) throws IOException {
+
+  }
+
+
 }

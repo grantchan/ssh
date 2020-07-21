@@ -31,7 +31,7 @@ public class ChannelOutputStream extends OutputStream {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    if (channel.isClosed()) {
+    if (!channel.isOpen()) {
       throw new SshChannelException("Unable to write data via channel: " + channel.getId() +
           ", channel is closed.");
     }
@@ -54,14 +54,12 @@ public class ChannelOutputStream extends OutputStream {
 
   @Override
   public void close() {
-    if (channel.isClosed()) {
-      return;
-    }
-
-    try {
-      flush();
-    } finally {
-      channel.close();
+    if (channel.isOpen()) {
+      try {
+        flush();
+      } finally {
+        channel.close();
+      }
     }
   }
 }

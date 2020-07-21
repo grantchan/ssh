@@ -1,10 +1,12 @@
 package io.github.grantchan.sshengine.common.connection;
 
+import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.IdHolder;
 import io.github.grantchan.sshengine.common.transport.handler.SessionHolder;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,7 +71,7 @@ public interface Channel extends IdHolder, SessionHolder {
   /**
    * @return {@code true} if the channel is open, otherwise {@code false}
    */
-  boolean isClosed();
+  boolean isOpen();
 
   /**
    * @return the local window
@@ -81,7 +83,15 @@ public interface Channel extends IdHolder, SessionHolder {
    */
   Window getRemoteWindow();
 
+  void handleData(ByteBuf req) throws IOException;
+
+  void handleEof(ByteBuf req) throws IOException;
+
+  void handleClose(ByteBuf req) throws IOException;
+
   void handleRequest(ByteBuf req) throws IOException;
 
-  void handleData(ByteBuf req) throws IOException;
+  static Collection<Channel> find(AbstractSession session) {
+    return SessionHolder.find(channels.values(), session);
+  }
 }

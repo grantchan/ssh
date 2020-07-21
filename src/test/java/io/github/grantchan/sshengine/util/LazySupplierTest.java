@@ -46,18 +46,15 @@ public class LazySupplierTest {
     int numOfThreads = 30;
     Thread[] threads = new Thread[numOfThreads];
     for (int i = 0; i < numOfThreads; i++) {
-      Thread t = new Thread() {
-        @Override
-        public void run() {
-          try {
-            latch.await();
-          } catch (InterruptedException e) {
-            // ignore
-          }
-
-          setName(ls.get());  // use thread name to store the test object
+      Thread t = new Thread(() -> {
+        try {
+          latch.await();
+        } catch (InterruptedException e) {
+          // ignore
         }
-      };
+      });
+
+      t.setName(ls.get());  // use thread name to store the test object
 
       threads[i] = t;
       t.start();
