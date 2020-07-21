@@ -36,8 +36,8 @@ public class SessionChannel extends AbstractChannel {
   public void doOpen(int rwndsize, int rpksize) throws Exception {
     super.doOpen(rwndsize, rpksize);
 
-    localWnd = new Window(this);
-    remoteWnd = new Window(this, rwndsize, rpksize);
+    localWnd = new Window(this, "server/local");
+    remoteWnd = new Window(this, "server/remote", rwndsize, rpksize);
   }
 
   @Override

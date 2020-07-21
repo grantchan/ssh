@@ -109,7 +109,7 @@ public class ConnectionService extends AbstractLogger
 
                session.replyChannelOpenConfirmation(peerId,
                                                     channel.getId(),
-                                                    wnd.getSize(),
+                                                    wnd.getMaxSize(),
                                                     wnd.getPacketSize());
              } else {
                // failed to open
