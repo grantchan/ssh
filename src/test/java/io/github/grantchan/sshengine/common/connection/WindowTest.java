@@ -7,11 +7,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class WindowTest {
-
-  private static final long SECONDS_TO_WAIT = 2;
 
   @Mock
   private Channel channel;
@@ -24,20 +23,22 @@ public class WindowTest {
 
   @Test
   public void whenWindowIsOutOfSpace_shouldThrowTimeoutExceptionAfterWait() throws Exception {
+    final long secondsToWait = 2;
+
     try (Window wnd = channel.getRemoteWindow()) {
       wnd.consume(wnd.getSize());
       Assert.assertEquals("Window size is not empty", 0, wnd.getSize());
 
       long waitStart = System.currentTimeMillis();
       try {
-        wnd.waitForSpace(1, TimeUnit.SECONDS.toMillis(SECONDS_TO_WAIT));
+        wnd.waitForSpace(1, TimeUnit.SECONDS.toMillis(secondsToWait));
         Assert.fail("Not supposed to quit from waiting");
       } catch (WindowTimeoutException e) {
         long waitEnd = System.currentTimeMillis();
         long waitElapsed = TimeUnit.MILLISECONDS.toSeconds(waitEnd - waitStart);
 
-        Assert.assertTrue("Wait time is not long enough, it's less than " + SECONDS_TO_WAIT,
-            waitElapsed >= SECONDS_TO_WAIT);
+        Assert.assertTrue("Wait time is not long enough, it's less than " + secondsToWait,
+            waitElapsed >= secondsToWait);
       }
 
       wnd.close();
@@ -48,6 +49,66 @@ public class WindowTest {
       } catch (WindowClosedException e) {
         // ignore
       }
+    }
+  }
+
+  @Test
+  public void afterWaitForSpaceAndExpandedByOtherThreads_shouldWakeAndReturnOnceTargetReached()
+      throws Exception {
+
+    final long secondsToWait = 10;
+
+    final int bytesToWaitFor = 100;
+    final int threadsToExpand = 34;
+    final int bytesToExpand = 3;
+
+    try (Window wnd = channel.getRemoteWindow()) {
+      wnd.consume(wnd.getSize());
+      Assert.assertEquals("Window size is not empty", 0, wnd.getSize());
+
+      // A thread waiting for some space
+      Thread waitThread = new Thread(() -> {
+        try {
+          wnd.waitForSpace(bytesToWaitFor, TimeUnit.SECONDS.toMillis(secondsToWait));
+        } catch (InterruptedException e) {
+          // ignore
+        } catch (WindowClosedException e) {
+          Assert.fail("Window should not be closed");
+        } catch (WindowTimeoutException e) {
+          Assert.fail("Waiting too long for space to free up");
+        }
+      });
+      waitThread.start();
+
+      // use a latch to start below threads simultaneously
+      CountDownLatch latch = new CountDownLatch(1);
+
+      // create a handful of threads to expand the window
+      Thread[] producers = new Thread[threadsToExpand];
+      for (int i = 0; i < threadsToExpand; i++) {
+        producers[i] = new Thread(() -> {
+          try {
+            latch.await();
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+          wnd.expand(bytesToExpand);
+        });
+        producers[i].start();
+      }
+
+      // release threads
+      latch.countDown();
+
+      // wait for the expansion process to complete
+      for (Thread t : producers) {
+        t.join();
+      }
+
+      // wait for the wait thread to complete
+      waitThread.join();
+
+      Assert.assertEquals(threadsToExpand * bytesToExpand, wnd.getSize());
     }
   }
 }

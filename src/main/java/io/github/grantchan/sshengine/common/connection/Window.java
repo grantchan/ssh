@@ -91,24 +91,27 @@ public class Window extends AbstractLogger implements Closeable {
 
     long duration = timeout;
     synchronized (lock) {
-      while (isOpen.get() && duration > 0) {
-        if (size > len) {
-          return;
+      long waitStart = System.currentTimeMillis();
+
+      while (isOpen.get() && (size < len)) {
+        lock.wait(timeout);
+
+        // consume or expand might cause the window size change, then notify all the waiting threads
+        // the above wait could be waken as well
+        duration -= System.currentTimeMillis() - waitStart;
+
+        // After wake up, we need to check if the wait time is up, if yes, throw
+        // WindowTimeoutException, if no, wait again
+        if (duration <= 0 && size < len) {
+          throw new WindowTimeoutException("Timeout after waiting " + timeout + "milliseconds - "
+              + this);
         }
-
-        long waitStart = System.currentTimeMillis();
-        lock.wait(duration);
-        long elapsed = System.currentTimeMillis() - waitStart;
-
-        duration -= elapsed;
       }
     }
 
     if (!isOpen.get()) {
-      throw new WindowClosedException("Window is closed already - " + this);
+      throw new WindowClosedException("Window is closed - " + this);
     }
-
-    throw new WindowTimeoutException("Timeout after waiting " + timeout + "milliseconds - " + this);
   }
 
   /**
@@ -131,7 +134,7 @@ public class Window extends AbstractLogger implements Closeable {
 
       lock.notifyAll();
 
-      logger.debug("{}, {} bytes expanded", this, len);
+      logger.trace("{}, {} bytes expanded", this, len);
     }
   }
 
@@ -151,7 +154,7 @@ public class Window extends AbstractLogger implements Closeable {
 
       lock.notifyAll();
 
-      logger.debug("{}, {} bytes consumed", this, len);
+      logger.trace("{}, {} bytes consumed", this, len);
     }
   }
 
