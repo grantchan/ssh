@@ -19,9 +19,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class AbstractSession extends AbstractLogger
+public abstract class AbstractSession extends AbstractCloseable
                                       implements UsernameHolder {
   private static final int DEFAULT_BUFFER_SIZE = 256;
 
@@ -106,13 +105,7 @@ public abstract class AbstractSession extends AbstractLogger
   private long authStartTime = System.currentTimeMillis();
   private volatile boolean isAuthed = false;
 
-  /**
-   *  The active state of this session to indicate connection status.
-   *  When the connection is established, it's true; when disconnected, false.
-   */
-  private AtomicBoolean isActive = new AtomicBoolean(false);
-
-  // constructor
+  // Constructor
   public AbstractSession(Channel channel) {
     this.channel = channel;
     sessions.add(this);
@@ -458,13 +451,8 @@ public abstract class AbstractSession extends AbstractLogger
     this.isAuthed = authed;
   }
 
-  /** Sets the active state of the connection within this session */
-  public void setActive(boolean isActive) {
-    logger.debug("[{}] active state: {} -> {}", this, this.isActive.getAndSet(isActive), isActive);
-  }
-
   private void checkActive(String funcName) {
-    if (!isActive.get()) {
+    if (isClosed()) {
       logger.debug("[{}] {}, session is inactive, operation skipped", funcName, this);
     }
   }
@@ -530,7 +518,7 @@ public abstract class AbstractSession extends AbstractLogger
 
       notifyDisconnect(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR, "Authentication timeout");
 
-      disconnect(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR, "Authentication timeout");
+      close(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR, "Authentication timeout");
     }
 */
   }
@@ -649,31 +637,11 @@ public abstract class AbstractSession extends AbstractLogger
     return msg;
   }
 
-  /**
-   * Print a log information regarding the disconnect reason, disconnect the network channel
-   *
-   * @param code  the disconnect reason code
-   * @param msg   message about the reason
-   */
-  public void disconnect(int code, String msg) {
-    logger.info("[{}] Disconnecting... reason: {}, msg: {}",
-        this, SshMessage.disconnectReason(code), msg);
+  @Override
+  protected void doCloseForcibly() {
+    sessions.remove(this);
 
-    channel.close()
-           .addListener(f -> {
-             if (f.isSuccess()) {
-               if (isActive.getAndSet(false)) {
-                 logger.debug("[{}] is disconnected", this);
-               }
-             }
-
-             for (io.github.grantchan.sshengine.common.connection.Channel c :
-                 io.github.grantchan.sshengine.common.connection.Channel.find(this)) {
-               c.close();
-             }
-
-             sessions.remove(this);
-           });
+    super.doCloseForcibly();
   }
 
   /**

@@ -4,6 +4,7 @@ import io.github.grantchan.sshengine.arch.SshConstant;
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.SshException;
+import io.github.grantchan.sshengine.common.connection.Channel;
 import io.github.grantchan.sshengine.common.transport.kex.KexGroup;
 import io.github.grantchan.sshengine.common.transport.kex.KexGroupFactories;
 import io.github.grantchan.sshengine.common.transport.kex.KexProposal;
@@ -47,7 +48,18 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
 
   @Override
   public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-    session.disconnect(SshMessage.SSH_DISCONNECT_CONNECTION_LOST, "Disconnected by peer");
+    logger.info("[{}] Disconnecting... reason: {}, msg: {}",
+        this, SshMessage.disconnectReason(SshMessage.SSH_DISCONNECT_CONNECTION_LOST),
+        "Disconnected by peer");
+
+    session.close(true)
+           .whenComplete((closed, ex) -> {
+             if (closed) {
+               for (Channel c : Channel.find(session)) {
+                 c.close();
+               }
+             }
+           });
   }
 
   @Override
@@ -65,7 +77,7 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
     ctx.channel().close();
   }
 
-  public void handleDisconnect(ByteBuf req) {
+  public void handleDisconnect(ByteBuf req) throws Exception {
     AbstractSession session = Objects.requireNonNull(getSession(), "Session is not initialized");
 
     /*
@@ -92,7 +104,17 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
     int code = req.readInt();
     String msg = ByteBufIo.readUtf8(req);
 
-    session.disconnect(code, msg);
+    logger.info("[{}] Disconnecting... reason: {}, msg: {}", this,
+        SshMessage.disconnectReason(code), msg);
+
+    session.close(true)
+           .whenComplete((closed, ex) -> {
+             if (closed) {
+               for (Channel c : Channel.find(session)) {
+                 c.close();
+               }
+             }
+           });
   }
 
   protected abstract void setKexInit(byte[] ki);

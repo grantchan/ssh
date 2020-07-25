@@ -71,7 +71,7 @@ public interface ReqHandler extends SessionHolder, Service {
     }
   }
 
-  void handleDisconnect(ByteBuf req);
+  void handleDisconnect(ByteBuf req) throws Exception;
 
   void handleKexInit(ByteBuf msg) throws Exception;
 

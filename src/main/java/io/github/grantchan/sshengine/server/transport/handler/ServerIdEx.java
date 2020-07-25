@@ -67,7 +67,7 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter
      */
     String id = "SSH-2.0-Server DEMO";
     session.setServerId(id);
-    session.setActive(true);
+
     ctx.writeAndFlush(Unpooled.wrappedBuffer((id + "\r\n").getBytes(StandardCharsets.UTF_8)));
   }
 
