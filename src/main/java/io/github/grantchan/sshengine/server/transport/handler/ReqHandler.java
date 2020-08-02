@@ -1,7 +1,6 @@
 package io.github.grantchan.sshengine.server.transport.handler;
 
 import io.github.grantchan.sshengine.arch.SshMessage;
-import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.SshException;
 import io.github.grantchan.sshengine.common.transport.cipher.CipherFactories;
 import io.github.grantchan.sshengine.common.transport.compression.Compression;

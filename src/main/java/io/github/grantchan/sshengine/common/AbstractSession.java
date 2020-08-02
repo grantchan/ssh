@@ -637,13 +637,6 @@ public abstract class AbstractSession extends AbstractCloseable
     return msg;
   }
 
-  @Override
-  protected void doCloseForcibly() {
-    sessions.remove(this);
-
-    super.doCloseForcibly();
-  }
-
   /**
    * Create a {@link Service} instance by a given name
    * @param name          name of the service to create
@@ -863,6 +856,13 @@ public abstract class AbstractSession extends AbstractCloseable
     logger.debug("[{}] Sending SSH_MSG_CHANNEL_CLOSE... recipient:{}", this, recipient);
 
     channel.writeAndFlush(close);
+  }
+
+  @Override
+  protected void doCloseForcibly() {
+    sessions.remove(this);
+
+    super.doCloseForcibly();
   }
 
   @Override
