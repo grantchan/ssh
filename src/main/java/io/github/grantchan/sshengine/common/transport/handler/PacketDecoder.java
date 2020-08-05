@@ -115,10 +115,10 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter
 
     // Decrypt the first block, if necessary
     if (step.get() == 0 && cipher != null) {
-      if (logger.isDebugEnabled()) {
+      if (logger.isTraceEnabled()) {
         StringBuilder sb = new StringBuilder();
         ByteBufUtil.appendPrettyHexDump(sb, msg);
-        logger.debug("[{}] Encrypted packet received: \n{}", session, sb.toString());
+        logger.trace("[{}] Encrypted packet received: \n{}", session, sb.toString());
       }
 
       // Decrypt the first block of the packet

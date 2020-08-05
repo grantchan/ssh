@@ -24,7 +24,7 @@ public class Ssh {
         .handler(new ChannelInitializer<SocketChannel>() {
           @Override
           protected void initChannel(SocketChannel ch) {
-            ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO),
+            ch.pipeline().addLast(new LoggingHandler(LogLevel.TRACE),
                                   new ReqHandler("jiadong"));
           }
         }).connect().sync().channel().closeFuture().sync();

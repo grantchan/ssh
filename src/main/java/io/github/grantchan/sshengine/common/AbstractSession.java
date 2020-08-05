@@ -25,7 +25,7 @@ public abstract class AbstractSession extends AbstractCloseable
   private static final int DEFAULT_BUFFER_SIZE = 256;
 
   /** the network connection between client and server */
-  protected Channel channel;
+  protected final Channel channel;
 
   private static final Set<AbstractSession> sessions = new CopyOnWriteArraySet<>();
   private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
@@ -177,6 +177,7 @@ public abstract class AbstractSession extends AbstractCloseable
   protected Cipher getC2sCipher() {
     return c2sCipher;
   }
+
   /** Replaces the cipher object used for packet comes from client to server */
   protected void setC2sCipher(Cipher c2sCipher) {
     this.c2sCipher = c2sCipher;
@@ -187,6 +188,7 @@ public abstract class AbstractSession extends AbstractCloseable
   protected Cipher getS2cCipher() {
     return s2cCipher;
   }
+
   /** Replaces the cipher object used for packet comes from server to client */
   protected void setS2cCipher(Cipher s2cCipher) {
     this.s2cCipher = s2cCipher;
@@ -219,6 +221,7 @@ public abstract class AbstractSession extends AbstractCloseable
   protected int getC2sCipherBlkSize() {
     return c2sCipherBlkSize;
   }
+
   /** Replaces the size of initial vector of the cipher from client to server */
   protected void setC2sCipherBlkSize(int c2sCipherBlkSize) {
     this.c2sCipherBlkSize = c2sCipherBlkSize;
@@ -229,6 +232,7 @@ public abstract class AbstractSession extends AbstractCloseable
   protected int getS2cCipherBlkSize() {
     return s2cCipherBlkSize;
   }
+
   /** Replaces the size of initial vector of the cipher from server to client */
   protected void setS2cCipherBlkSize(int s2cCipherBlkSize) {
     this.s2cCipherBlkSize = s2cCipherBlkSize;
@@ -268,6 +272,7 @@ public abstract class AbstractSession extends AbstractCloseable
   protected Mac getC2sMac() {
     return c2sMac;
   }
+
   /** Replaces the MAC object, which is used for authenticating packet from client to server */
   protected void setC2sMac(Mac c2sMac) {
     this.c2sMac = c2sMac;
@@ -278,6 +283,7 @@ public abstract class AbstractSession extends AbstractCloseable
   protected Mac getS2cMac() {
     return s2cMac;
   }
+
   /** Replaces the MAC object, which is used for authenticating packet from server to client */
   protected void setS2cMac(Mac s2cMac) {
     this.s2cMac = s2cMac;
@@ -314,6 +320,7 @@ public abstract class AbstractSession extends AbstractCloseable
   protected int getC2sMacSize() {
     return c2sMacSize;
   }
+
   /** Replaces the block size of the MAC for packet from client to server */
   protected void setC2sMacSize(int c2sMacSize) {
     this.c2sMacSize = c2sMacSize;
@@ -324,6 +331,7 @@ public abstract class AbstractSession extends AbstractCloseable
   protected int getS2cMacSize() {
     return s2cMacSize;
   }
+
   /** Replaces the block size of the MAC for packet from server to client */
   protected void setS2cMacSize(int s2cMacSize) {
     this.s2cMacSize = s2cMacSize;
@@ -360,6 +368,7 @@ public abstract class AbstractSession extends AbstractCloseable
   protected int getC2sDefMacSize() {
     return c2sDefMacSize;
   }
+
   /** Replaces the default block size of the MAC for packet from client to server */
   protected void setC2sDefMacSize(int c2sDefMacSize) {
     this.c2sDefMacSize = c2sDefMacSize;
@@ -370,6 +379,7 @@ public abstract class AbstractSession extends AbstractCloseable
   protected int getS2cDefMacSize() {
     return s2cDefMacSize;
   }
+
   /** Replaces the default block size of the MAC for packet from server to client */
   protected void setS2cDefMacSize(int s2cDefMacSize) {
     this.s2cDefMacSize = s2cDefMacSize;
@@ -398,6 +408,7 @@ public abstract class AbstractSession extends AbstractCloseable
   protected Compression getC2sCompression() {
     return c2sCompression;
   }
+
   /** Replaces the compression object for packet packet from client to server */
   protected void setC2sCompression(Compression c2sCompression) {
     this.c2sCompression = c2sCompression;
@@ -408,6 +419,7 @@ public abstract class AbstractSession extends AbstractCloseable
   protected Compression getS2cCompression() {
     return s2cCompression;
   }
+
   /** Replaces the compression object for packet packet from server to client */
   protected void setS2cCompression(Compression s2cCompression) {
     this.s2cCompression = s2cCompression;
@@ -645,7 +657,7 @@ public abstract class AbstractSession extends AbstractCloseable
   public void acceptService(String name) throws SshException {
     service = ServiceFactories.create(name, this);
     if (service == null) {
-      logger.info("Requested service ({}) from {} is unavailable, rejected.",
+      logger.debug("Requested service ({}) from {} is unavailable, rejected.",
           name, getRemoteAddress());
 
       throw new SshException(SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE,

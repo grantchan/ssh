@@ -95,7 +95,7 @@ public class ReqHandler extends AbstractReqHandler {
      * @see <a href="https://tools.ietf.org/html/rfc4253#section-10">Service Request</a>
      */
     String svcName = ByteBufIo.readUtf8(req);
-    logger.info(svcName);
+    logger.debug(svcName);
 
     if (!svcName.equals("ssh-userauth")) {
       logger.debug("[{}] Illegal service request received - Authentication is not completed");

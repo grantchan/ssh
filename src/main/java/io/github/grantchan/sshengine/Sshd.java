@@ -18,7 +18,7 @@ public class Sshd {
     EventLoopGroup worker = new NioEventLoopGroup();
 
     ServerBootstrap b = new ServerBootstrap();
-    LoggingHandler loggingHandler = new LoggingHandler(LogLevel.INFO);
+    LoggingHandler loggingHandler = new LoggingHandler(LogLevel.TRACE);
     try {
       b.group(boss, worker)
        .channel(NioServerSocketChannel.class)

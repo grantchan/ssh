@@ -48,7 +48,7 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
 
   @Override
   public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-    logger.info("[{}] Disconnecting... reason: {}, msg: {}",
+    logger.debug("[{}] Disconnecting... reason: {}, msg: {}",
         this, SshMessage.disconnectReason(SshMessage.SSH_DISCONNECT_CONNECTION_LOST),
         "Disconnected by peer");
 
@@ -104,7 +104,7 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
     int code = req.readInt();
     String msg = ByteBufIo.readUtf8(req);
 
-    logger.info("[{}] Disconnecting... reason: {}, msg: {}", this,
+    logger.debug("[{}] Disconnecting... reason: {}, msg: {}", this,
         SshMessage.disconnectReason(code), msg);
 
     session.close(true)

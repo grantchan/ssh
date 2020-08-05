@@ -14,8 +14,7 @@ import io.netty.buffer.ByteBuf;
 import java.io.IOException;
 import java.util.Objects;
 
-public class ConnectionService extends AbstractLogger
-                               implements Service {
+public class ConnectionService extends AbstractLogger implements Service {
 
   private final ServerSession session;
 
@@ -25,7 +24,7 @@ public class ConnectionService extends AbstractLogger
 
   @Override
   public void handle(int cmd, ByteBuf req) throws Exception {
-    logger.info("[{}] Handling message - {} ...", session, SshMessage.from(cmd));
+    logger.debug("[{}] Handling message - {} ...", session, SshMessage.from(cmd));
 
     switch (cmd) {
       case SshMessage.SSH_MSG_CHANNEL_OPEN:

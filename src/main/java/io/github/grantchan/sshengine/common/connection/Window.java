@@ -22,7 +22,7 @@ public class Window extends AbstractLogger implements Closeable {
   /** A lock that used to provide synchronization */
   private final Object lock = this;
 
-  private Channel channel;
+  private final Channel channel;
 
   /** Current size of this window */
   private int size;

@@ -60,7 +60,7 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
         try {
           k = parsePublicKeyEntry(ln);
         } catch (IOException | GeneralSecurityException | IllegalAccessException e) {
-          logger.info("Invalid key line: '{}', ignored.", ln);
+          logger.warn("Invalid key line: '{}', ignored.", ln);
 
           continue;
         }

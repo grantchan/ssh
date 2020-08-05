@@ -8,8 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
-public abstract class AbstractChannel extends AbstractLogger
-                                      implements Channel {
+public abstract class AbstractChannel extends AbstractLogger implements Channel {
 
   /** Channel identifier */
   private final int id;

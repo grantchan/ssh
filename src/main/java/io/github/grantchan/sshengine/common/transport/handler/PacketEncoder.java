@@ -118,10 +118,10 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter
 
     Cipher cipher = session.getOutCipher();
     if (cipher != null) {
-      if (logger.isDebugEnabled()) {
+      if (logger.isTraceEnabled()) {
         StringBuilder sb = new StringBuilder();
         ByteBufUtil.appendPrettyHexDump(sb, msg);
-        logger.debug("[{}] Packet before encryption: \n{}", session, sb.toString());
+        logger.trace("[{}] Packet before encryption: \n{}", session, sb.toString());
       }
 
       byte[] tmp = new byte[len + 4 - off];
