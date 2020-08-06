@@ -31,6 +31,10 @@ public class ConnectionService extends AbstractLogger implements Service {
         channelOpen(req);
         break;
 
+      case SshMessage.SSH_MSG_CHANNEL_WINDOW_ADJUST:
+        channelWindowAdjust(req);
+        break;
+
       case SshMessage.SSH_MSG_CHANNEL_DATA:
         channelData(req);
         break;
@@ -123,6 +127,17 @@ public class ConnectionService extends AbstractLogger implements Service {
                session.replyChannelOpenFailure(peerId, reason, message, "");
              }
            });
+  }
+
+  private void channelWindowAdjust(ByteBuf req) {
+    int id = req.readInt();
+
+    Channel channel = Channel.get(id);
+    if (channel == null) {
+      throw new IllegalStateException("Channel not found - id:" + id);
+    }
+
+    channel.handleWindowAdjust(req);
   }
 
   private void channelData(ByteBuf req) throws IOException {

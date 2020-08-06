@@ -4,8 +4,7 @@ import java.io.InputStream;
 import java.util.Deque;
 import java.util.LinkedList;
 
-public class ChannelInputStream extends InputStream
-                                implements WritableStream {
+public class ChannelInputStream extends InputStream implements WritableStream {
 
   private final Deque<Byte> fifo = new LinkedList<>();
 

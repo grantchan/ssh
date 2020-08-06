@@ -22,8 +22,7 @@ import java.util.List;
 import static io.github.grantchan.sshengine.util.buffer.Bytes.md5;
 import static io.github.grantchan.sshengine.util.buffer.Bytes.sha256;
 
-public class ServerDhGroup extends AbstractLogger
-                           implements KexGroup {
+public class ServerDhGroup extends AbstractLogger implements KexGroup {
 
   private final MessageDigest md;
 

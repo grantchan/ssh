@@ -120,16 +120,16 @@ public abstract class AbstractChannel extends AbstractLogger implements Channel 
         try {
           doClose();
 
-          logger.debug("[{}] Channel is closed - {}", this, state.get());
+          logger.debug("[{}] Channel ({}) is closed - status:{}", session, this, state.get());
 
           future.complete(true);
         } catch (Exception e) {
-          logger.debug("[{}] Failed to close channel - {}", this, state.get());
+          logger.debug("[{}] Failed to close channel ({}) - status:{}", session, this, state.get());
 
           future.completeExceptionally(e);
         }
       } else {
-        logger.debug("[{}] This channel is already closed - {}", this, state.get());
+        logger.debug("[{}] This channel ({}) is already closed - status:{}", session, this, state.get());
 
         future.complete(true);
       }

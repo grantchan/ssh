@@ -102,7 +102,7 @@ public abstract class AbstractSession extends AbstractCloseable
   private String username;
   private String remoteAddr;
 
-  private long authStartTime = System.currentTimeMillis();
+  private final long authStartTime = System.currentTimeMillis();
   private volatile boolean isAuthed = false;
 
   // Constructor

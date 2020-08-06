@@ -83,6 +83,8 @@ public interface Channel extends IdHolder, SessionHolder {
    */
   Window getRemoteWindow();
 
+  void handleWindowAdjust(ByteBuf req);
+
   void handleData(ByteBuf req) throws IOException;
 
   void handleEof(ByteBuf req) throws IOException;

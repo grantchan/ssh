@@ -78,7 +78,7 @@ public class Window extends AbstractLogger implements Closeable {
   }
 
   /**
-   * Wait a period of time for the window size to update to specific length of space
+   * Wait a period of time until the window size is updated to specific length of space
    *
    * @param len       window length to wait for
    * @param timeout   the maximum time to wait in milliseconds
@@ -125,16 +125,19 @@ public class Window extends AbstractLogger implements Closeable {
     }
 
     synchronized (lock) {
+      logger.debug("[{}] {}, trying to expand {} bytes", channel.getSession(), this, len);
+
       if (size + len > maxSize) {
         throw new IllegalStateException("Too big to expand, the maximum window size is:" + maxSize +
             ", but len:" + len);
       }
 
+      int oldSize = size;
       size += len;
 
       lock.notifyAll();
 
-      logger.trace("{}, {} bytes expanded", this, len);
+      logger.debug("[{}] {}, expanded: {} => {}", channel.getSession(), this, oldSize, size);
     }
   }
 
@@ -145,23 +148,26 @@ public class Window extends AbstractLogger implements Closeable {
    */
   public void consume(int len) {
     synchronized (lock) {
+      logger.debug("[{}] {}, trying to consume {} bytes", channel.getSession(), this, len);
+
       if (len > size) {
         throw new IllegalStateException("Not enough space to consume, current size: " + size +
             ", but len: " + len);
       }
 
+      int oldSize = size;
       size -= len;
 
       lock.notifyAll();
 
-      logger.trace("{}, {} bytes consumed", this, len);
+      logger.debug("[{}] {}, consumed: {} => {}", channel.getSession(), this, oldSize, size);
     }
   }
 
   @Override
   public void close() {
     if (isOpen.getAndSet(false)) {
-      logger.debug("{} is closed", this);
+      logger.debug("[{}] {} is closed", channel.getSession(), this);
     }
 
     synchronized (lock) {

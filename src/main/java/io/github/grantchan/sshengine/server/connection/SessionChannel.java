@@ -278,6 +278,13 @@ public class SessionChannel extends AbstractChannel {
   }
 
   @Override
+  public void handleWindowAdjust(ByteBuf req) {
+    int size = req.readInt();
+
+    remoteWnd.expand(size);
+  }
+
+  @Override
   public void handleData(ByteBuf req) throws IOException {
 
     /*
