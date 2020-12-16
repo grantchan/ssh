@@ -148,12 +148,24 @@ public final class SshMessage {
     }
 
     return Arrays.asList(Byte.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE,
-        Float.TYPE, Double.TYPE).indexOf(clazz) >= 0;
+        Float.TYPE, Double.TYPE).contains(clazz);
   }
 
   /**
-   * Reflect current class to invert all public, final, static and numeric fields(variables) that
+   * Reflects current class to invert all public, final, static and numeric fields(variables) that
    * satisfies the eligible condition.
+   *
+   * <pre>
+   *   For example:
+   *
+   *   class Foo {
+   *     public static final int barA = 1;
+   *     public static final int barB = 2;
+   *     public static final int barC = 2;
+   *   }
+   *
+   *   return value of this method is a map in which: 1 => ["barA"], 2 => ["barB", "barC"]
+   * </pre>
    *
    * @param eligible The {@link Predicate} to customize the scan for specific type of field.
    * @return         A {@link Map} stores the inverted field content.
