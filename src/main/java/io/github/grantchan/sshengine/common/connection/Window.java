@@ -1,31 +1,36 @@
 package io.github.grantchan.sshengine.common.connection;
 
 import io.github.grantchan.sshengine.common.AbstractLogger;
+import io.github.grantchan.sshengine.common.AbstractSession;
 
 import java.io.Closeable;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The class implements the sizing window with necessary synchronization.
  */
 public class Window extends AbstractLogger implements Closeable {
 
-  private static final int DEFAULT_SIZE = 0x200000;
+  private static final int DEFAULT_MAX_SIZE = 0x200000;
   private static final int DEFAULT_PACKET_SIZE = 0x8000;
 
   /**
    * Name of this window assigned to indicate properties, eg. client, server, local, remote
-   * it's formatted as: (client or server)/(local or remote). For example: client/local, server/local
+   * it's formatted as: (client or server)/(local or remote).
+   * <p>
+   * For example: client/local, server/local
+   * </p>
    */
   private final String name;
 
   /** A lock that used to provide synchronization */
   private final Object lock = this;
 
-  private final Channel channel;
+  private final AbstractChannel channel;
 
   /** Current size of this window */
-  private int size;
+  private final AtomicInteger size;
 
   /**
    * Total size of this window, it specifies how many bytes of channel data can be sent without
@@ -43,23 +48,23 @@ public class Window extends AbstractLogger implements Closeable {
   /** Open status of this window, it's initiated as true */
   private AtomicBoolean isOpen  = new AtomicBoolean(true);
 
-  public Window(Channel channel, String name) {
-    this(channel, name, DEFAULT_SIZE, DEFAULT_PACKET_SIZE);
+  public Window(AbstractChannel channel, String name) {
+    this(channel, name, DEFAULT_MAX_SIZE, DEFAULT_PACKET_SIZE);
   }
 
-  public Window(Channel channel, String name, int maxSize, int packetSize) {
+  public Window(AbstractChannel channel, String name, int maxSize, int packetSize) {
     this.channel = channel;
 
     this.name = name;
 
-    this.size = maxSize;  // Initially, it's same as max size
+    this.size = new AtomicInteger(maxSize);  // Initially, it's same as max size
 
     this.maxSize = maxSize;
     this.packetSize = packetSize;
   }
 
   public int getSize() {
-    return size;
+    return size.get();
   }
 
   public int getMaxSize() {
@@ -93,7 +98,7 @@ public class Window extends AbstractLogger implements Closeable {
     synchronized (lock) {
       long waitStart = System.currentTimeMillis();
 
-      while (isOpen.get() && (size < len)) {
+      while (isOpen.get() && (size.get() < len)) {
         lock.wait(timeout);
 
         // consume or expand might cause the window size change, then notify all the waiting threads
@@ -102,7 +107,7 @@ public class Window extends AbstractLogger implements Closeable {
 
         // After wake up, we need to check if the wait time is up, if yes, throw
         // WindowTimeoutException, if no, wait again
-        if (duration <= 0 && size < len) {
+        if (duration <= 0 && size.get() < len) {
           throw new WindowTimeoutException("Timeout after waiting " + timeout + "milliseconds - "
               + this);
         }
@@ -112,6 +117,12 @@ public class Window extends AbstractLogger implements Closeable {
     if (!isOpen.get()) {
       throw new WindowClosedException("Window is closed - " + this);
     }
+  }
+
+  private void setSize(int newSize) {
+    int oldSize = size.getAndSet(newSize);
+
+    logger.debug("[{}] {}, size updated: {} => {}", channel.getSession(), this, oldSize, size.get());
   }
 
   /**
@@ -127,17 +138,14 @@ public class Window extends AbstractLogger implements Closeable {
     synchronized (lock) {
       logger.debug("[{}] {}, trying to expand {} bytes", channel.getSession(), this, len);
 
-      if (size + len > maxSize) {
+      if (size.get() + len > maxSize) {
         throw new IllegalStateException("Too big to expand, the maximum window size is:" + maxSize +
             ", but len:" + len);
       }
 
-      int oldSize = size;
-      size += len;
+      setSize(size.get() + len);
 
       lock.notifyAll();
-
-      logger.debug("[{}] {}, expanded: {} => {}", channel.getSession(), this, oldSize, size);
     }
   }
 
@@ -150,17 +158,26 @@ public class Window extends AbstractLogger implements Closeable {
     synchronized (lock) {
       logger.debug("[{}] {}, trying to consume {} bytes", channel.getSession(), this, len);
 
-      if (len > size) {
+      if (size.get() < len) {
         throw new IllegalStateException("Not enough space to consume, current size: " + size +
             ", but len: " + len);
       }
 
-      int oldSize = size;
-      size -= len;
+      setSize(size.get() - len);
 
       lock.notifyAll();
+    }
+  }
 
-      logger.debug("[{}] {}, consumed: {} => {}", channel.getSession(), this, oldSize, size);
+  public void ensureSpace() {
+    synchronized (lock) {
+      if (size.get() < maxSize / 2) {
+        AbstractSession session = channel.getSession();
+
+        session.sendWindowAdjust(channel.getPeerId(), maxSize - size.get());
+
+        setSize(maxSize);
+      }
     }
   }
 

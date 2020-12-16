@@ -22,7 +22,7 @@ public class SessionChannel extends AbstractChannel {
 
   private final Map<TtyMode, Integer> ttyModes = new ConcurrentHashMap<>();
 
-  private final ChannelInputStream chIn = new ChannelInputStream();
+  private final ChannelInputStream chIn = new ChannelInputStream(this);
   private final ChannelOutputStream chOut = new ChannelOutputStream(this, false);
   private final ChannelOutputStream chErr = new ChannelOutputStream(this, true);
 

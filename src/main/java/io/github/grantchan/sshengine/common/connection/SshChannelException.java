@@ -8,6 +8,8 @@ import java.util.Objects;
  */
 public class SshChannelException extends IOException {
 
+  private static final long serialVersionUID = 2445907434916166647L;
+
   public SshChannelException(String message) {
     this(message, null);
   }

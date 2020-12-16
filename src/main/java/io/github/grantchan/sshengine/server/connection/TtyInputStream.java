@@ -7,8 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-public class TtyInputStream extends FilterInputStream
-                            implements WritableStream {
+public class TtyInputStream extends FilterInputStream implements WritableStream {
 
   private static final Set<TtyMode> MODE_OPTIONS =
       Collections.unmodifiableSet(EnumSet.of(TtyMode.ONLCR, TtyMode.OCRNL, TtyMode.ONLRET, TtyMode.ONOCR));
@@ -61,7 +60,7 @@ public class TtyInputStream extends FilterInputStream
       }
     }
 
-    lastCh = c; // Cached it for LF handling
+    lastCh = c; // cached it for LF handling
 
     return c;
   }

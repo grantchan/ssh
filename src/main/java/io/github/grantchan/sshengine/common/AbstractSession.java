@@ -877,6 +877,35 @@ public abstract class AbstractSession extends AbstractCloseable
     super.doCloseForcibly();
   }
 
+  /**
+   * The window size specifies how many bytes the other party can send
+   * before it must wait for the window to be adjusted.  Both parties use
+   * the following message to adjust the window.
+   *
+   *    byte      SSH_MSG_CHANNEL_WINDOW_ADJUST
+   *    uint32    recipient channel
+   *    uint32    bytes to add
+   *
+   * After receiving this message, the recipient MAY send the given number
+   * of bytes more than it was previously allowed to send; the window size
+   * is incremented.  Implementations MUST correctly handle window sizes
+   * of up to 2^32 - 1 bytes.  The window MUST NOT be increased above
+   * 2^32 - 1 bytes.
+   */
+  public void sendWindowAdjust(int recipient, int size) {
+    checkActive("sendWindowAdjust");
+
+    ByteBuf wa = createMessage(SshMessage.SSH_MSG_CHANNEL_WINDOW_ADJUST);
+
+    wa.writeInt(recipient);
+    wa.writeInt(size);
+
+    logger.debug("[{}] Sending SSH_MSG_CHANNEL_WINDOW_ADJUST... recipient:{}, size:{}", this,
+        recipient, size);
+
+    channel.writeAndFlush(wa);
+  }
+
   @Override
   public String toString() {
     return getUsername() + "@" + getRemoteAddress();

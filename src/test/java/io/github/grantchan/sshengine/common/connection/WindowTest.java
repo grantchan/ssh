@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class WindowTest {
 
   @Mock
-  private Channel channel;
+  private AbstractChannel channel;
 
   @Before
   public void setUp() {
