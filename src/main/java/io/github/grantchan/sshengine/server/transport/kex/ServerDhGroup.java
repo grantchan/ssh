@@ -47,8 +47,7 @@ public class ServerDhGroup extends AbstractLogger implements KexGroup {
 
   @Override
   public void handle(int cmd, ByteBuf req) throws SshException {
-    logger.debug("[{}] Handling key exchange message - {} ...",
-        session, SshMessage.from(cmd));
+    logger.debug("[{}] Handling key exchange message - {} ...", session, SshMessage.from(cmd));
 
     if (cmd != SshMessage.SSH_MSG_KEXDH_INIT) {
       throw new SshException(SshMessage.SSH_DISCONNECT_KEY_EXCHANGE_FAILED,

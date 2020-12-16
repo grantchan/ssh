@@ -113,6 +113,14 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter
     Cipher cipher = session.getInCipher();
     int blkSize = session.getInCipherBlkSize();
 
+    /*
+     * Two decode steps here:
+     * 1. Decode the first block of the packet, the size of a packet block should be exactly the
+     *    cipher block size. We then check the packet size indicated in the first block to see if
+     *    the packet is fully received, if yes, move on to step 2, otherwise, return null.
+     * 2. Decode the rest blocks of the packet
+     */
+
     // Decrypt the first block, if necessary
     if (step.get() == 0 && cipher != null) {
       if (logger.isTraceEnabled()) {
@@ -208,10 +216,10 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter
       data = session.createBuffer(unzipped.length);
       data.writeBytes(unzipped);
 
-      if (logger.isDebugEnabled()) {
+      if (logger.isTraceEnabled()) {
         StringBuilder sb = new StringBuilder();
         ByteBufUtil.appendPrettyHexDump(sb, data);
-        logger.debug("[{}] Decompressed packet ({} -> {} bytes): \n{}", session, zipped.length,
+        logger.trace("[{}] Decompressed packet ({} -> {} bytes): \n{}", session, zipped.length,
             unzipped.length, sb.toString());
       }
     } else {

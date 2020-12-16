@@ -98,7 +98,7 @@ public class ReqHandler extends AbstractReqHandler {
     logger.debug(svcName);
 
     if (!svcName.equals("ssh-userauth")) {
-      logger.debug("[{}] Illegal service request received - Authentication is not completed");
+      logger.debug("[{}] Illegal service request received - Authentication is not completed", session);
 
       throw new IllegalStateException("Authentication is not completed");
     }

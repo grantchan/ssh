@@ -40,7 +40,7 @@ public class ReqHandler extends AbstractReqHandler {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private ByteBuf accrued;
-  private String username;
+  private final String username;
 
   public ReqHandler(String username) {
     this.username = username;

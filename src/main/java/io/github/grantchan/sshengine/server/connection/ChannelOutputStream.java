@@ -73,6 +73,8 @@ public class ChannelOutputStream extends OutputStream {
         } catch (WindowTimeoutException te) {
           logger.debug("[{} - {}] Timeout after {} seconds wait", session, channel,
               TimeUnit.MILLISECONDS.toSeconds(waitTimeout));
+
+          throw te;
         } catch (InterruptedException e) {
           throw new InterruptedIOException(e.getMessage());
         }
@@ -102,7 +104,8 @@ public class ChannelOutputStream extends OutputStream {
     if (!channel.isOpen()) {
       logger.debug("[{}] Failed to write data to a closed channel ({})", session, channel);
 
-      throw new SshChannelException("Unable to write data via channel: " + channel.getId());
+      throw new SshChannelException("Unable to write data via channel: " + channel.getId() +
+          ", channel is closed");
     }
 
     if (extended) {

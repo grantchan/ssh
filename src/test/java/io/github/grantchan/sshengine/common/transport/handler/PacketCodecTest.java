@@ -23,7 +23,6 @@ import org.junit.runners.Parameterized.Parameters;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
-import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collection;
@@ -79,9 +78,61 @@ public class PacketCodecTest {
   public void setUp() {
     // Client as sender to send encoded message
     clientChannel = new EmbeddedChannel(new LoggingHandler());
+    ClientSession clientSession = new ClientSession(clientChannel);
+    clientChannel.pipeline().addLast(new PacketEncoder(clientSession));
 
     // Server as receiver to decode message
     serverChannel = new EmbeddedChannel(new LoggingHandler());
+    ServerSession serverSession = new ServerSession(serverChannel);
+    serverChannel.pipeline().addFirst(new PacketDecoder(serverSession));
+
+    if (cipFactories != null) {
+      // Set up cipher factory
+      byte[] secretKey = new byte[cipFactories.getBlkSize()];
+      rand.nextBytes(secretKey);
+
+      byte[] iv = new byte[cipFactories.getBlkSize()];
+      rand.nextBytes(iv);
+
+      // Set up cipher setting in client session
+      Cipher clientC2sCip = cipFactories.create(secretKey, iv, Cipher.ENCRYPT_MODE);
+      clientSession.setOutCipher(clientC2sCip);
+      clientSession.setOutCipherBlkSize(cipFactories.getIvSize());
+
+      // Set up cipher setting in server session
+      Cipher serverC2sCip = cipFactories.create(secretKey, iv, Cipher.DECRYPT_MODE);
+      serverSession.setInCipher(serverC2sCip);
+      serverSession.setInCipherBlkSize(cipFactories.getIvSize());
+    }
+
+    byte[] macKey;
+    if (macFactories != null) {
+      // Set up MAC factory
+      macKey = new byte[macFactories.getBlkSize()];
+      rand.nextBytes(macKey);
+
+      // Set up MAC setting in client session
+      Mac clientC2sMac = macFactories.create(macKey);
+      clientSession.setOutMac(clientC2sMac);
+      clientSession.setOutMacSize(macFactories.getBlkSize());
+      clientSession.setOutDefMacSize(macFactories.getDefBlkSize());
+
+      // Setup MAC setting in server session
+      Mac serverC2sMac = macFactories.create(macKey);
+      serverSession.setInMac(serverC2sMac);
+      serverSession.setInMacSize(macFactories.getBlkSize());
+      serverSession.setInDefMacSize(macFactories.getDefBlkSize());
+    }
+
+    if (compFactories != null) {
+      Compression clientComp = compFactories.create();
+      clientSession.setOutCompression(clientComp);
+      clientSession.setAuthed(true);
+
+      Compression serverComp = compFactories.create();
+      serverSession.setInCompression(serverComp);
+      serverSession.setAuthed(true);
+    }
   }
 
   @After
@@ -95,88 +146,33 @@ public class PacketCodecTest {
    * should be able to decipher, decompress, verify (by MAC) the SSH_MSG_DEBUG message.
    */
   @Test
-  public void whenMessageSent_shouldBeHandledByRecipient() throws IOException {
-    try (ClientSession clientSession = new ClientSession(clientChannel);
-          ServerSession serverSession = new ServerSession(serverChannel)) {
+  public void whenMessageSent_shouldBeHandledByRecipient() {
+    // Construct a SSH_MSG_DEBUG message
+    ByteBuf msg = Unpooled.buffer();
+    msg.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    msg.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
+    msg.writeByte(SshMessage.SSH_MSG_DEBUG);
 
-      clientChannel.pipeline().addLast(new PacketEncoder(clientSession));
-      serverChannel.pipeline().addFirst(new PacketDecoder(serverSession));
+    String expectedString = "a quick movement of the enemy will jeopardize six gunboats";
+    ByteBufIo.writeUtf8(msg, expectedString);
 
-      if (cipFactories != null) {
-        // Set up cipher factory
-        byte[] secretKey = new byte[cipFactories.getBlkSize()];
-        rand.nextBytes(secretKey);
+    // After writing encrypted message to the channel, in which the session in the packet encoder
+    // has cipher setting, expect the encrypted result to be readable from the outbound pipeline
+    assertTrue(clientChannel.writeOutbound(msg));
+    // Expect only one result from the outbound pipeline
+    assertEquals(1, clientChannel.outboundMessages().size());
 
-        byte[] iv = new byte[cipFactories.getBlkSize()];
-        rand.nextBytes(iv);
+    ByteBuf encodedMsg = clientChannel.readOutbound();
 
-        // Set up cipher setting in client session
-        Cipher clientC2sCip = cipFactories.create(secretKey, iv, Cipher.ENCRYPT_MODE);
-        clientSession.setOutCipher(clientC2sCip);
-        clientSession.setOutCipherBlkSize(cipFactories.getIvSize());
+    // After writing encrypted message to the channel, in which the session in the packet decoder
+    // has cipher setting, expect the decrypted result to be readable from the inbound pipeline
+    assertTrue(serverChannel.writeInbound(encodedMsg));
+    // Expect only one result from the inbound pipeline
+    assertEquals(1, serverChannel.inboundMessages().size());
 
-        // Set up cipher setting in server session
-        Cipher serverC2sCip = cipFactories.create(secretKey, iv, Cipher.DECRYPT_MODE);
-        serverSession.setInCipher(serverC2sCip);
-        serverSession.setInCipherBlkSize(cipFactories.getIvSize());
-      }
+    ByteBuf decodedMsg = serverChannel.readInbound();
 
-      byte[] macKey;
-      if (macFactories != null) {
-        // Set up MAC factory
-        macKey = new byte[macFactories.getBlkSize()];
-        rand.nextBytes(macKey);
-
-        // Set up MAC setting in client session
-        Mac clientC2sMac = macFactories.create(macKey);
-        clientSession.setOutMac(clientC2sMac);
-        clientSession.setOutMacSize(macFactories.getBlkSize());
-        clientSession.setOutDefMacSize(macFactories.getDefBlkSize());
-
-        // Setup MAC setting in server session
-        Mac serverC2sMac = macFactories.create(macKey);
-        serverSession.setInMac(serverC2sMac);
-        serverSession.setInMacSize(macFactories.getBlkSize());
-        serverSession.setInDefMacSize(macFactories.getDefBlkSize());
-      }
-
-      if (compFactories != null) {
-        Compression clientComp = compFactories.create();
-        clientSession.setOutCompression(clientComp);
-        clientSession.setAuthed(true);
-
-        Compression serverComp = compFactories.create();
-        serverSession.setInCompression(serverComp);
-        serverSession.setAuthed(true);
-      }
-
-      // Construct a SSH_MSG_DEBUG message
-      ByteBuf msg = Unpooled.buffer();
-      msg.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-      msg.readerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
-      msg.writeByte(SshMessage.SSH_MSG_DEBUG);
-
-      String expectedString = "a quick movement of the enemy will jeopardize six gunboats";
-      ByteBufIo.writeUtf8(msg, expectedString);
-
-      // After writing encrypted message to the channel, in which the session in the packet encoder
-      // has cipher setting, expect the encrypted result to be readable from the outbound pipeline
-      assertTrue(clientChannel.writeOutbound(msg));
-      // Expect only one result from the outbound pipeline
-      assertEquals(1, clientChannel.outboundMessages().size());
-
-      ByteBuf encodedMsg = clientChannel.readOutbound();
-
-      // After writing encrypted message to the channel, in which the session in the packet decoder
-      // has cipher setting, expect the decrypted result to be readable from the inbound pipeline
-      assertTrue(serverChannel.writeInbound(encodedMsg));
-      // Expect only one result from the inbound pipeline
-      assertEquals(1, serverChannel.inboundMessages().size());
-
-      ByteBuf decodedMsg = serverChannel.readInbound();
-
-      assertEquals(SshMessage.SSH_MSG_DEBUG, decodedMsg.readByte() & 0xFF);
-      assertEquals(expectedString, ByteBufIo.readUtf8(decodedMsg));
-    }
+    assertEquals(SshMessage.SSH_MSG_DEBUG, decodedMsg.readByte() & 0xFF);
+    assertEquals(expectedString, ByteBufIo.readUtf8(decodedMsg));
   }
 }

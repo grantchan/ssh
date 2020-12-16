@@ -28,7 +28,7 @@ public class TtyProcessShell extends AbstractLogger {
 
   private ExitCallback callback;
 
-  private static final ExecutorService threadpool = Executors.newFixedThreadPool(5);
+  private final Thread thread = new Thread(this::drain);
 
   public TtyProcessShell(InputStream in, OutputStream out, OutputStream err, String... cmds) {
     this.in = in;
@@ -49,7 +49,7 @@ public class TtyProcessShell extends AbstractLogger {
       ttyErr = new TtyInputStream(process.getErrorStream(), ttyModes);
       ttyOut = new TtyOutputStream(process.getOutputStream(), ttyIn, ttyModes);
 
-      threadpool.execute(this::drain);
+      thread.start();
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -66,19 +66,20 @@ public class TtyProcessShell extends AbstractLogger {
   private void drain() {
     try {
       while (true) {
-        if (drain(in, ttyOut)) {
+        if ((in != null) && drain(in, ttyOut)) {
           continue;
         }
 
-        if (drain(ttyIn, out)) {
+        if ((out != null) && drain(ttyIn, out)) {
           continue;
         }
 
-        if (drain(ttyErr, err)) {
+        if ((err != null) && drain(ttyErr, err)) {
           continue;
         }
 
-        if ((!process.isAlive()) && (in.available() <= 0) && (ttyIn.available() <= 0) && (ttyErr.available() <= 0)) {
+        if ((!process.isAlive()) && (in != null && in.available() <= 0) &&
+            (ttyIn.available() <= 0) && (ttyErr.available() <= 0)) {
           break;
         }
 
