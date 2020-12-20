@@ -2,11 +2,11 @@ package io.github.grantchan.sshengine.server.connection.service;
 
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.AbstractLogger;
+import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.Service;
-import io.github.grantchan.sshengine.common.SshException;
+import io.github.grantchan.sshengine.common.connection.AbstractChannel;
 import io.github.grantchan.sshengine.common.connection.Channel;
-import io.github.grantchan.sshengine.common.connection.ChannelFactories;
-import io.github.grantchan.sshengine.common.connection.Window;
+import io.github.grantchan.sshengine.common.transport.handler.SessionHolder;
 import io.github.grantchan.sshengine.server.ServerSession;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
@@ -14,12 +14,17 @@ import io.netty.buffer.ByteBuf;
 import java.io.IOException;
 import java.util.Objects;
 
-public class ConnectionService extends AbstractLogger implements Service {
+public class ServerConnectionService extends AbstractLogger implements Service, SessionHolder {
 
   private final ServerSession session;
 
-  public ConnectionService(ServerSession session) {
+  public ServerConnectionService(ServerSession session) {
     this.session = session;
+  }
+
+  @Override
+  public AbstractSession getSession() {
+    return session;
   }
 
   @Override
@@ -62,7 +67,7 @@ public class ConnectionService extends AbstractLogger implements Service {
     }
   }
 
-  private void channelOpen(ByteBuf req) {
+  private void channelOpen(ByteBuf req) throws IOException {
 
     /*
      * 5.1.  Open a Channel
@@ -104,29 +109,11 @@ public class ConnectionService extends AbstractLogger implements Service {
     logger.debug("[{}] Received SSH_MSG_CHANNEL_OPEN. channel type:{}, sender channel id:{}, " +
         "initial window size:{}, maximum packet size:{}", session, type, peerId, rwndsize, rpksize);
 
-    Channel channel = Objects.requireNonNull(ChannelFactories.from(type)).create(session);
-    channel.open(peerId, (int)rwndsize, (int)rpksize)
-           .whenComplete((isOpened, ex) -> {
-             if (isOpened != null && isOpened) {
-               Window wnd = channel.getLocalWindow();
+    AbstractChannel channel =
+        Objects.requireNonNull(session.createChannel("session"), "unable to create channel");
 
-               session.replyChannelOpenConfirmation(peerId,
-                                                    channel.getId(),
-                                                    wnd.getMaxSize(),
-                                                    wnd.getPacketSize());
-             } else {
-               // failed to open
-               int reason = 0;
-               String message = "Error while opening channel, id: " + peerId;
-               if (ex != null) {
-                 if (ex instanceof SshException) {
-                   reason = ((SshException) ex).getReason();
-                 }
-                 message = ex.getMessage();
-               }
-               session.replyChannelOpenFailure(peerId, reason, message, "");
-             }
-           });
+    channel.init(peerId, (int)rwndsize, (int)rpksize);
+    channel.open();
   }
 
   private void channelWindowAdjust(ByteBuf req) {

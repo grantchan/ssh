@@ -1,12 +1,13 @@
 package io.github.grantchan.sshengine.common.userauth.service;
 
 import io.github.grantchan.sshengine.client.ClientSession;
+import io.github.grantchan.sshengine.client.connection.service.ClientConnectionService;
 import io.github.grantchan.sshengine.client.userauth.service.ClientUserAuthService;
 import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.NamedObject;
 import io.github.grantchan.sshengine.common.Service;
 import io.github.grantchan.sshengine.server.ServerSession;
-import io.github.grantchan.sshengine.server.connection.service.ConnectionService;
+import io.github.grantchan.sshengine.server.connection.service.ServerConnectionService;
 import io.github.grantchan.sshengine.server.userauth.service.ServerUserAuthService;
 
 import java.util.Collections;
@@ -26,7 +27,9 @@ public enum ServiceFactories implements NamedObject, ServiceFactory {
   connection("ssh-connection") {
     @Override
     public Service create(AbstractSession session) {
-      return new ConnectionService((ServerSession) session);
+      return session instanceof ServerSession ?
+          new ServerConnectionService((ServerSession) session) :
+          new ClientConnectionService((ClientSession) session);
     }
   };
 

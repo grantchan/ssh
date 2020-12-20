@@ -10,18 +10,15 @@ import io.netty.channel.Channel;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
-public abstract class AbstractSession extends AbstractCloseable
-                                      implements UsernameHolder {
+public abstract class AbstractSession extends AbstractOpenClose implements UsernameHolder {
   private static final int DEFAULT_BUFFER_SIZE = 256;
 
   /** the network connection between client and server */
@@ -109,6 +106,14 @@ public abstract class AbstractSession extends AbstractCloseable
   public AbstractSession(Channel channel) {
     this.channel = channel;
     sessions.add(this);
+
+    try {
+      open();
+    } catch (IOException e) {
+      logger.error("[{}] Failed to open this session", this);
+
+      throw new IllegalStateException("Unable to change the state of session - " + this);
+    }
   }
 
   public byte[] getRawId() {
@@ -464,7 +469,7 @@ public abstract class AbstractSession extends AbstractCloseable
   }
 
   private void checkActive(String funcName) {
-    if (isClosed()) {
+    if (!isOpen()) {
       logger.debug("[{}] {}, session is inactive, operation skipped", funcName, this);
     }
   }
@@ -871,10 +876,15 @@ public abstract class AbstractSession extends AbstractCloseable
   }
 
   @Override
-  protected void doCloseForcibly() {
+  public CompletableFuture<Boolean> openAsync() throws IOException {
+    throw new UnsupportedOperationException("Not supported by session object");
+  }
+
+  @Override
+  public void close() throws IOException {
     sessions.remove(this);
 
-    super.doCloseForcibly();
+    super.close();
   }
 
   /**

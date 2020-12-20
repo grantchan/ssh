@@ -1,9 +1,7 @@
 package io.github.grantchan.sshengine.server.connection;
 
 import io.github.grantchan.sshengine.common.AbstractSession;
-import io.github.grantchan.sshengine.common.connection.AbstractChannel;
 import io.github.grantchan.sshengine.common.connection.TtyMode;
-import io.github.grantchan.sshengine.common.connection.Window;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
@@ -13,12 +11,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SessionChannel extends AbstractChannel {
-
-  // Local and remote windows
-  private Window localWnd, remoteWnd;
+public class SessionChannel extends AbstractServerChannel {
 
   private final Map<TtyMode, Integer> ttyModes = new ConcurrentHashMap<>();
 
@@ -33,15 +29,12 @@ public class SessionChannel extends AbstractChannel {
   }
 
   @Override
-  public void doOpen(int rwndsize, int rpksize) throws Exception {
-    super.doOpen(rwndsize, rpksize);
-
-    localWnd = new Window(this, "server/local");
-    remoteWnd = new Window(this, "server/remote", rwndsize, rpksize);
+  public CompletableFuture<Boolean> openAsync() throws IOException {
+    throw new UnsupportedOperationException("Not supported by server channel");
   }
 
   @Override
-  protected void doClose() throws Exception {
+  public void close() throws IOException {
     AbstractSession session = getSession();
 
     if (shell != null && shell.isAlive()) {
@@ -50,23 +43,9 @@ public class SessionChannel extends AbstractChannel {
       shell.shutdown();
     }
 
-    for (Closeable c : Arrays.asList(localWnd, remoteWnd)) {
-      c.close();
-    }
-
     session.sendChannelClose(getPeerId());
 
-    super.doClose();
-  }
-
-  @Override
-  public Window getLocalWindow() {
-    return localWnd;
-  }
-
-  @Override
-  public Window getRemoteWindow() {
-    return remoteWnd;
+    super.close();
   }
 
   @Override
@@ -258,8 +237,8 @@ public class SessionChannel extends AbstractChannel {
         session.sendEof(getPeerId());
         session.sendExitStatus(getPeerId(), ev);
 
-        close().whenComplete((isClosed, ex) -> {
-          if (isClosed) {
+        close(true).thenApply(closed -> {
+          if (closed) {
             try {
               for (Closeable c : Arrays.asList(chIn, chOut, chErr)) {
                 c.close();
@@ -268,6 +247,7 @@ public class SessionChannel extends AbstractChannel {
               // ignore
             }
           }
+          return true;
         });
       }
     });
@@ -281,7 +261,7 @@ public class SessionChannel extends AbstractChannel {
   public void handleWindowAdjust(ByteBuf req) {
     int size = req.readInt();
 
-    remoteWnd.expand(size);
+    getRemoteWindow().expand(size);
   }
 
   @Override
@@ -335,6 +315,4 @@ public class SessionChannel extends AbstractChannel {
   public void handleClose(ByteBuf req) throws IOException {
 
   }
-
-
 }

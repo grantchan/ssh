@@ -3,6 +3,8 @@ package io.github.grantchan.sshengine.server;
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.transport.compression.Compression;
+import io.github.grantchan.sshengine.server.connection.AbstractServerChannel;
+import io.github.grantchan.sshengine.server.connection.SessionChannel;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -303,5 +305,13 @@ public class ServerSession extends AbstractSession {
         " message:{}, lang:{}", this, peerId, reason, message, lang);
 
     channel.writeAndFlush(cof);
+  }
+
+  public AbstractServerChannel createChannel(String type) {
+    if (type != null && type.equals("session")) {
+      return new SessionChannel(this);
+    }
+
+    return null;
   }
 }
