@@ -35,14 +35,14 @@ import java.util.Objects;
 import static io.github.grantchan.sshengine.common.transport.handler.ReqHandler.hashKey;
 import static io.github.grantchan.sshengine.common.transport.handler.ReqHandler.negotiate;
 
-public class ReqHandler extends AbstractReqHandler {
+public class ClientReqHandler extends AbstractReqHandler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private ByteBuf accrued;
   private final String username;
 
-  public ReqHandler(String username) {
+  public ClientReqHandler(String username) {
     this.username = username;
   }
 
@@ -176,8 +176,6 @@ public class ReqHandler extends AbstractReqHandler {
 
   @Override
   public void handleNewKeys(ByteBuf req) throws SshException {
-    super.handleNewKeys(req);
-
     KexGroup kexGroup = Objects.requireNonNull(getKexGroup(), "Kex handler is not initialized");
 
     /*

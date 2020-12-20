@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
                                          implements ReqHandler {
@@ -27,6 +28,21 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
   protected AbstractSession session;
 
   private KexGroup kexGroup;
+
+  private final Function<Boolean, Boolean> cleanup = (closed) -> {
+    if (!closed) {
+      return false;
+    }
+
+    for (Channel c : Channel.find(session)) {
+      try {
+        c.close();
+      } catch (IOException e) {
+        logger.error("Failed to close " + c);
+      }
+    }
+    return true;
+  };
 
   @Override
   public AbstractSession getSession() {
@@ -52,14 +68,7 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
         this, SshMessage.disconnectReason(SshMessage.SSH_DISCONNECT_CONNECTION_LOST),
         "Disconnected by peer");
 
-    session.close(true)
-           .whenComplete((closed, ex) -> {
-             if (closed) {
-               for (Channel c : Channel.find(session)) {
-                 c.close();
-               }
-             }
-           });
+    session.close(true).thenApply(cleanup);
   }
 
   @Override
@@ -107,14 +116,7 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
     logger.debug("[{}] Disconnecting... reason: {}, msg: {}", this,
         SshMessage.disconnectReason(code), msg);
 
-    session.close(true)
-           .whenComplete((closed, ex) -> {
-             if (closed) {
-               for (Channel c : Channel.find(session)) {
-                 c.close();
-               }
-             }
-           });
+    session.close(true).thenApply(cleanup);
   }
 
   protected abstract void setKexInit(byte[] ki);
@@ -173,6 +175,5 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
   public void handleServiceAccept(ByteBuf req) throws SshException {
   }
 
-  public void handleNewKeys(ByteBuf req) throws SshException {
-  }
+  public abstract void handleNewKeys(ByteBuf req) throws SshException;
 }

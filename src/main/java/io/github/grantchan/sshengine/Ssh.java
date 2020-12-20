@@ -1,6 +1,6 @@
 package io.github.grantchan.sshengine;
 
-import io.github.grantchan.sshengine.client.transport.handler.ReqHandler;
+import io.github.grantchan.sshengine.client.transport.handler.ClientReqHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
@@ -25,7 +25,7 @@ public class Ssh {
           @Override
           protected void initChannel(SocketChannel ch) {
             ch.pipeline().addLast(new LoggingHandler(LogLevel.TRACE),
-                                  new ReqHandler("jiadong"));
+                                  new ClientReqHandler("guest"));
           }
         }).connect().sync().channel().closeFuture().sync();
     } catch (InterruptedException e) {
