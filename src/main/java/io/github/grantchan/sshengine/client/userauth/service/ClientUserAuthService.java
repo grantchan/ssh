@@ -17,9 +17,9 @@ public class ClientUserAuthService implements Service {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private ClientSession session;
+  private final ClientSession session;
 
-  private Iterator<String> clientMethods;
+  private final Iterator<String> clientMethods;
   private List<String> serverMethods;
   private Method auth;
 
@@ -212,8 +212,8 @@ public class ClientUserAuthService implements Service {
           if (auth == null) {
             logger.debug("[{}] Failed to create authentication method - {}", session, clientMethod);
 
-            throw new IllegalStateException("Failed to create authentication method - " +
-                clientMethod);
+            session.setAuthed(new IllegalStateException("Failed to create authentication method - " +
+                clientMethod));
           }
         }
       }
@@ -221,8 +221,8 @@ public class ClientUserAuthService implements Service {
       if (auth == null) {
         logger.debug("[{}] No more authentication methods available", session);
 
-        throw new SshException(SshMessage.SSH_DISCONNECT_NO_MORE_AUTH_METHODS_AVAILABLE,
-            "No more authentication methods available");
+        session.setAuthed(new SshException(SshMessage.SSH_DISCONNECT_NO_MORE_AUTH_METHODS_AVAILABLE,
+            "No more authentication methods available"));
       }
     }
   }

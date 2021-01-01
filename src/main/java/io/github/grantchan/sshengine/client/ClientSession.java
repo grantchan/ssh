@@ -13,6 +13,7 @@ import javax.crypto.Mac;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.PublicKey;
+import java.util.concurrent.CompletableFuture;
 
 public class ClientSession extends AbstractSession {
 
@@ -155,17 +156,24 @@ public class ClientSession extends AbstractSession {
     throw new UnsupportedOperationException("Client is not capable of replying accept message");
   }
 
-  /**
-   * Sends the {@link SshMessage#SSH_MSG_SERVICE_REQUEST} message to the server
-   */
-  public void requestServiceRequest() {
-    ByteBuf req = createMessage(SshMessage.SSH_MSG_SERVICE_REQUEST);
+  public CompletableFuture<Boolean> auth(String username, String password) {
+    setUsername(username);
 
+    ByteBuf req = createMessage(SshMessage.SSH_MSG_SERVICE_REQUEST);
     ByteBufIo.writeUtf8(req, "ssh-userauth");
 
     logger.debug("[{}] Requesting SSH_MSG_SERVICE_REQUEST...", this);
 
-    channel.writeAndFlush(req);
+    channel.writeAndFlush(req).addListener(f -> {
+      Throwable e = f.cause();
+      if (e != null) {
+        authFuture.completeExceptionally(e);
+      } else if (f.isCancelled()) {
+        authFuture.cancel(true);
+      }
+    });
+
+    return authFuture;
   }
 
   public void requestUserAuthRequest(String user, String service, String method) {
@@ -211,8 +219,8 @@ public class ClientSession extends AbstractSession {
     ByteBufIo.writeBytes(req, sig);
 
     logger.debug("[{}] Requesting SSH_MSG_USERAUTH_REQUEST... " +
-            "username:{}, service:{}, method:{}, algo:{}, sigature: {}", this, user, service, method, algo,
-        Bytes.md5(sig));
+        "username:{}, service:{}, method:{}, algo:{}, sigature: {}", this, user, service,
+        method, algo, Bytes.md5(sig));
 
     channel.writeAndFlush(req);
   }

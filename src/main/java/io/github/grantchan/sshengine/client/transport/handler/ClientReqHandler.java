@@ -1,5 +1,6 @@
 package io.github.grantchan.sshengine.client.transport.handler;
 
+import io.github.grantchan.sshengine.Ssh;
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.client.ClientSession;
 import io.github.grantchan.sshengine.common.SshException;
@@ -18,7 +19,9 @@ import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.Attribute;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +34,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import static io.github.grantchan.sshengine.common.transport.handler.ReqHandler.hashKey;
 import static io.github.grantchan.sshengine.common.transport.handler.ReqHandler.negotiate;
@@ -40,11 +44,7 @@ public class ClientReqHandler extends AbstractReqHandler {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private ByteBuf accrued;
-  private final String username;
 
-  public ClientReqHandler(String username) {
-    this.username = username;
-  }
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) {
@@ -75,7 +75,6 @@ public class ClientReqHandler extends AbstractReqHandler {
      * Key exchange will begin immediately after sending this identifier.
      */
     session.setClientId("SSH-2.0-Client DEMO");
-    session.setUsername(username);
 
     accrued = session.createBuffer();
   }
@@ -155,6 +154,8 @@ public class ClientReqHandler extends AbstractReqHandler {
     logger.debug("[{}] Service accepted: {}", session, service);
 
     session.acceptService(service);
+
+    session.resetAuthStartTime();
 
     /*
      * The "none" Authentication Request
@@ -304,6 +305,10 @@ public class ClientReqHandler extends AbstractReqHandler {
     logger.debug("[{}] Session Compression(outgoing): {}, Session Compression(incoming): {}",
         session, c2sCmf, s2cCmf);
 
-    session.requestServiceRequest();
+    Channel channel = session.getChannel();
+    Attribute<CompletableFuture<ClientSession>> attr = channel.attr(Ssh.SSH_CONNECT_FUTURE);
+
+    CompletableFuture<ClientSession> connFuture = attr.get();
+    connFuture.complete((ClientSession) session);
   }
 }

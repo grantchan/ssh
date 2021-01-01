@@ -13,8 +13,7 @@ import io.github.grantchan.sshengine.server.userauth.method.SshAuthInProgressExc
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 
-public class ServerUserAuthService extends AbstractLogger
-                                   implements Service {
+public class ServerUserAuthService extends AbstractLogger implements Service {
 
   private ServerSession session;
   private String service;
@@ -24,6 +23,8 @@ public class ServerUserAuthService extends AbstractLogger
     this.session = session;
     this.retryCnt = 0;
     this.maxRetryCnt = 10;
+
+    session.resetAuthStartTime();
   }
 
   @Override

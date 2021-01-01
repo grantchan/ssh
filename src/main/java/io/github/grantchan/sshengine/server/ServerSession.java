@@ -191,11 +191,6 @@ public class ServerSession extends AbstractSession {
     throw new UnsupportedOperationException("Server doesn't support sending user auth request");
   }
 
-  @Override
-  public void requestServiceRequest() {
-    throw new UnsupportedOperationException("Server doesn't support sending service request");
-  }
-
   /**
    * Sends the {@link SshMessage#SSH_MSG_USERAUTH_SUCCESS} message to client to notify the
    * authentication request is accepted.

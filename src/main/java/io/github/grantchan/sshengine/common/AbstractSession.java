@@ -99,8 +99,8 @@ public abstract class AbstractSession extends AbstractOpenClose implements Usern
   private String username;
   private String remoteAddr;
 
-  private final long authStartTime = System.currentTimeMillis();
-  private volatile boolean isAuthed = false;
+  private long authStartTime = System.currentTimeMillis();
+  protected CompletableFuture<Boolean> authFuture = new CompletableFuture<>();
 
   // Constructor
   public AbstractSession(Channel channel) {
@@ -114,6 +114,10 @@ public abstract class AbstractSession extends AbstractOpenClose implements Usern
 
       throw new IllegalStateException("Unable to change the state of session - " + this);
     }
+  }
+
+  public Channel getChannel() {
+    return channel;
   }
 
   public byte[] getRawId() {
@@ -456,16 +460,34 @@ public abstract class AbstractSession extends AbstractOpenClose implements Usern
 
   public abstract void setOutCompression(Compression outCompression);
 
+  public void resetAuthStartTime() {
+    this.authStartTime = System.currentTimeMillis();
+  }
+
   public boolean isAuthed() {
-    return isAuthed;
+    return authFuture.isDone();
   }
 
   public void setAuthed(boolean authed) {
+    boolean isAuthed = authFuture.isDone();
+
+    authFuture.complete(authed);
+
     if (!isAuthed && authed) {
       logger.debug("[{}] Authentication process completed in {} ms", this,
           System.currentTimeMillis() - authStartTime);
     }
-    this.isAuthed = authed;
+  }
+
+  public void setAuthed(Throwable exception) {
+    boolean isAuthed = authFuture.isDone();
+
+    authFuture.completeExceptionally(exception);
+
+    if (!isAuthed) {
+      logger.debug("[{}] Authentication process failed in {} ms", this,
+          System.currentTimeMillis() - authStartTime);
+    }
   }
 
   private void checkActive(String funcName) {
@@ -541,8 +563,6 @@ public abstract class AbstractSession extends AbstractOpenClose implements Usern
   }
 
   public abstract void requestUserAuthRequest(String username, String service, String method);
-
-  public abstract void requestServiceRequest();
 
   /**
    * Sends the {@link SshMessage#SSH_MSG_KEX_DH_GEX_GROUP} message to the client, along with p and g
