@@ -30,8 +30,6 @@ public abstract class AbstractOpenClose extends AbstractLogger implements AsyncC
     state.set(State.OPENED);
   }
 
-  public abstract CompletableFuture<Boolean> openAsync() throws IOException;
-
   @Override
   public void close() throws IOException {
     state.set(State.CLOSED);

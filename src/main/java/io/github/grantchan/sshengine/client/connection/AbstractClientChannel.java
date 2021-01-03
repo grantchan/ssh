@@ -1,6 +1,5 @@
 package io.github.grantchan.sshengine.client.connection;
 
-import io.github.grantchan.sshengine.client.ClientSession;
 import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.connection.AbstractChannel;
 import io.github.grantchan.sshengine.common.connection.Window;
@@ -14,10 +13,13 @@ public abstract class AbstractClientChannel extends AbstractChannel {
   private final Window localWnd = new Window(this, "client/local");
   private Window remoteWnd;
 
-  private CompletableFuture<Boolean> openFuture;
+  private CompletableFuture<AbstractClientChannel> openFuture;
 
-  public AbstractClientChannel(AbstractSession session) {
+  public AbstractClientChannel(AbstractSession session,
+                               CompletableFuture<AbstractClientChannel> openFuture) {
     super(session);
+
+    this.openFuture = openFuture;
   }
 
   public abstract String getType();
@@ -26,36 +28,19 @@ public abstract class AbstractClientChannel extends AbstractChannel {
   public void init(int peerId, int rWndSize, int rPkSize) {
     super.init(peerId, rWndSize, rPkSize);
 
-    remoteWnd = new Window(this, "client/remote");
+    remoteWnd = new Window(this, "client/remote", rWndSize, rPkSize);
   }
 
   @Override
   public void close() throws IOException {
     if (openFuture != null && !openFuture.isDone()) {
-      openFuture.complete(true);
+      openFuture.complete(this);
     }
 
     localWnd.close();
     remoteWnd.close();
 
     super.close();
-  }
-
-  @Override
-  public void open() throws IOException {
-    //
-    //
-  }
-
-  @Override
-  public CompletableFuture<Boolean> openAsync() throws IOException {
-    ClientSession session = (ClientSession) getSession();
-
-    openFuture = new CompletableFuture<>();
-
-    //session.sendChannelOpen(getType(), getId(), localWnd.getMaxSize(), localWnd.getPacketSize());
-
-    return openFuture;
   }
 
   @Override
@@ -81,17 +66,15 @@ public abstract class AbstractClientChannel extends AbstractChannel {
   @Override
   public void handleEof(ByteBuf req) throws IOException {
     if (openFuture != null && !openFuture.isDone()) {
-      openFuture.complete(true);
+      openFuture.complete(this);
     }
-
   }
 
   @Override
   public void handleClose(ByteBuf req) throws IOException {
     if (openFuture != null && !openFuture.isDone()) {
-      openFuture.complete(true);
+      openFuture.complete(this);
     }
-
   }
 
   @Override
@@ -100,8 +83,12 @@ public abstract class AbstractClientChannel extends AbstractChannel {
   }
 
   public void handleOpenConfirmation(ByteBuf req) throws IOException {
-    openFuture.complete(true);
+    int peerId = req.readInt();
+    int rWndSize = req.readInt();
+    int rPkSize = req.readInt();
 
-    // init(peerId, rWndSize, rPkSize);
+    init(peerId, rWndSize, rPkSize);
+
+    openFuture.complete(this);
   }
 }

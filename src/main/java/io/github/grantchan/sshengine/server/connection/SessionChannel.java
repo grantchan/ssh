@@ -29,11 +29,6 @@ public class SessionChannel extends AbstractServerChannel {
   }
 
   @Override
-  public CompletableFuture<Boolean> openAsync() throws IOException {
-    throw new UnsupportedOperationException("Not supported by server channel");
-  }
-
-  @Override
   public void close() throws IOException {
     AbstractSession session = getSession();
 

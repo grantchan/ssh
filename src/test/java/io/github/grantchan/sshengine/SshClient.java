@@ -1,6 +1,7 @@
 package io.github.grantchan.sshengine;
 
 import io.github.grantchan.sshengine.client.ClientSession;
+import io.github.grantchan.sshengine.client.connection.AbstractClientChannel;
 
 import java.util.Optional;
 
@@ -16,7 +17,6 @@ public class SshClient {
             try {
               Boolean isAuthed = session.auth("guest", null).get();
               Optional.ofNullable(isAuthed).ifPresent(authResult -> {
-
                 if (!authResult) {
                   System.out.println("Login failed");
                   return;
@@ -24,8 +24,14 @@ public class SshClient {
 
                 System.out.println("Authentication completed");
 
+                try (AbstractClientChannel channel = session.openChannel("session").get()) {
+                  Optional.ofNullable(channel).ifPresent(ch -> {
+                    System.out.println("Channel is opened");
+                  });
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
               });
-
             } catch (Exception e) {
               e.printStackTrace();
             }

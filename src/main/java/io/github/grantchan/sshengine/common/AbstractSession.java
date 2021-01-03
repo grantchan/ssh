@@ -896,13 +896,12 @@ public abstract class AbstractSession extends AbstractOpenClose implements Usern
   }
 
   @Override
-  public CompletableFuture<Boolean> openAsync() throws IOException {
-    throw new UnsupportedOperationException("Not supported by session object");
-  }
-
-  @Override
   public void close() throws IOException {
     sessions.remove(this);
+
+    if (!authFuture.isDone()) {
+      authFuture.cancel(true);
+    }
 
     super.close();
   }

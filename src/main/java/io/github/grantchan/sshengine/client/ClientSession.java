@@ -1,7 +1,10 @@
 package io.github.grantchan.sshengine.client;
 
 import io.github.grantchan.sshengine.arch.SshMessage;
+import io.github.grantchan.sshengine.client.connection.AbstractClientChannel;
 import io.github.grantchan.sshengine.common.AbstractSession;
+import io.github.grantchan.sshengine.common.connection.AbstractChannel;
+import io.github.grantchan.sshengine.common.connection.Window;
 import io.github.grantchan.sshengine.common.transport.compression.Compression;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
@@ -223,5 +226,65 @@ public class ClientSession extends AbstractSession {
         method, algo, Bytes.md5(sig));
 
     channel.writeAndFlush(req);
+  }
+
+  /**
+   * Opening a Channel
+   *
+   * When either side wishes to open a new channel, it allocates a local
+   * number for the channel.  It then sends the following message to the
+   * other side, and includes the local channel number and initial window
+   * size in the message.
+   *
+   *    byte      SSH_MSG_CHANNEL_OPEN
+   *    string    channel type in US-ASCII only
+   *    uint32    sender channel
+   *    uint32    initial window size
+   *    uint32    maximum packet size
+   *    ....      channel type specific data follows
+   *
+   * The 'channel type' is a name, as described in [SSH-ARCH] and
+   * [SSH-NUMBERS], with similar extension mechanisms.  The 'sender
+   * channel' is a local identifier for the channel used by the sender of
+   * this message.  The 'initial window size' specifies how many bytes of
+   * channel data can be sent to the sender of this message without
+   * adjusting the window.  The 'maximum packet size' specifies the
+   * maximum size of an individual data packet that can be sent to the
+   * sender.  For example, one might want to use smaller packets for
+   * interactive connections to get better interactive response on slow
+   * links.
+   *
+   * The remote side then decides whether it can open the channel, and
+   * responds with either SSH_MSG_CHANNEL_OPEN_CONFIRMATION or
+   * SSH_MSG_CHANNEL_OPEN_FAILURE.
+   */
+  private void sendChannelOpen(String type, int id, int wndSize, int pkgSize) {
+    ByteBuf co = createMessage(SshMessage.SSH_MSG_CHANNEL_OPEN);
+
+    ByteBufIo.writeUtf8(co, type);
+    co.writeInt(id);
+    co.writeInt(wndSize);
+    co.writeInt(pkgSize);
+
+    logger.debug("[{}] Requesting SSH_MSG_CHANNEL_OPEN..." +
+        "type:{}, id:{}, window size:{}, package size:{}", this, type, id, wndSize, pkgSize);
+
+    channel.writeAndFlush(co);
+  }
+
+  public CompletableFuture<AbstractClientChannel> openChannel(String type) {
+    CompletableFuture<AbstractClientChannel> openFuture = new CompletableFuture<>();
+
+    AbstractChannel channel = new AbstractClientChannel(this, openFuture) {
+      @Override
+      public String getType() {
+        return type;
+      }
+    };
+
+    Window localWnd = channel.getLocalWindow();
+    sendChannelOpen(type, channel.getId(), localWnd.getMaxSize(), localWnd.getPacketSize());
+
+    return openFuture;
   }
 }
