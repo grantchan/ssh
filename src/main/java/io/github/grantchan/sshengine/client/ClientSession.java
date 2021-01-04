@@ -10,6 +10,7 @@ import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
@@ -258,7 +259,7 @@ public class ClientSession extends AbstractSession {
    * responds with either SSH_MSG_CHANNEL_OPEN_CONFIRMATION or
    * SSH_MSG_CHANNEL_OPEN_FAILURE.
    */
-  private void sendChannelOpen(String type, int id, int wndSize, int pkgSize) {
+  private ChannelFuture sendChannelOpen(String type, int id, int wndSize, int pkgSize) {
     ByteBuf co = createMessage(SshMessage.SSH_MSG_CHANNEL_OPEN);
 
     ByteBufIo.writeUtf8(co, type);
@@ -269,7 +270,7 @@ public class ClientSession extends AbstractSession {
     logger.debug("[{}] Requesting SSH_MSG_CHANNEL_OPEN..." +
         "type:{}, id:{}, window size:{}, package size:{}", this, type, id, wndSize, pkgSize);
 
-    channel.writeAndFlush(co);
+    return channel.writeAndFlush(co);
   }
 
   public CompletableFuture<AbstractClientChannel> openChannel(String type) {
@@ -282,8 +283,26 @@ public class ClientSession extends AbstractSession {
       }
     };
 
+    try {
+      channel.open();
+    } catch (IOException e) {
+      openFuture.completeExceptionally(e);
+      return openFuture;
+    }
+
     Window localWnd = channel.getLocalWindow();
-    sendChannelOpen(type, channel.getId(), localWnd.getMaxSize(), localWnd.getPacketSize());
+    int id = channel.getId();
+    int wndSize = localWnd.getMaxSize();
+    int pkgSize = localWnd.getPacketSize();
+
+    sendChannelOpen(type, id, wndSize, pkgSize).addListener(l -> {
+      Throwable cause = l.cause();
+      if (cause != null) {
+        openFuture.completeExceptionally(cause);
+      } else if (l.isCancelled()) {
+        openFuture.cancel(true);
+      }
+    });
 
     return openFuture;
   }

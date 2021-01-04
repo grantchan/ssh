@@ -8,7 +8,7 @@ import java.io.IOException;
 public abstract class AbstractChannel extends AbstractOpenClose implements Channel {
 
   /** Channel identifier */
-  private final int id;
+  private int id;
 
   /** The channel identifier used when talking to remote peer */
   private int peerId;
@@ -18,8 +18,6 @@ public abstract class AbstractChannel extends AbstractOpenClose implements Chann
 
   public AbstractChannel(AbstractSession session) {
     this.session = session;
-
-    this.id = register(this);
   }
 
   /**
@@ -55,6 +53,15 @@ public abstract class AbstractChannel extends AbstractOpenClose implements Chann
   @Override
   public AbstractSession getSession() {
     return session;
+  }
+
+  @Override
+  public void open() throws IOException {
+    this.id = register(this);
+
+    logger.debug("[{}] channel ({}) is registered.", session, this);
+
+    super.open();
   }
 
   /**
