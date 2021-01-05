@@ -1,11 +1,15 @@
 package io.github.grantchan.sshengine.common.connection;
 
-import io.github.grantchan.sshengine.common.AbstractOpenClose;
+import io.github.grantchan.sshengine.common.AbstractLogger;
 import io.github.grantchan.sshengine.common.AbstractSession;
+import io.github.grantchan.sshengine.common.CommonState;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
-public abstract class AbstractChannel extends AbstractOpenClose implements Channel {
+public abstract class AbstractChannel extends AbstractLogger implements Channel, CommonState {
+
+  private final AtomicReference<State> state = new AtomicReference<>(State.CLOSED);
 
   /** Channel identifier */
   private int id;
@@ -29,6 +33,16 @@ public abstract class AbstractChannel extends AbstractOpenClose implements Chann
    */
   public void init(int peerId, int rWndSize, int rPkSize) {
     this.peerId = peerId;
+  }
+
+  @Override
+  public State getState() {
+    return state.get();
+  }
+
+  @Override
+  public void setState(State state) {
+    this.state.set(state);
   }
 
   /**
@@ -61,7 +75,7 @@ public abstract class AbstractChannel extends AbstractOpenClose implements Chann
 
     logger.debug("[{}] channel ({}) is registered.", session, this);
 
-    super.open();
+    setState(State.OPENED);
   }
 
   /**
@@ -75,7 +89,12 @@ public abstract class AbstractChannel extends AbstractOpenClose implements Chann
 
     logger.debug("[{}] channel ({}) is unregistered.", session, this);
 
-    super.close();
+    setState(State.CLOSED);
+  }
+
+  @Override
+  public boolean isOpen() {
+    return getState() == State.OPENED;
   }
 
   @Override

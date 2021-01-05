@@ -10,6 +10,7 @@ import io.netty.channel.Channel;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
+import java.io.Closeable;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
@@ -17,14 +18,15 @@ import java.net.SocketAddress;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 
-public abstract class AbstractSession extends AbstractOpenClose implements UsernameHolder {
+public abstract class AbstractSession extends AbstractLogger
+                                      implements Closeable, CommonState, UsernameHolder {
+
   private static final int DEFAULT_BUFFER_SIZE = 256;
 
-  /** the network connection between client and server */
-  protected final Channel channel;
-
   private static final Set<AbstractSession> sessions = new CopyOnWriteArraySet<>();
+
   private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
 
   static {
@@ -34,6 +36,11 @@ public abstract class AbstractSession extends AbstractOpenClose implements Usern
       }
     }, 1, 1, TimeUnit.SECONDS);
   }
+
+  /** the network connection between client and server */
+  protected final Channel channel;
+
+  private final AtomicReference<State> state = new AtomicReference<>(State.CLOSED);
 
   /** the id represents this session */
   private byte[] rawId;
@@ -105,19 +112,24 @@ public abstract class AbstractSession extends AbstractOpenClose implements Usern
   // Constructor
   public AbstractSession(Channel channel) {
     this.channel = channel;
+
+    setState(State.OPENED);
+
     sessions.add(this);
-
-    try {
-      open();
-    } catch (IOException e) {
-      logger.error("[{}] Failed to open this session", this);
-
-      throw new IllegalStateException("Unable to change the state of session - " + this);
-    }
   }
 
   public Channel getChannel() {
     return channel;
+  }
+
+  @Override
+  public State getState() {
+    return state.get();
+  }
+
+  @Override
+  public void setState(State state) {
+    this.state.set(state);
   }
 
   public byte[] getRawId() {
@@ -491,7 +503,7 @@ public abstract class AbstractSession extends AbstractOpenClose implements Usern
   }
 
   private void checkActive(String funcName) {
-    if (!isOpen()) {
+    if (getState() != State.OPENED) {
       logger.debug("[{}] {}, session is inactive, operation skipped", funcName, this);
     }
   }
@@ -902,8 +914,6 @@ public abstract class AbstractSession extends AbstractOpenClose implements Usern
     if (!authFuture.isDone()) {
       authFuture.cancel(true);
     }
-
-    super.close();
   }
 
   /**

@@ -43,7 +43,7 @@ public abstract class AbstractServerChannel extends AbstractChannel {
     ServerSession session = (ServerSession) getSession();
 
     if (isOpen()) {
-      logger.debug("[{}] This channel ({}) is already opened - status:{}", session, this, state.get());
+      logger.debug("[{}] This channel ({}) is already opened - status:{}", session, this, getState());
 
       return;
     }
@@ -54,11 +54,11 @@ public abstract class AbstractServerChannel extends AbstractChannel {
     try {
       super.open();
 
-      logger.debug("[{}] Channel ({}) is opened - status:{}", session, this, state.get());
+      logger.debug("[{}] Channel ({}) is opened - status:{}", session, this, getState());
 
       session.replyChannelOpenConfirmation(peerId, getId(), localWnd.getMaxSize(), localWnd.getPacketSize());
     } catch (IOException ex) {
-      logger.debug("[{}] Failed to open channel ({}) - status:{}", session, this, state.get());
+      logger.debug("[{}] Failed to open channel ({}) - status:{}", session, this, getState());
 
       unRegister(getId());
 

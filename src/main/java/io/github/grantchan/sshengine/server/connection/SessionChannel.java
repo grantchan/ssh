@@ -232,18 +232,15 @@ public class SessionChannel extends AbstractServerChannel {
         session.sendEof(getPeerId());
         session.sendExitStatus(getPeerId(), ev);
 
-        close(true).thenApply(closed -> {
-          if (closed) {
-            try {
-              for (Closeable c : Arrays.asList(chIn, chOut, chErr)) {
-                c.close();
-              }
-            } catch (IOException e) {
-              // ignore
-            }
+        close();
+
+        try {
+          for (Closeable c : Arrays.asList(chIn, chOut, chErr)) {
+            c.close();
           }
-          return true;
-        });
+        } catch (IOException e) {
+          // ignore
+        }
       }
     });
 

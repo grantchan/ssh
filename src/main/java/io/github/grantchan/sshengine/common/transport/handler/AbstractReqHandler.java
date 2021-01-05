@@ -29,21 +29,6 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
 
   private KexGroup kexGroup;
 
-  private final Function<Boolean, Boolean> cleanup = (closed) -> {
-    if (!closed) {
-      return false;
-    }
-
-    for (Channel c : Channel.find(session)) {
-      try {
-        c.close();
-      } catch (IOException e) {
-        logger.error("Failed to close " + c);
-      }
-    }
-    return true;
-  };
-
   @Override
   public AbstractSession getSession() {
     return session;
@@ -68,7 +53,15 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
         this, SshMessage.disconnectReason(SshMessage.SSH_DISCONNECT_CONNECTION_LOST),
         "Disconnected by peer");
 
-    session.close(true).thenApply(cleanup);
+    session.close();
+
+    for (Channel c : Channel.find(session)) {
+      try {
+        c.close();
+      } catch (IOException e) {
+        logger.error("Failed to close " + c);
+      }
+    }
   }
 
   @Override
@@ -116,7 +109,15 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
     logger.debug("[{}] Disconnecting... reason: {}, msg: {}", this,
         SshMessage.disconnectReason(code), msg);
 
-    session.close(true).thenApply(cleanup);
+    session.close();
+
+    for (Channel c : Channel.find(session)) {
+      try {
+        c.close();
+      } catch (IOException e) {
+        logger.error("Failed to close " + c);
+      }
+    }
   }
 
   protected abstract void setKexInit(byte[] ki);
