@@ -25,8 +25,7 @@ import java.util.List;
 import static io.github.grantchan.sshengine.util.buffer.Bytes.md5;
 import static io.github.grantchan.sshengine.util.buffer.Bytes.sha256;
 
-public class ClientDhGroup extends AbstractLogger
-                           implements KexGroup {
+public class ClientDhGroup extends AbstractLogger implements KexGroup {
 
   private final MessageDigest md;
 
@@ -55,13 +54,11 @@ public class ClientDhGroup extends AbstractLogger
   public void handle(int cmd, ByteBuf msg) throws SshException {
     logger.debug("[{}] Handling key exchange message - {} ...", session, SshMessage.from(cmd));
 
-    if (cmd == SshMessage.SSH_MSG_KEXDH_INIT &&
-        expect == SshMessage.SSH_MSG_KEXDH_INIT) {
+    if (cmd == SshMessage.SSH_MSG_KEXDH_INIT && expect == SshMessage.SSH_MSG_KEXDH_INIT) {
       handleDhInit(msg);
 
       expect = SshMessage.SSH_MSG_KEXDH_REPLY;
-    } else if (cmd == SshMessage.SSH_MSG_KEXDH_REPLY &&
-               expect == SshMessage.SSH_MSG_KEXDH_REPLY) {
+    } else if (cmd == SshMessage.SSH_MSG_KEXDH_REPLY && expect == SshMessage.SSH_MSG_KEXDH_REPLY) {
       handleDhReply(msg);
 
       session.requestKexNewKeys();

@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 
 public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
                                          implements ReqHandler {
