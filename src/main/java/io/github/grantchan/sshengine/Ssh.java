@@ -14,10 +14,9 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.AttributeKey;
 
-import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
 
-public class Ssh implements Closeable {
+public class Ssh {
 
   public static final AttributeKey<CompletableFuture<ClientSession>> SSH_CONNECT_FUTURE =
       AttributeKey.valueOf(Ssh.class.getName());
@@ -34,7 +33,8 @@ public class Ssh implements Closeable {
         .handler(new ChannelInitializer<SocketChannel>() {
           @Override
           protected void initChannel(SocketChannel ch) throws Exception {
-            ch.pipeline().addLast(new LoggingHandler(LogLevel.TRACE), new ClientReqHandler());
+            ch.pipeline()
+              .addLast(new LoggingHandler(LogLevel.TRACE), new ClientReqHandler());
           }
         });
   }
@@ -59,8 +59,7 @@ public class Ssh implements Closeable {
     return connFuture;
   }
 
-  @Override
-  public void close() {
+  public void stop() {
     if (worker != null) {
       worker.shutdownGracefully();
     }

@@ -286,11 +286,15 @@ public class ClientSession extends AbstractSession {
     try {
       channel.open();
     } catch (IOException e) {
+      channel.setState(State.CLOSED);
+
       openFuture.completeExceptionally(e);
+
       return openFuture;
     }
 
     Window localWnd = channel.getLocalWindow();
+
     int id = channel.getId();
     int wndSize = localWnd.getMaxSize();
     int pkgSize = localWnd.getPacketSize();

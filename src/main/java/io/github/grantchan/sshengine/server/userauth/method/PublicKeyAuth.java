@@ -16,8 +16,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 
-public class PublicKeyAuth extends AbstractLogger
-                           implements Method {
+public class PublicKeyAuth extends AbstractLogger implements Method {
 
   private final Collection<PublicKey> keys;
 
