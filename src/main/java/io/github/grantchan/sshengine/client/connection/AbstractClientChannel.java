@@ -1,6 +1,6 @@
 package io.github.grantchan.sshengine.client.connection;
 
-import io.github.grantchan.sshengine.common.AbstractSession;
+import io.github.grantchan.sshengine.client.ClientSession;
 import io.github.grantchan.sshengine.common.connection.AbstractChannel;
 import io.github.grantchan.sshengine.common.connection.Window;
 import io.netty.buffer.ByteBuf;
@@ -15,7 +15,7 @@ public abstract class AbstractClientChannel extends AbstractChannel {
 
   private CompletableFuture<AbstractClientChannel> openFuture;
 
-  public AbstractClientChannel(AbstractSession session,
+  public AbstractClientChannel(ClientSession session,
                                CompletableFuture<AbstractClientChannel> openFuture) {
     super(session);
 
@@ -82,13 +82,23 @@ public abstract class AbstractClientChannel extends AbstractChannel {
 
   }
 
-  public void handleOpenConfirmation(ByteBuf req) throws IOException {
+  public void handleOpenConfirmation(ByteBuf req) {
     int peerId = req.readInt();
     int rWndSize = req.readInt();
     int rPkSize = req.readInt();
 
     init(peerId, rWndSize, rPkSize);
 
+    try {
+      open0();
+    } catch (IOException e) {
+      openFuture.completeExceptionally(e);
+
+      return;
+    }
+
     openFuture.complete(this);
   }
+
+  protected abstract void open0() throws IOException;
 }

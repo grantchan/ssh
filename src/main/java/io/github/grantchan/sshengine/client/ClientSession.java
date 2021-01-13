@@ -2,6 +2,7 @@ package io.github.grantchan.sshengine.client;
 
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.client.connection.AbstractClientChannel;
+import io.github.grantchan.sshengine.client.connection.SessionChannel;
 import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.connection.AbstractChannel;
 import io.github.grantchan.sshengine.common.connection.Window;
@@ -274,14 +275,13 @@ public class ClientSession extends AbstractSession {
   }
 
   public CompletableFuture<AbstractClientChannel> openChannel(String type) {
+    if (!type.equals("session")) {
+      return CompletableFuture.completedFuture(null);
+    }
+
     CompletableFuture<AbstractClientChannel> openFuture = new CompletableFuture<>();
 
-    AbstractChannel channel = new AbstractClientChannel(this, openFuture) {
-      @Override
-      public String getType() {
-        return type;
-      }
-    };
+    AbstractChannel channel = new SessionChannel(this, openFuture);
 
     try {
       channel.open();
