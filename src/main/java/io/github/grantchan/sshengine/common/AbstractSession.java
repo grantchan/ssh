@@ -492,14 +492,10 @@ public abstract class AbstractSession extends AbstractLogger
   }
 
   public void setAuthed(Throwable exception) {
-    boolean isAuthed = authFuture.isDone();
-
     authFuture.completeExceptionally(exception);
 
-    if (!isAuthed) {
-      logger.debug("[{}] Authentication process failed in {} ms", this,
-          System.currentTimeMillis() - authStartTime);
-    }
+    logger.debug("[{}] Authentication process failed in {} ms", this,
+        System.currentTimeMillis() - authStartTime);
   }
 
   private void checkActive(String funcName) {
