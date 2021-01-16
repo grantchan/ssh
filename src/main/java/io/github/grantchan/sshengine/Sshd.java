@@ -10,32 +10,33 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
-public class Sshd {
+import java.io.Closeable;
 
-  public static void main(String[] args) {
+public class Sshd implements Closeable {
 
-    EventLoopGroup boss   = new NioEventLoopGroup(1);
-    EventLoopGroup worker = new NioEventLoopGroup();
+  private final EventLoopGroup boss = new NioEventLoopGroup(1);
+  private final EventLoopGroup worker = new NioEventLoopGroup();
 
+  public void open(int port) {
     ServerBootstrap b = new ServerBootstrap();
     LoggingHandler loggingHandler = new LoggingHandler(LogLevel.TRACE);
-    try {
-      b.group(boss, worker)
-       .channel(NioServerSocketChannel.class)
-       .handler(loggingHandler)
-       .childHandler(new ChannelInitializer<SocketChannel>() {
-         @Override
-         protected void initChannel(SocketChannel ch) {
-           ch.pipeline()
-             .addLast(loggingHandler, new ServerIdEx());
-         }
-       }).bind(5222).sync().channel().closeFuture().sync();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    } finally {
-      boss.shutdownGracefully();
-      worker.shutdownGracefully();
-    }
+
+    b.group(boss, worker)
+     .channel(NioServerSocketChannel.class)
+     .handler(loggingHandler)
+     .childHandler(new ChannelInitializer<SocketChannel>() {
+       @Override
+       protected void initChannel(SocketChannel ch) {
+         ch.pipeline()
+           .addLast(loggingHandler, new ServerIdEx());
+       }
+     }).bind(port);
+  }
+
+  @Override
+  public void close() {
+    boss.shutdownGracefully();
+    worker.shutdownGracefully();
   }
 }
 
