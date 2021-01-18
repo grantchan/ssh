@@ -31,73 +31,62 @@ public interface IdExHandler extends SessionHolder {
       return null;
     }
 
-    final String[] id = {null};
+    int line = 1, pos = 0;
+    boolean needLf = false;
+    boolean validLine = false;
 
-    ByteProcessor findId = new ByteProcessor() {
-      private int line = 1, pos = 0;
-      private boolean needLf = false;
-      private boolean validLine = false;
+    byte[] data = new byte[MAX_IDENTIFICATION_LINE_LENGTH];
 
-      private byte[] data = new byte[MAX_IDENTIFICATION_LINE_LENGTH];
+    rIdx--;
+    while (rIdx++ < wIdx) {
+      byte b = buf.getByte(rIdx);
 
-      @Override
-      public boolean process(byte b) {
-
-        /* RFC 4253: The null character MUST NOT be sent. */
-        if (b == '\0') {
-          throw new IllegalStateException("Illegal identification - null character found at" +
-              " line #" + line + " character #" + pos + 1);
-        }
-
-        if (b == '\r') {
-          needLf = true;
-          return true;
-        }
-
-        if (b == '\n') {
-          line++;
-
-          if (validLine) {
-            id[0] = new String(data, 0, pos, StandardCharsets.UTF_8);
-            return false;
-          }
-          pos = 0;
-          needLf = false;
-          return true;
-        }
-
-        if (needLf) {
-          throw new IllegalStateException("Illegal identification - invalid line ending at" +
-              " line #" + line + " character #" + pos + 1);
-        }
-
-        if (pos > data.length) {
-          throw new IllegalStateException("Illegal identification - line too long at" +
-              " line #" + line + " character #" + pos + 1);
-        }
-
-        if (pos < 4) {
-          data[pos++] = b;
-        } else if (data[0] == 'S' && data[1] == 'S' && data[2] == 'H' && data[3] == '-') {
-          validLine = true;
-          data[pos++] = b;
-        }
-
-        return true;
+      if (b == '\0') {
+        throw new IllegalStateException("Illegal identification - null character found at" +
+            " line #" + line + " character #" + (pos + 1));
       }
-    };
 
-    int i = buf.forEachByte(rIdx, wIdx - rIdx, findId);
-    if (i == -1) {
-      // packet is not fully received, restore reader index and return
-      buf.readerIndex(rIdx);
-      return null;
+      if (b == '\r') {
+        needLf = true;
+
+        continue;
+      }
+
+      if (b == '\n') {
+        line++;
+
+        if (validLine) {
+          buf.readerIndex(rIdx + 1);
+          buf.discardReadBytes();
+
+          return new String(data, 0, pos, StandardCharsets.UTF_8);
+        }
+
+        pos = 0;
+        needLf = false;
+
+        continue;
+      }
+
+      if (needLf) {
+        throw new IllegalStateException("Illegal identification - invalid line ending at" +
+            " line #" + line + " character #" + pos + 1);
+      }
+
+      if (pos > data.length) {
+        throw new IllegalStateException("Illegal identification - line too long at line #" + line +
+            " character #" + pos + 1);
+      }
+
+      if (pos < 4) {
+        data[pos++] = b;
+      } else if (data[0] == 'S' && data[1] == 'S' && data[2] == 'H' && data[3] == '-') {
+        validLine = true;
+        data[pos++] = b;
+      }
     }
 
-    buf.readerIndex(i + 1);
-    buf.discardReadBytes();
-
-    return id[0];
+    return null;
   }
 
   /*
