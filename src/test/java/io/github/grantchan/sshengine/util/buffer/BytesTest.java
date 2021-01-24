@@ -24,20 +24,6 @@ public class BytesTest {
   }
 
   @Test
-  public void testBigEndianFrom_whenIntegersToConcatenate() {
-    int a = 0x305, b = 0x9, c = 0xF2, d = 0xAE6;
-
-    byte[] expected = {
-        (byte) 0x00, (byte) 0x00, (byte) 0x03, (byte) 0x05,
-        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x09,
-        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0xF2,
-        (byte) 0x00, (byte) 0x00, (byte) 0x0A, (byte) 0xE6
-    };
-
-    assertArrayEquals(expected, Bytes.concat(Bytes.toBigEndian(a, b, c, d)));
-  }
-
-  @Test
   public void testResize_whenNewSizeIsSmallerThanOldSize() {
     byte[] input = {(byte) 0x01, (byte) 0x02, (byte) 0x03, (byte) 0x04};
     byte[] expected = {(byte) 0x01, (byte) 0x02, (byte) 0x03};
@@ -57,7 +43,7 @@ public class BytesTest {
   public void testBigEndianFrom_forBigInteger() {
     byte[] expected = {(byte) 0x79, (byte) 0x34, (byte) 0x7F, (byte) 0x50};
 
-    assertArrayEquals(expected, Bytes.toBigEndian(0x79347F50));
+    assertArrayEquals(expected, Bytes.toBytes(0x79347F50));
   }
 
   @Test

@@ -18,14 +18,14 @@ public final class Bytes {
   private static final byte[] ONE = new byte[] {1};
 
   static final Function<byte[], byte[]> SEPARATE_BY_LENGTH =
-      e -> Bytes.toBigEndian(e.length);
+      e -> Bytes.toBytes(e.length);
 
   static final Function<byte[], byte[]> MP_SEPARATE_BY_LENGTH =
       e -> {
         if ((e[0] & 0x80) != 0) {
-          return concat(toBigEndian(e.length + 1), ZERO);
+          return concat(toBytes(e.length + 1), ZERO);
         } else {
-          return toBigEndian(e.length);
+          return Bytes.toBytes(e.length);
         }
       };
 
@@ -62,45 +62,20 @@ public final class Bytes {
   }
 
   /**
-   * Convert an unsigned integer from little-endian(host byte order) to big-endian
-   * (network byte order) byte array
+   * Convert an unsigned integer to big-endian (network byte order) byte array
    *
    * @param num The unsigned integer in host byte order
    * @return    The network byte order byte array of {@code num}
    *
    * @see <a href="https://en.wikipedia.org/wiki/Endianness">Endianness</a>
    */
-  public static byte[] toBigEndian(long num) {
-    byte[] n = new byte[4];
-    n[0] = (byte) (num >>> 24);
-    n[1] = (byte) (num >>> 16);
-    n[2] = (byte) (num >>> 8);
-    n[3] = (byte) num;
-
-    return n;
-  }
-
-  /**
-   * Converts and combines a set of integers into a byte array in big-endian ordering
-   * representative.
-   *
-   * Internally, for each integer in parameters, it calls the {@link #toBigEndian(long)} to
-   * convert it to byte array.
-   *
-   * @param nums A set of integers to concatenate, from left to right
-   * @return     The newly constructed byte array
-   *
-   * @see #toBigEndian(long)
-   */
-  public static byte[] toBigEndian(int... nums) {
-    Objects.requireNonNull(nums, "Invalid parameter - nums is null");
-
-    byte[] res = new byte[nums.length * Integer.BYTES];
-    for (int i = 0, off = 0; i < nums.length; i++, off += Integer.BYTES) {
-      System.arraycopy(toBigEndian(nums[i]), 0, res, off, Integer.BYTES);
-    }
-
-    return res;
+  public static byte[] toBytes(long num) {
+    return new byte[] {
+        (byte) (num >>> 24),
+        (byte) (num >>> 16),
+        (byte) (num >>> 8),
+        (byte) (num)
+    };
   }
 
   /**

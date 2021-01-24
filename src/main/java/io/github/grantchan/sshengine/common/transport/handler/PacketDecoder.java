@@ -179,7 +179,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter
     // The packet is fully decrypted here, we verify its integrity by the MAC
     Mac mac = session.getInMac();
     if (mac != null) {
-      mac.update(Bytes.toBigEndian(seq.get()));
+      mac.update(Bytes.toBytes(seq.get()));
 
       byte[] decryptedPacket = new byte[SshConstant.SSH_PACKET_LENGTH + len];
       msg.getBytes(rIdx, decryptedPacket);

@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Arrays;
 import java.util.List;
 
 public class ServerDhGroupEx extends AbstractLogger
@@ -255,9 +256,17 @@ public class ServerDhGroupEx extends AbstractLogger
     );
 
     if (min == -1 || max == -1) { // old request
-      h_s = Bytes.concat(h_s, Bytes.toBigEndian(n));
+      h_s = Bytes.concat(h_s, Bytes.toBytes(n));
     } else {
-      h_s = Bytes.concat(h_s, Bytes.toBigEndian(min, n, max));
+      byte[] joined = new byte[3 * Integer.BYTES];
+
+      int off = 0;
+      for (int i : Arrays.asList(min, n, max)) {
+        System.arraycopy(Bytes.toBytes(i), 0, joined, off, Integer.BYTES);
+        off += Integer.BYTES;
+      }
+
+      h_s = Bytes.concat(h_s, joined);
     }
 
     h_s = Bytes.concat(

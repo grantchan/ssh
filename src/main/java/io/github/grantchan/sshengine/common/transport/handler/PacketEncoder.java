@@ -106,8 +106,10 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter
     Mac mac = session.getOutMac();
     if (mac != null) {
       int macSize = session.getOutMacSize();
-      mac.update(Bytes.toBigEndian(seq.get()));
+
+      mac.update(Bytes.toBytes(seq.get()));
       mac.update(packet);
+
       byte[] tmp = mac.doFinal();
       if (macSize != session.getOutDefMacSize()) {
         msg.writeBytes(tmp, 0, macSize);
