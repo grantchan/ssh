@@ -21,16 +21,20 @@ public class Sshd implements Closeable {
     ServerBootstrap b = new ServerBootstrap();
     LoggingHandler loggingHandler = new LoggingHandler(LogLevel.TRACE);
 
-    b.group(boss, worker)
-     .channel(NioServerSocketChannel.class)
-     .handler(loggingHandler)
-     .childHandler(new ChannelInitializer<SocketChannel>() {
-       @Override
-       protected void initChannel(SocketChannel ch) {
-         ch.pipeline()
-           .addLast(loggingHandler, new ServerIdEx());
-       }
-     }).bind(port);
+    try {
+      b.group(boss, worker)
+       .channel(NioServerSocketChannel.class)
+       .handler(loggingHandler)
+       .childHandler(new ChannelInitializer<SocketChannel>() {
+         @Override
+         protected void initChannel(SocketChannel ch) {
+           ch.pipeline()
+             .addLast(loggingHandler, new ServerIdEx());
+         }
+       }).bind(port).sync().channel().closeFuture().sync();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override

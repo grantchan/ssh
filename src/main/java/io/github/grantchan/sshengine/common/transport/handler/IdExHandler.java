@@ -4,7 +4,6 @@ import io.github.grantchan.sshengine.arch.SshConstant;
 import io.github.grantchan.sshengine.common.transport.kex.KexProposal;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ByteProcessor;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
@@ -12,14 +11,18 @@ import java.util.Objects;
 
 public interface IdExHandler extends SessionHolder {
 
+  byte[] FFP = new byte[] {0};               // first factory packet follows
+  byte[] RESERVED = new byte[] {0, 0, 0, 0}; // reserved (FFU)
+
   /*
    * RFC 4253: The maximum length of the string is 255 characters,
    * including the Carriage Return and Line Feed.
    */
   int MAX_IDENTIFICATION_LINE_LENGTH = 255;
 
-  /*
+  /**
    * Get the remote peer's identification
+   *
    * @return the identification if successful, otherwise null.
    */
   static String getId(ByteBuf buf) {
@@ -107,8 +110,7 @@ public interface IdExHandler extends SessionHolder {
     return Bytes.concat(
         cookie,
         Bytes.joinWithLength(pp),
-        new byte[]{0},  // first factory packet follows
-        Bytes.toBigEndian(0)  // reserved (FFU)
+        FFP, RESERVED
     );
   }
 }
