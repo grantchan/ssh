@@ -42,7 +42,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter
   private AtomicInteger step = new AtomicInteger(0);
 
   /** Packet sequence number */
-  private AtomicLong seq = new AtomicLong(0);
+  private AtomicInteger seq = new AtomicInteger(0);
 
   /** Total number of bytes of packets received */
   private AtomicLong bytesOfPacket = new AtomicLong(0);
@@ -179,7 +179,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter
     // The packet is fully decrypted here, we verify its integrity by the MAC
     Mac mac = session.getInMac();
     if (mac != null) {
-      mac.update(Bytes.toBytes(seq.get()));
+      mac.update(Bytes.fromInt(seq.get()));
 
       byte[] decryptedPacket = new byte[SshConstant.SSH_PACKET_LENGTH + len];
       msg.getBytes(rIdx, decryptedPacket);

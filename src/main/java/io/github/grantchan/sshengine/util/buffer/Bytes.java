@@ -18,14 +18,14 @@ public final class Bytes {
   private static final byte[] ONE = new byte[] {1};
 
   static final Function<byte[], byte[]> SEPARATE_BY_LENGTH =
-      e -> Bytes.toBytes(e.length);
+      e -> Bytes.fromInt(e.length);
 
   static final Function<byte[], byte[]> MP_SEPARATE_BY_LENGTH =
       e -> {
         if ((e[0] & 0x80) != 0) {
-          return concat(toBytes(e.length + 1), ZERO);
+          return concat(fromInt(e.length + 1), ZERO);
         } else {
-          return Bytes.toBytes(e.length);
+          return Bytes.fromInt(e.length);
         }
       };
 
@@ -62,14 +62,21 @@ public final class Bytes {
   }
 
   /**
-   * Convert an unsigned integer to big-endian (network byte order) byte array
+   * Converts an unsigned integer to big-endian (network byte order) byte array.
+   *
+   * <p>The new array is a 4-byte array represents the given {@code num}</p>
+   *
+   * <pre>
+   *   Bytes.fromInt(0x79347F50) = [(byte) 0x79, (byte) 0x34, (byte) 0x7F, (byte) 0x50]
+   * </pre>
    *
    * @param num The unsigned integer in host byte order
-   * @return    The network byte order byte array of {@code num}
+   * @return The network byte order byte array of {@code num}
    *
+   * @see #toInt(byte[])
    * @see <a href="https://en.wikipedia.org/wiki/Endianness">Endianness</a>
    */
-  public static byte[] toBytes(long num) {
+  public static byte[] fromInt(int num) {
     return new byte[] {
         (byte) (num >>> 24),
         (byte) (num >>> 16),
@@ -79,53 +86,66 @@ public final class Bytes {
   }
 
   /**
-   * Reads a network byte order(big-endian) integer from a byte array.
+   * Converts a byte buffer, ordered in big-endian (network byte order) to an integer
    *
-   * <p>Internally, this invokes {@link #readBigEndian(byte[], int, int)}</p>
+   * <p>This method invokes {@link #toInt(byte[], int)} internally.</p>
    *
-   * @param array The byte array, has the integer in network byte order, to be read from.
-   *              <p>
-   *                Note: When {@code buf} contains more than {@link Integer#BYTES} bytes, only the
-   *                first {@link Integer#BYTES} will be used.
-   *              </p>
-   * @return      The unsigned {@code long} integer
-   * @throws IllegalArgumentException if the given array contains less than {@link Integer#BYTES}
-   *                                  bytes
+   * <pre>
+   *   Bytes.toInt(null) will throws NullPointerException
+   *   Bytes.toInt([(byte) 0x01, (byte) 0x02]) will throw IllegalArgumentException
    *
-   * @see #readBigEndian(byte[], int, int)
+   *   Bytes.toInt([(byte) 0x79, (byte) 0x34, (byte) 0x7F, (byte) 0x50]) = 0x79347F50
+   * </pre>
+   *
+   * @param bytes the byte buffer contains 4 bytes of integer data, in big-endian order.
+   * @return The integer represents the given byte buffer, if the parameter - {@code bytes}
+   *         is {@code null}, {@link NullPointerException} will be thrown.
+   *
+   * @see Bytes#fromInt(int)
+   * @see Bytes#toInt(byte[], int)
+   * @see <a href="https://en.wikipedia.org/wiki/Endianness">Endianness</a>
    */
-  public static long readBigEndian(byte[] array) {
-    return readBigEndian(array, 0, array.length);
+  public static int toInt(byte[] bytes) {
+    return toInt(bytes, 0);
   }
 
   /**
-   * Reads a network byte order(big-endian) integer from a byte array.
+   * Converts a byte buffer, at a given range and ordered in big-endian (network byte order)
+   * to an integer.
    *
-   * @param array The byte array, has the integer in network byte order, to be read from
-   *              <p>
-   *                Note: When {@param array} contains more than {@link Integer#BYTES} bytes,
-   *                only the first {@link Integer#BYTES} will be used.
-   *              </p>
-   * @param off   The offset in {@param array}
-   * @param len   Length of data in {@param array} to use to read
-   * @return      The unsigned {@code long} integer
-   * @throws IllegalArgumentException if the given array contains less than {@link Integer#BYTES}
-   *                                  bytes
+   * <p>Starting from {@code offset}, if {@code bytes} has more than 4 bytes, only the first
+   * 4 bytes will be used for conversion, if it has less than that,
+   * {@link IllegalArgumentException} will be thrown.</p>
+   *
+   * <pre>
+   *   Bytes.toInt([(byte) 0x79,
+   *                (byte) 0x12,
+   *                (byte) 0x34,
+   *                (byte) 0x56,
+   *                (byte) 0x78], 1) = 0x12345678
+   * </pre>
+   *
+   * @param bytes   the byte buffer contains 4 bytes of integer data, in big-endian order.
+   * @param offset  the offset index in {@code bytes}
+   * @return The integer represents the given byte buffer, if the parameter - {@code bytes}
+   *         is {@code null}, {@link NullPointerException} will be thrown.
+   *
+   * @see Bytes#toInt(byte[])
+   * @see <a href="https://en.wikipedia.org/wiki/Endianness">Endianness</a>
    */
-  public static long readBigEndian(byte[] array, int off, int len) {
-    Objects.requireNonNull(array);
+  @SuppressWarnings({"PointlessArithmeticExpression", "PointlessBitwiseExpression"})
+  public static int toInt(byte[] bytes, int offset) {
+    Objects.requireNonNull(bytes, "Parameter - bytes, cannot be null");
 
-    if (len < Integer.BYTES) {
-      throw new IllegalArgumentException("Not enough data to convert to an unsigned integer, " +
-          "required: " + Integer.BYTES + ", actual: " + array.length);
+    if (offset + 4 > bytes.length) {
+      throw new IllegalArgumentException("Not enough data to convert to an unsigned integer," +
+          " required: 4, actual: " + (bytes.length - offset - 1));
     }
 
-    long n = 0;
-    for (int i = 0, sh = Integer.SIZE - Byte.SIZE; i < Integer.BYTES; i++, sh -= Byte.SIZE) {
-      n |= (array[off + i] & 0xFFL) << sh;
-    }
-
-    return n;
+    return (bytes[offset + 0] & 0xFF) << 24 |
+           (bytes[offset + 1] & 0xFF) << 16 |
+           (bytes[offset + 2] & 0xFF) << 8  |
+           (bytes[offset + 3] & 0xFF) << 0;
   }
 
   public static byte[] join(Function<byte[], byte[]> separator, byte[]... arrays) {

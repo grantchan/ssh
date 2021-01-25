@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.security.SecureRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class PacketEncoder extends ChannelOutboundHandlerAdapter
@@ -27,7 +28,7 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter
   private final AbstractSession session;
 
   /** Packet sequence number */
-  private AtomicLong seq = new AtomicLong(0);
+  private AtomicInteger seq = new AtomicInteger(0);
 
   /** Total number of bytes of the packet sent */
   private AtomicLong bytesOfPacket = new AtomicLong(0);
@@ -107,7 +108,7 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter
     if (mac != null) {
       int macSize = session.getOutMacSize();
 
-      mac.update(Bytes.toBytes(seq.get()));
+      mac.update(Bytes.fromInt(seq.get()));
       mac.update(packet);
 
       byte[] tmp = mac.doFinal();

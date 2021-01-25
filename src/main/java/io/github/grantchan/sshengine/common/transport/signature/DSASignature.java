@@ -103,7 +103,7 @@ public class DSASignature extends Signature {
       return new byte[]{(byte) i};
     }
 
-    byte[] nbo = Bytes.toBytes(i);
+    byte[] nbo = Bytes.fromInt(i);
 
     int n = 0;
     while (nbo[n] == 0) {

@@ -256,13 +256,13 @@ public class ServerDhGroupEx extends AbstractLogger
     );
 
     if (min == -1 || max == -1) { // old request
-      h_s = Bytes.concat(h_s, Bytes.toBytes(n));
+      h_s = Bytes.concat(h_s, Bytes.fromInt(n));
     } else {
       byte[] joined = new byte[3 * Integer.BYTES];
 
       int off = 0;
       for (int i : Arrays.asList(min, n, max)) {
-        System.arraycopy(Bytes.toBytes(i), 0, joined, off, Integer.BYTES);
+        System.arraycopy(Bytes.fromInt(i), 0, joined, off, Integer.BYTES);
         off += Integer.BYTES;
       }
 

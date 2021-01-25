@@ -171,7 +171,7 @@ public class SessionChannel extends AbstractServerChannel {
 
       TtyMode mode = TtyMode.from(opcode);
       if (mode != null) {
-        ttyModes.put(mode, (int) Bytes.readBigEndian(modes, i, Integer.BYTES));
+        ttyModes.put(mode, Bytes.toInt(modes, i));
       } else {
         logger.warn("[{}] Unsupported tty mode - opcode: {}", this, opcode);
       }

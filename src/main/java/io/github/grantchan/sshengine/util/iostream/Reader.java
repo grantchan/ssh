@@ -54,7 +54,7 @@ public final class Reader {
       throw new EOFException("Not enough data to read. expected: " + Integer.BYTES +
           ", actual: " + (bytes != null ? bytes.length : 0));
     }
-    return (int) Bytes.readBigEndian(bytes);
+    return Bytes.toInt(bytes);
   }
 
   /**

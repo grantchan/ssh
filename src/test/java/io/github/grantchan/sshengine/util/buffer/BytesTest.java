@@ -13,7 +13,7 @@ import static org.junit.Assert.*;
 public class BytesTest {
 
   @Test
-  public void testFrom_whenBooleansToConcatenate() {
+  public void testConcat_whenBooleansToConcatenate() {
     byte[] expected = {
         (byte) 0x01, (byte) 0x00, (byte) 0x00
     };
@@ -40,24 +40,24 @@ public class BytesTest {
   }
 
   @Test
-  public void testBigEndianFrom_forBigInteger() {
+  public void testFromInt_forBigInteger() {
     byte[] expected = {(byte) 0x79, (byte) 0x34, (byte) 0x7F, (byte) 0x50};
 
-    assertArrayEquals(expected, Bytes.toBytes(0x79347F50));
+    assertArrayEquals(expected, Bytes.fromInt(0x79347F50));
   }
 
   @Test
-  public void testBigEndianTo_whenByteArrayIsLessThan4Bytes() {
+  public void testToInt_whenByteArrayIsLessThan4Bytes() {
     byte[] input = {(byte) 0x11, (byte) 0xA2, (byte) 0x33, (byte) 0x2F};
 
-    assertEquals(0x11A2332F, Bytes.readBigEndian(input));
+    assertEquals(0x11A2332F, Bytes.toInt(input));
   }
 
   @Test
-  public void testBigEndianTo_whenByteArrayIsLongerThan4Bytes() {
+  public void testToInt_whenByteArrayIsLongerThan4Bytes() {
     byte[] input = {(byte) 0x11, (byte) 0xA2, (byte) 0x33, (byte) 0x2F, (byte) 0x06, (byte) 0x59};
 
-    assertEquals(0x11A2332F, Bytes.readBigEndian(input));
+    assertEquals(0xA2332F06, Bytes.toInt(input, 1));
   }
 
   @Test
