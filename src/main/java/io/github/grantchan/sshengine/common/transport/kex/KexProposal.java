@@ -1,11 +1,14 @@
 package io.github.grantchan.sshengine.common.transport.kex;
 
+import io.github.grantchan.sshengine.arch.SshConstant;
 import io.github.grantchan.sshengine.common.NamedObject;
 import io.github.grantchan.sshengine.common.transport.cipher.CipherFactories;
 import io.github.grantchan.sshengine.common.transport.compression.CompressionFactories;
 import io.github.grantchan.sshengine.common.transport.mac.MacFactories;
 import io.github.grantchan.sshengine.common.transport.signature.SignatureFactories;
+import io.github.grantchan.sshengine.util.buffer.Bytes;
 
+import java.security.SecureRandom;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -23,11 +26,14 @@ public enum KexProposal implements NamedObject {
   LANGUAGE_C2S    (Param.LANGUAGE_C2S,    "Language C2S",     () -> ""),
   LANGUAGE_S2C    (Param.LANGUAGE_S2C,    "Language S2C",     () -> "");
 
+  private static final byte[] FFP = new byte[] {0};               // first factory packet follows
+  private static final byte[] RESERVED = new byte[] {0, 0, 0, 0}; // reserved (FFU)
+
   public static final Set<KexProposal> ALL = EnumSet.allOf(KexProposal.class);
 
-  private int id;
-  private String name;
-  private Supplier<String> proposals;
+  private final int id;
+  private final String name;
+  private final Supplier<String> proposals;
 
   KexProposal(int id, String name, Supplier<String> proposals) {
     this.id = id;
@@ -48,8 +54,29 @@ public enum KexProposal implements NamedObject {
     return proposals;
   }
 
-  public class Param {
+  /**
+   * Construct the key exchange initialization packet.
+   */
+  public static byte[] toBytes() {
+    SecureRandom rand = new SecureRandom();
 
+    byte[] cookie = new byte[SshConstant.MSG_KEX_COOKIE_SIZE];
+    rand.nextBytes(cookie);
+
+    int i = 0;
+    String[] pp = new String[KexProposal.ALL.size()];
+    for (KexProposal p : KexProposal.ALL) {
+      pp[i++] = p.getProposals().get();
+    }
+
+    return Bytes.concat(
+        cookie,
+        Bytes.joinWithLength(pp),
+        FFP, RESERVED
+    );
+  }
+
+  public static class Param {
     public static final int KEX             = 0;
     public static final int SERVER_HOST_KEY = 1;
     public static final int ENCRYPTION_C2S  = 2;

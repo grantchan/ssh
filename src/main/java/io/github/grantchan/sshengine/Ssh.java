@@ -24,6 +24,8 @@ public class Ssh {
   private EventLoopGroup worker;
   private Bootstrap bs;
 
+  private CompletableFuture<ClientSession> connFuture;
+
   public void start() {
     worker = new NioEventLoopGroup();
 
@@ -40,11 +42,11 @@ public class Ssh {
   }
 
   public CompletableFuture<ClientSession> connect(String host, int port) {
-    CompletableFuture<ClientSession> connFuture = new CompletableFuture<>();
 
     ChannelFuture cf = bs.connect(host, port);
-
     Channel channel = cf.channel();
+
+    connFuture = new CompletableFuture<>();
     channel.attr(SSH_CONNECT_FUTURE).set(connFuture);
 
     cf.addListener(f -> {
@@ -60,6 +62,10 @@ public class Ssh {
   }
 
   public void stop() {
+    if (connFuture != null && !connFuture.isDone()) {
+      connFuture.cancel(true);
+    }
+
     if (worker != null) {
       worker.shutdownGracefully();
     }

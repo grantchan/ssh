@@ -2,10 +2,12 @@ package io.github.grantchan.sshengine.server.transport.handler;
 
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.AbstractSession;
-import io.github.grantchan.sshengine.common.transport.handler.IdExHandler;
 import io.github.grantchan.sshengine.common.transport.handler.PacketDecoder;
 import io.github.grantchan.sshengine.common.transport.handler.PacketEncoder;
+import io.github.grantchan.sshengine.common.transport.handler.SessionHolder;
+import io.github.grantchan.sshengine.common.transport.kex.KexProposal;
 import io.github.grantchan.sshengine.server.ServerSession;
+import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -19,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
-public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHandler {
+public class ServerIdEx extends ChannelInboundHandlerAdapter implements SessionHolder {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -76,7 +78,7 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHand
 
     String id = session.getClientId();
     if (id == null) {
-      id = IdExHandler.getId(accrued);
+      id = ByteBufIo.getId(accrued);
       if (id == null) {
         return;
       }
@@ -100,7 +102,7 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements IdExHand
                  new PacketEncoder(session));   /* First step for outgoing packet - encode */
       cp.remove(this);
 
-      byte[] ki = IdExHandler.kexInit();
+      byte[] ki = KexProposal.toBytes();
       session.setRawS2cKex(Bytes.concat(new byte[] {SshMessage.SSH_MSG_KEXINIT}, ki));
 
       session.sendKexInit(ki);

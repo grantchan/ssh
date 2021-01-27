@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.security.SignatureException;
 import java.util.List;
 import java.util.Objects;
 
@@ -43,7 +44,12 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
     ByteBuf req = (ByteBuf) msg;
     int cmd = req.readByte() & 0xFF;
 
-    handle(cmd, req);
+    try {
+      handle(cmd, req);
+    } catch (SshException | SignatureException ex) {
+      // handshake failure
+      ctx.channel().close();
+    }
   }
 
   @Override
@@ -174,6 +180,4 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
 
   public void handleServiceAccept(ByteBuf req) throws SshException {
   }
-
-  public abstract void handleNewKeys(ByteBuf req) throws SshException;
 }

@@ -11,6 +11,12 @@ import java.util.Objects;
 
 public final class ByteBufIo {
 
+  /*
+   * RFC 4253: The maximum length of the string is 255 characters,
+   * including the Carriage Return and Line Feed.
+   */
+  static int MAX_IDENTIFICATION_LINE_LENGTH = 255;
+
   /**
    * Read a byte array from a {@link ByteBuf}
    *
@@ -181,6 +187,78 @@ public final class ByteBufIo {
     buf.writerIndex(begin);
     buf.writeInt(end - off); // update length
     buf.writerIndex(end); // reset to end
+  }
+
+  /**
+   * Get the remote peer's identification
+   *
+   * @return the identification if successful, otherwise null.
+   */
+  public static String getId(ByteBuf buf) {
+    Objects.requireNonNull(buf, "Parameter cannot be null");
+
+    int rIdx = buf.readerIndex();
+    int wIdx = buf.writerIndex();
+    if (rIdx == wIdx) {
+      return null;
+    }
+
+    int line = 1, pos = 0;
+    boolean needLf = false;
+    boolean validLine = false;
+
+    byte[] data = new byte[MAX_IDENTIFICATION_LINE_LENGTH];
+
+    rIdx--;
+    while (rIdx++ < wIdx) {
+      byte b = buf.getByte(rIdx);
+
+      if (b == '\0') {
+        throw new IllegalStateException("Illegal identification - null character found at" +
+            " line #" + line + " character #" + (pos + 1));
+      }
+
+      if (b == '\r') {
+        needLf = true;
+
+        continue;
+      }
+
+      if (b == '\n') {
+        line++;
+
+        if (validLine) {
+          buf.readerIndex(rIdx + 1);
+          buf.discardReadBytes();
+
+          return new String(data, 0, pos, StandardCharsets.UTF_8);
+        }
+
+        pos = 0;
+        needLf = false;
+
+        continue;
+      }
+
+      if (needLf) {
+        throw new IllegalStateException("Illegal identification - invalid line ending at" +
+            " line #" + line + " character #" + pos + 1);
+      }
+
+      if (pos > data.length) {
+        throw new IllegalStateException("Illegal identification - line too long at line #" + line +
+            " character #" + pos + 1);
+      }
+
+      if (pos < 4) {
+        data[pos++] = b;
+      } else if (data[0] == 'S' && data[1] == 'S' && data[2] == 'H' && data[3] == '-') {
+        validLine = true;
+        data[pos++] = b;
+      }
+    }
+
+    return null;
   }
 
   /* Private constructor to prevent this class from being explicitly instantiated */

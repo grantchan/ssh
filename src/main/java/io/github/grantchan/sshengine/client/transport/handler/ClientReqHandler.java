@@ -8,7 +8,6 @@ import io.github.grantchan.sshengine.common.transport.cipher.CipherFactories;
 import io.github.grantchan.sshengine.common.transport.compression.Compression;
 import io.github.grantchan.sshengine.common.transport.compression.CompressionFactories;
 import io.github.grantchan.sshengine.common.transport.handler.AbstractReqHandler;
-import io.github.grantchan.sshengine.common.transport.handler.IdExHandler;
 import io.github.grantchan.sshengine.common.transport.handler.PacketDecoder;
 import io.github.grantchan.sshengine.common.transport.handler.PacketEncoder;
 import io.github.grantchan.sshengine.common.transport.kex.Kex;
@@ -89,7 +88,7 @@ public class ClientReqHandler extends AbstractReqHandler {
 
     accrued.writeBytes((ByteBuf) msg);
 
-    id = IdExHandler.getId(accrued);
+    id = ByteBufIo.getId(accrued);
     if (id == null) {
       return;
     }
@@ -103,7 +102,7 @@ public class ClientReqHandler extends AbstractReqHandler {
     ctx.pipeline().addFirst(new PacketDecoder(session));
     ctx.pipeline().addLast(new PacketEncoder(session));
 
-    byte[] ki = IdExHandler.kexInit();
+    byte[] ki = KexProposal.toBytes();
     session.setRawC2sKex(Bytes.concat(new byte[] {SshMessage.SSH_MSG_KEXINIT}, ki));
 
     session.sendKexInit(ki);
