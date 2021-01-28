@@ -54,7 +54,7 @@ public class ServerDhGroupEx extends AbstractLogger
   }
 
   @Override
-  public void handle(int cmd, ByteBuf msg) throws SshException {
+  public void handle(int cmd, ByteBuf msg) throws SignatureException, SshException {
     logger.debug("[{}] Handling key exchange message - {} ...", session, SshMessage.from(cmd));
 
     if (cmd == SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST_OLD &&
@@ -197,7 +197,7 @@ public class ServerDhGroupEx extends AbstractLogger
     return new DH(p, g);
   }
 
-  private void handleDhGexInit(ByteBuf req) {
+  private void handleDhGexInit(ByteBuf req) throws SignatureException {
     /*
      * RFC 4419:
      * The client sends SSH_MSG_KEX_DH_GEX_INIT
@@ -288,17 +288,12 @@ public class ServerDhGroupEx extends AbstractLogger
           kexParams.get(KexProposal.Param.SERVER_HOST_KEY));
     }
 
-    byte[] sigH = null;
-    try {
-      sig.update(h);
+    sig.update(h);
 
-      sigH = Bytes.concat(
+    byte[] sigH = Bytes.concat(
           Bytes.addLen(kexParams.get(KexProposal.Param.SERVER_HOST_KEY)),
           Bytes.addLen(sig.sign())
-      );
-    } catch (SignatureException ex) {
-      ex.printStackTrace();
-    }
+        );
 
     session.replyKexDhGexReply(k_s, kex.getPubKey(), sigH);
 

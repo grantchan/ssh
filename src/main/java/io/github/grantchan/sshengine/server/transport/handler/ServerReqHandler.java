@@ -14,6 +14,7 @@ import io.github.grantchan.sshengine.server.ServerSession;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,7 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.math.BigInteger;
 import java.security.MessageDigest;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -34,6 +36,21 @@ public class ServerReqHandler extends AbstractReqHandler {
 
   ServerReqHandler(ServerSession session) {
     this.session = session;
+  }
+
+  @Override
+  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    ByteBuf req = (ByteBuf) msg;
+    int cmd = req.readByte() & 0xFF;
+
+    try {
+      handle(cmd, req);
+    } catch (SshException | SignatureException ex) {
+      // handshake failure
+      ctx.channel().close();
+
+      logger.warn("[{}] Handshake failure - reason: {}", session, ex.getMessage());
+    }
   }
 
   @Override
@@ -65,7 +82,6 @@ public class ServerReqHandler extends AbstractReqHandler {
 
   @Override
   public void handleServiceRequest(ByteBuf req) throws SshException {
-    super.handleServiceRequest(req);
 
     /*
      * RFC 4253:

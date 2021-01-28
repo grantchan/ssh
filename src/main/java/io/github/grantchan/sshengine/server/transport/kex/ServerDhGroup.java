@@ -46,7 +46,7 @@ public class ServerDhGroup extends AbstractLogger implements KexGroup {
   }
 
   @Override
-  public void handle(int cmd, ByteBuf req) throws SshException {
+  public void handle(int cmd, ByteBuf req) throws SignatureException, SshException {
     logger.debug("[{}] Handling key exchange message - {} ...", session, SshMessage.from(cmd));
 
     if (cmd != SshMessage.SSH_MSG_KEXDH_INIT) {
@@ -132,17 +132,12 @@ public class ServerDhGroup extends AbstractLogger implements KexGroup {
       throw new IllegalArgumentException("Unknown signature: " + KexProposal.Param.SERVER_HOST_KEY);
     }
 
-    byte[] sigH = null;
-    try {
-      sig.update(h);
+    sig.update(h);
 
-      sigH = Bytes.concat(
+    byte[] sigH = Bytes.concat(
           Bytes.addLen(kexParams.get(KexProposal.Param.SERVER_HOST_KEY)),
           Bytes.addLen(sig.sign())
-      );
-    } catch (SignatureException ex) {
-      ex.printStackTrace();
-    }
+        );
 
     session.replyKexDhReply(k_s, kex.getPubKey(), sigH);
     logger.debug("[{}] KEX process completed after SSH_MSG_KEXDH_INIT", session);

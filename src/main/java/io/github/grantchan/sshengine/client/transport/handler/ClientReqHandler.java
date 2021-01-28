@@ -18,7 +18,6 @@ import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
 import io.netty.util.ReferenceCountUtil;
@@ -30,9 +29,11 @@ import javax.crypto.Mac;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static io.github.grantchan.sshengine.common.transport.handler.ReqHandler.hashKey;
@@ -82,32 +83,65 @@ public class ClientReqHandler extends AbstractReqHandler {
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     String id = session.getServerId();
     if (id != null) {
-      super.channelRead(ctx, msg);
-      return;
+      ByteBuf req = (ByteBuf) msg;
+      int cmd = req.readByte() & 0xFF;
+
+      try {
+        handle(cmd, req);
+      } catch (SshException | SignatureException ex) {
+        // handshake failure
+        ctx.channel().close();
+
+        handshakeFailure(ex);
+
+        logger.warn("[{}] Handshake failure - reason: {}", session, ex.getMessage());
+      }
+
+      if (cmd == SshMessage.SSH_MSG_NEWKEYS) {
+        handshakeSuccess();
+      }
+    } else {
+      accrued.writeBytes((ByteBuf) msg);
+
+      id = ByteBufIo.getId(accrued);
+      if (id == null) {
+        return;
+      }
+      session.setServerId(id);
+
+      logger.debug("[{}] Received identification: {}", session, id);
+
+      ctx.writeAndFlush(Unpooled.wrappedBuffer((session.getClientId() + "\r\n")
+          .getBytes(StandardCharsets.UTF_8)));
+
+      ctx.pipeline().addFirst(new PacketDecoder(session));
+      ctx.pipeline().addLast(new PacketEncoder(session));
+
+      byte[] ki = KexProposal.toBytes();
+      session.setRawC2sKex(Bytes.concat(new byte[]{SshMessage.SSH_MSG_KEXINIT}, ki));
+
+      session.sendKexInit(ki);
     }
-
-    accrued.writeBytes((ByteBuf) msg);
-
-    id = ByteBufIo.getId(accrued);
-    if (id == null) {
-      return;
-    }
-    session.setServerId(id);
-
-    logger.debug("[{}] Received identification: {}", session, id);
-
-    ctx.writeAndFlush(Unpooled.wrappedBuffer((session.getClientId() + "\r\n")
-                                                     .getBytes(StandardCharsets.UTF_8)));
-
-    ctx.pipeline().addFirst(new PacketDecoder(session));
-    ctx.pipeline().addLast(new PacketEncoder(session));
-
-    byte[] ki = KexProposal.toBytes();
-    session.setRawC2sKex(Bytes.concat(new byte[] {SshMessage.SSH_MSG_KEXINIT}, ki));
-
-    session.sendKexInit(ki);
 
     ReferenceCountUtil.release(msg);
+  }
+
+  private void handshakeSuccess() {
+    Attribute<CompletableFuture<ClientSession>> attr =
+        session.getChannel().attr(Ssh.SSH_CONNECT_FUTURE);
+
+    CompletableFuture<ClientSession> connFuture = attr.get();
+
+    Optional.ofNullable(connFuture).ifPresent(f -> f.complete((ClientSession) session));
+  }
+
+  private void handshakeFailure(Throwable ex) {
+    Attribute<CompletableFuture<ClientSession>> attr =
+        session.getChannel().attr(Ssh.SSH_CONNECT_FUTURE);
+
+    CompletableFuture<ClientSession> connFuture = attr.get();
+
+    Optional.ofNullable(connFuture).ifPresent(f -> f.completeExceptionally(ex));
   }
 
   @Override
@@ -146,8 +180,6 @@ public class ClientReqHandler extends AbstractReqHandler {
 
   @Override
   public void handleServiceAccept(ByteBuf req) throws SshException {
-    super.handleServiceAccept(req);
-
     String service = ByteBufIo.readUtf8(req);
 
     logger.debug("[{}] Service accepted: {}", session, service);
@@ -303,11 +335,5 @@ public class ClientReqHandler extends AbstractReqHandler {
 
     logger.debug("[{}] Session Compression(outgoing): {}, Session Compression(incoming): {}",
         session, c2sCmf, s2cCmf);
-
-    Channel channel = session.getChannel();
-    Attribute<CompletableFuture<ClientSession>> attr = channel.attr(Ssh.SSH_CONNECT_FUTURE);
-
-    CompletableFuture<ClientSession> connFuture = attr.get();
-    connFuture.complete((ClientSession) session);
   }
 }

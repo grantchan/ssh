@@ -15,9 +15,11 @@ import io.netty.buffer.ByteBuf;
 
 public class ServerUserAuthService extends AbstractLogger implements Service {
 
-  private ServerSession session;
+  private final ServerSession session;
+
   private String service;
-  private int retryCnt, maxRetryCnt;
+  private int retryCnt;
+  private final int maxRetryCnt;
 
   public ServerUserAuthService(ServerSession session) {
     this.session = session;

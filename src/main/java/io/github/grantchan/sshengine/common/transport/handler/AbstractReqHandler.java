@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.security.SignatureException;
 import java.util.List;
 import java.util.Objects;
 
@@ -37,19 +36,6 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
   @Override
   public KexGroup getKexGroup() {
     return kexGroup;
-  }
-
-  @Override
-  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    ByteBuf req = (ByteBuf) msg;
-    int cmd = req.readByte() & 0xFF;
-
-    try {
-      handle(cmd, req);
-    } catch (SshException | SignatureException ex) {
-      // handshake failure
-      ctx.channel().close();
-    }
   }
 
   @Override
