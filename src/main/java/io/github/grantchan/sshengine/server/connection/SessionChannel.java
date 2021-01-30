@@ -2,6 +2,7 @@ package io.github.grantchan.sshengine.server.connection;
 
 import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.connection.TtyMode;
+import io.github.grantchan.sshengine.server.ServerSession;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 import io.netty.buffer.ByteBuf;
@@ -23,7 +24,7 @@ public class SessionChannel extends AbstractServerChannel {
 
   private TtyProcessShell shell;
 
-  public SessionChannel(AbstractSession session) {
+  public SessionChannel(ServerSession session) {
     super(session);
   }
 

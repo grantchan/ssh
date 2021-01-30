@@ -1,6 +1,6 @@
 package io.github.grantchan.sshengine.server.connection;
 
-import io.github.grantchan.sshengine.common.connection.AbstractChannel;
+import io.github.grantchan.sshengine.common.connection.Channel;
 import io.github.grantchan.sshengine.common.connection.Window;
 
 import java.io.IOException;
@@ -12,11 +12,11 @@ public class ChannelInputStream extends InputStream implements WritableStream {
 
   private final byte[] aByte = new byte[1];
 
-  private final AbstractChannel channel;
+  private final Channel channel;
 
   private final Deque<Byte> fifo = new LinkedList<>();
 
-  public ChannelInputStream(AbstractChannel channel) {
+  public ChannelInputStream(Channel channel) {
     this.channel = channel;
   }
 

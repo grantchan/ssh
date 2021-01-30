@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class SessionChannel extends AbstractClientChannel {
 
-  public SessionChannel(ClientSession session, CompletableFuture<AbstractClientChannel> openFuture) {
+  public SessionChannel(ClientSession session, CompletableFuture<ClientChannel> openFuture) {
     super(session, openFuture);
   }
 
@@ -17,7 +17,7 @@ public class SessionChannel extends AbstractClientChannel {
   }
 
   @Override
-  protected void open0() throws IOException {
+  protected void doOpen() throws IOException {
 
   }
 }

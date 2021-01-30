@@ -4,10 +4,10 @@ import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.AbstractLogger;
 import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.Service;
-import io.github.grantchan.sshengine.common.connection.AbstractChannel;
 import io.github.grantchan.sshengine.common.connection.Channel;
 import io.github.grantchan.sshengine.common.transport.handler.SessionHolder;
 import io.github.grantchan.sshengine.server.ServerSession;
+import io.github.grantchan.sshengine.server.connection.ServerChannel;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 
@@ -109,7 +109,7 @@ public class ServerConnectionService extends AbstractLogger implements Service, 
     logger.debug("[{}] Received SSH_MSG_CHANNEL_OPEN. channel type:{}, sender channel id:{}, " +
         "initial window size:{}, maximum packet size:{}", session, type, peerId, rwndsize, rpksize);
 
-    AbstractChannel channel =
+    ServerChannel channel =
         Objects.requireNonNull(session.createChannel("session"), "unable to create channel");
 
     channel.init(peerId, (int)rwndsize, (int)rpksize);
@@ -119,7 +119,7 @@ public class ServerConnectionService extends AbstractLogger implements Service, 
   private void channelWindowAdjust(ByteBuf req) {
     int id = req.readInt();
 
-    Channel channel = Channel.get(id);
+    ServerChannel channel = (ServerChannel) Channel.get(id);
     if (channel == null) {
       throw new IllegalStateException("Channel not found - id:" + id);
     }
@@ -130,7 +130,7 @@ public class ServerConnectionService extends AbstractLogger implements Service, 
   private void channelData(ByteBuf req) throws IOException {
     int id = req.readInt();
 
-    Channel channel = Channel.get(id);
+    ServerChannel channel = (ServerChannel) Channel.get(id);
     if (channel == null) {
       throw new IllegalStateException("Channel not found - id:" + id);
     }
@@ -165,7 +165,7 @@ public class ServerConnectionService extends AbstractLogger implements Service, 
   private void channelRequest(ByteBuf req) throws IOException {
     int id = req.readInt();
 
-    Channel channel = Channel.get(id);
+    ServerChannel channel = (ServerChannel) Channel.get(id);
     if (channel == null) {
       throw new IllegalStateException("Channel not found - id:" + id);
     }

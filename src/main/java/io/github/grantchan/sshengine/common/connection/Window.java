@@ -27,7 +27,7 @@ public class Window extends AbstractLogger implements Closeable {
   /** A lock that used to provide synchronization */
   private final Object lock = this;
 
-  private final AbstractChannel channel;
+  private final Channel channel;
 
   /** Current size of this window */
   private final AtomicInteger size;
@@ -46,13 +46,13 @@ public class Window extends AbstractLogger implements Closeable {
   private final int packetSize;
 
   /** Open status of this window, it's initiated as true */
-  private AtomicBoolean isOpen  = new AtomicBoolean(true);
+  private final AtomicBoolean isOpen  = new AtomicBoolean(true);
 
-  public Window(AbstractChannel channel, String name) {
+  public Window(Channel channel, String name) {
     this(channel, name, DEFAULT_MAX_SIZE, DEFAULT_PACKET_SIZE);
   }
 
-  public Window(AbstractChannel channel, String name, int maxSize, int packetSize) {
+  public Window(Channel channel, String name, int maxSize, int packetSize) {
     this.channel = channel;
 
     this.name = name;

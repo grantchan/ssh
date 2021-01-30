@@ -22,15 +22,15 @@ public class ChannelOutputStream extends OutputStream {
   private byte[] buf;
   private int bufOff, bufLen;
 
-  private final AbstractChannel channel;
+  private final Channel channel;
   private final boolean extended;
   private final long waitTimeout;
 
-  public ChannelOutputStream(AbstractChannel channel, boolean extended) {
+  public ChannelOutputStream(Channel channel, boolean extended) {
     this(channel, extended, DEFAULT_WAIT_SPACE_TIMEOUT);
   }
 
-  public ChannelOutputStream(AbstractChannel channel, boolean extended, long waitTimeout) {
+  public ChannelOutputStream(Channel channel, boolean extended, long waitTimeout) {
     this.channel = Objects.requireNonNull(channel, "Invalid parameter - channel is null");
     this.extended = extended;
     this.waitTimeout = waitTimeout;

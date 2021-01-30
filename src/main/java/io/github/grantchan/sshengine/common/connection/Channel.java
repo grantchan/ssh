@@ -99,8 +99,17 @@ public interface Channel extends IdHolder, SessionHolder, Closeable {
     channels.remove(id);
   }
 
-  void open() throws IOException;
+  /**
+   * Open this channel
+   *
+   * @throws SshChannelException when having trouble registering this channel, or unable to response
+   *         client
+   */
+  void open() throws SshChannelException;
 
+  /**
+   * Close this channel
+   */
   void close() throws IOException;
 
   /**
@@ -109,22 +118,16 @@ public interface Channel extends IdHolder, SessionHolder, Closeable {
   boolean isOpen();
 
   /**
-   * @return the local window
+   * @return the local window using by this channel
    */
   Window getLocalWindow();
 
   /**
-   * @return the remote window
+   * @return the remote window using by this channel
    */
   Window getRemoteWindow();
-
-  void handleWindowAdjust(ByteBuf req);
-
-  void handleData(ByteBuf req) throws IOException;
 
   void handleEof(ByteBuf req) throws IOException;
 
   void handleClose(ByteBuf req) throws IOException;
-
-  void handleRequest(ByteBuf req) throws IOException;
 }

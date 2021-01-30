@@ -2,7 +2,7 @@ package io.github.grantchan.sshengine.client.connection.service;
 
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.client.ClientSession;
-import io.github.grantchan.sshengine.client.connection.AbstractClientChannel;
+import io.github.grantchan.sshengine.client.connection.ClientChannel;
 import io.github.grantchan.sshengine.common.AbstractLogger;
 import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.Service;
@@ -34,6 +34,10 @@ public class ClientConnectionService extends AbstractLogger implements Service, 
         channelOpenConfirmation(req);
         break;
 
+      case SshMessage.SSH_MSG_CHANNEL_FAILURE:
+        channelOpenFailure(req);
+        break;
+
       default:
         break;
     }
@@ -42,11 +46,22 @@ public class ClientConnectionService extends AbstractLogger implements Service, 
   private void channelOpenConfirmation(ByteBuf req) throws IOException {
     int id = req.readInt();
 
-    Channel channel = Channel.get(id);
+    ClientChannel channel = (ClientChannel) Channel.get(id);
     if (channel == null) {
       throw new IllegalStateException("Channel not found - id:" + id);
     }
 
-    ((AbstractClientChannel)channel).handleOpenConfirmation(req);
+    channel.handleOpenConfirmation(req);
+  }
+
+  private void channelOpenFailure(ByteBuf req) {
+    int id = req.readInt();
+
+    ClientChannel channel = (ClientChannel) Channel.get(id);
+    if (channel == null) {
+      throw new IllegalStateException("Channel not found - id:" + id);
+    }
+
+    channel.handleOpenFailure(req);
   }
 }

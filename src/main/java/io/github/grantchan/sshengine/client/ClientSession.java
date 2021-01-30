@@ -1,11 +1,9 @@
 package io.github.grantchan.sshengine.client;
 
 import io.github.grantchan.sshengine.arch.SshMessage;
-import io.github.grantchan.sshengine.client.connection.AbstractClientChannel;
+import io.github.grantchan.sshengine.client.connection.ClientChannel;
 import io.github.grantchan.sshengine.client.connection.SessionChannel;
 import io.github.grantchan.sshengine.common.AbstractSession;
-import io.github.grantchan.sshengine.common.connection.AbstractChannel;
-import io.github.grantchan.sshengine.common.connection.Window;
 import io.github.grantchan.sshengine.common.transport.compression.Compression;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
@@ -260,7 +258,7 @@ public class ClientSession extends AbstractSession {
    * responds with either SSH_MSG_CHANNEL_OPEN_CONFIRMATION or
    * SSH_MSG_CHANNEL_OPEN_FAILURE.
    */
-  private ChannelFuture sendChannelOpen(String type, int id, int wndSize, int pkgSize) {
+  public ChannelFuture sendChannelOpen(String type, int id, int wndSize, int pkgSize) {
     ByteBuf co = createMessage(SshMessage.SSH_MSG_CHANNEL_OPEN);
 
     ByteBufIo.writeUtf8(co, type);
@@ -274,14 +272,14 @@ public class ClientSession extends AbstractSession {
     return channel.writeAndFlush(co);
   }
 
-  public CompletableFuture<AbstractClientChannel> openChannel(String type) {
+  public CompletableFuture<ClientChannel> openChannel(String type) {
     if (!type.equals("session")) {
       return CompletableFuture.completedFuture(null);
     }
 
-    CompletableFuture<AbstractClientChannel> openFuture = new CompletableFuture<>();
+    CompletableFuture<ClientChannel> openFuture = new CompletableFuture<>();
 
-    AbstractChannel channel = new SessionChannel(this, openFuture);
+    ClientChannel channel = new SessionChannel(this, openFuture);
 
     try {
       channel.open();
@@ -289,24 +287,7 @@ public class ClientSession extends AbstractSession {
       channel.setState(State.CLOSED);
 
       openFuture.completeExceptionally(e);
-
-      return openFuture;
     }
-
-    Window localWnd = channel.getLocalWindow();
-
-    int id = channel.getId();
-    int wndSize = localWnd.getMaxSize();
-    int pkgSize = localWnd.getPacketSize();
-
-    sendChannelOpen(type, id, wndSize, pkgSize).addListener(l -> {
-      Throwable cause = l.cause();
-      if (cause != null) {
-        openFuture.completeExceptionally(cause);
-      } else if (l.isCancelled()) {
-        openFuture.cancel(true);
-      }
-    });
 
     return openFuture;
   }

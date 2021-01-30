@@ -45,7 +45,6 @@ public class ClientReqHandler extends AbstractReqHandler {
 
   private ByteBuf accrued;
 
-
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) {
     session = new ClientSession(ctx.channel());
