@@ -27,14 +27,12 @@ public abstract class AbstractSession extends AbstractLogger
 
   private static final Set<AbstractSession> sessions = new CopyOnWriteArraySet<>();
 
-  private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
-
   static {
-    timer.scheduleAtFixedRate(() -> {
-      for (AbstractSession s : sessions) {
-        s.checkTimeout();
-      }
-    }, 1, 1, TimeUnit.SECONDS);
+    new ScheduledThreadPoolExecutor(1, r -> {
+      Thread t = Executors.defaultThreadFactory().newThread(r);
+      t.setDaemon(true);
+      return t;
+    }).scheduleAtFixedRate(() -> sessions.forEach(AbstractSession::checkTimeout), 1, 1, TimeUnit.SECONDS);
   }
 
   /** the network connection between client and server */
