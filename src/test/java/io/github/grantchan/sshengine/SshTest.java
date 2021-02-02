@@ -1,7 +1,7 @@
 package io.github.grantchan.sshengine;
 
 import io.github.grantchan.sshengine.client.ClientSession;
-import io.github.grantchan.sshengine.client.connection.AbstractClientChannel;
+import io.github.grantchan.sshengine.client.connection.ClientChannel;
 
 import java.util.Optional;
 
@@ -35,7 +35,7 @@ public class SshTest {
           System.out.println("Authentication succeeded");
 
           // ========== create new channel ===============
-          try (AbstractClientChannel channel = session.openChannel("session").get()) {
+          try (ClientChannel channel = session.openChannel("session").get()) {
             Optional.ofNullable(channel).ifPresent(c -> {
               System.out.println("Channel established");
 
