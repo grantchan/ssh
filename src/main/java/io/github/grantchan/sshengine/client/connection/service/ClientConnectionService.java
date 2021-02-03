@@ -34,7 +34,7 @@ public class ClientConnectionService extends AbstractLogger implements Service, 
         channelOpenConfirmation(req);
         break;
 
-      case SshMessage.SSH_MSG_CHANNEL_FAILURE:
+      case SshMessage.SSH_MSG_CHANNEL_OPEN_FAILURE:
         channelOpenFailure(req);
         break;
 
