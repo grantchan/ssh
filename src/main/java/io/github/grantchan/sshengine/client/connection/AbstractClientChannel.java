@@ -5,6 +5,7 @@ import io.github.grantchan.sshengine.common.AbstractLogger;
 import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.connection.SshChannelException;
 import io.github.grantchan.sshengine.common.connection.Window;
+import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
@@ -71,7 +72,7 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
   public void open() throws SshChannelException {
     this.id = register(this);
 
-    logger.debug("[{}] channel ({}) is registered.", session, this);
+    logger.debug("[{} - {}] channel is registered.", session, this);
 
     setState(State.OPENED);
 
@@ -105,16 +106,22 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
       openFuture.complete(this);
     }
 
-    localWnd.close();
-    if (remoteWnd != null) {
-      remoteWnd.close();
-    }
-
-    unRegister(id);  // In a session, once the channel is closed, its id will never be used again
-
-    logger.debug("[{}] channel ({}) is unregistered.", session, this);
-
     setState(State.CLOSED);
+
+    try {
+      doClose();
+    } catch (IOException e){
+      logger.error("[{} - {}] Error happened when closing channel. {}", session, this, e.getMessage());
+    } finally {
+      localWnd.close();
+      if (remoteWnd != null) {
+        remoteWnd.close();
+      }
+
+      unRegister(id);  // In a session, once the channel is closed, its id will never be used again
+
+      logger.debug("[{} - {}] channel is unregistered.", session, this);
+    }
   }
 
   @Override
@@ -136,9 +143,9 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
 
   @Override
   public void handleClose(ByteBuf req) throws IOException {
-    if (openFuture != null && !openFuture.isDone()) {
-      openFuture.complete(this);
-    }
+    logger.debug("[{} - {}] Channel received close request.", session, this);
+
+    close();
   }
 
   @Override
@@ -147,6 +154,9 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
 
     int rWndSize = req.readInt();
     int rPkSize = req.readInt();
+
+    logger.debug("[{} - {}] Received channel open confirmation. peer id={}, window size={}, " +
+        "packet size={}", session, this, peerId, rWndSize, rPkSize);
 
     remoteWnd = new Window(this, "client/remote", rWndSize, rPkSize);
 
@@ -163,15 +173,34 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
 
   @Override
   public void handleOpenFailure(ByteBuf req) {
+    int reason = req.readInt();
+    String msg = ByteBufIo.readUtf8(req);
+    String lang = ByteBufIo.readUtf8(req);
+
+    logger.debug("[{} - {}] Failed to open channel, rejected by server. reason={}, message={}, " +
+            "lang={}", session, this, reason, msg, lang);
+
+    Throwable ex = new SshChannelException("Unable to open channel:" + id + ", reason:" + reason +
+        ", message:" + msg);
+    openFuture.completeExceptionally(ex);
+
     try {
       close();
     } catch (IOException e) { // must catch exception here, unless we want to disconnect this
                               // whole session.
-      logger.warn("[{}] Failed to open channel.", session);
+      logger.warn("[{} - {}] Failed to open channel.", session, this);
+    } finally {
+      localWnd.close();
+
+      unRegister(id);
+
+      logger.debug("[{} - {}] channel is unregistered.", session, this);
     }
   }
 
   protected abstract void doOpen() throws IOException;
+
+  protected abstract void doClose() throws IOException;
 
   @Override
   public State getState() {

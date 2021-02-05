@@ -20,4 +20,9 @@ public class SessionChannel extends AbstractClientChannel {
   protected void doOpen() throws IOException {
 
   }
+
+  @Override
+  protected void doClose() throws IOException {
+
+  }
 }
