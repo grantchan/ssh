@@ -111,7 +111,8 @@ public final class SshMessage {
   public static final byte SSH_MSG_KEX_DH_GEX_REPLY       = 33;
   public static final byte SSH_MSG_KEX_DH_GEX_REQUEST     = 34;
 
-  /* Disconnection Messages Reason Codes and Descriptions
+  /*
+   * Disconnection Messages Reason Codes and Descriptions
    *
    * @see <a href="https://tools.ietf.org/html/rfc4250#section-4.2.2">Initial Assignments</a>
    */
@@ -130,6 +131,16 @@ public final class SshMessage {
   public static final int SSH_DISCONNECT_AUTH_CANCELLED_BY_USER         = 13;
   public static final int SSH_DISCONNECT_NO_MORE_AUTH_METHODS_AVAILABLE = 14;
   public static final int SSH_DISCONNECT_ILLEGAL_USER_NAME              = 15;
+
+  /*
+   * Reason codes for channel open errors
+   *
+   * @see <a href="https://tools.ietf.org/html/rfc4254#section-5.1">Opening a Channel</a>
+   */
+  public static final int SSH_OPEN_ADMINISTRATIVELY_PROHIBITED = 1;
+  public static final int SSH_OPEN_CONNECT_FAILED = 2;
+  public static final int SSH_OPEN_UNKNOWN_CHANNEL_TYPE = 3;
+  public static final int SSH_OPEN_RESOURCE_SHORTAGE = 4;
 
   /**
    * Checks if the given class is one of the numeric classes - Byte, Short, Integer, Long, Float,
