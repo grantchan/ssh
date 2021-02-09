@@ -4,6 +4,8 @@ import io.github.grantchan.sshengine.common.CommonState;
 import io.github.grantchan.sshengine.common.connection.Channel;
 import io.netty.buffer.ByteBuf;
 
+import java.util.concurrent.TimeUnit;
+
 public interface ClientChannel extends Channel, CommonState {
 
   /**
@@ -16,4 +18,6 @@ public interface ClientChannel extends Channel, CommonState {
   void handleOpenConfirmation(ByteBuf req);
 
   void handleOpenFailure(ByteBuf req);
+
+  void waitFor(State state, long timeout, TimeUnit unit);
 }

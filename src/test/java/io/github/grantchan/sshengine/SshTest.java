@@ -2,8 +2,10 @@ package io.github.grantchan.sshengine;
 
 import io.github.grantchan.sshengine.client.ClientSession;
 import io.github.grantchan.sshengine.client.connection.ClientChannel;
+import io.github.grantchan.sshengine.common.CommonState.State;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class SshTest {
 
@@ -39,11 +41,11 @@ public class SshTest {
             Optional.ofNullable(channel).ifPresent(c -> {
               System.out.println("Channel established");
 
+              channel.waitFor(State.CLOSED, 5, TimeUnit.SECONDS);
                 /*
                     channel.setIn(in);
                     channel.setOut(out);
                     channel.setErr(err);
-                    channel.waitFor(EnumSet.of(), 0L);
                 */
             });
           } catch (Exception e) {
