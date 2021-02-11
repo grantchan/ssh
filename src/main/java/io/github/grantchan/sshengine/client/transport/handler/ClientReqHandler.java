@@ -93,7 +93,7 @@ public class ClientReqHandler extends AbstractReqHandler {
 
         handshakeFailure(ex);
 
-        logger.warn("[{}] Handshake failure - reason: {}", session, ex.getMessage());
+        logger.warn("{} Handshake failure - reason: {}", session, ex.getMessage());
       }
 
       if (cmd == SshMessage.SSH_MSG_NEWKEYS) {
@@ -108,7 +108,7 @@ public class ClientReqHandler extends AbstractReqHandler {
       }
       session.setServerId(id);
 
-      logger.debug("[{}] Received identification: {}", session, id);
+      logger.debug("{} Received identification: {}", session, id);
 
       ctx.writeAndFlush(Unpooled.wrappedBuffer((session.getClientId() + "\r\n")
           .getBytes(StandardCharsets.UTF_8)));
@@ -150,8 +150,8 @@ public class ClientReqHandler extends AbstractReqHandler {
     KexProposal.ALL.forEach(p -> {
       String they = ByteBufIo.readUtf8(buf);
       String we = Objects.requireNonNull(p).getProposals().get();
-      logger.debug("[{}] {}(Client): {}", session, p.getName(), we);
-      logger.debug("[{}] {}(Server): {}", session, p.getName(), they);
+      logger.debug("{} {}(Client): {}", session, p.getName(), we);
+      logger.debug("{} {}(Server): {}", session, p.getName(), they);
 
       String val = negotiate(we, they);
       if (val == null) {
@@ -159,7 +159,7 @@ public class ClientReqHandler extends AbstractReqHandler {
             + "- our proposals: " + we + ", their proposals: " + they);
       }
       result.add(p.getId(), val);
-      logger.debug("[{}] negotiated: {}", session, val);
+      logger.debug("{} negotiated: {}", session, val);
     });
 
     return result;
@@ -181,7 +181,7 @@ public class ClientReqHandler extends AbstractReqHandler {
   public void handleServiceAccept(ByteBuf req) throws SshException {
     String service = ByteBufIo.readUtf8(req);
 
-    logger.debug("[{}] Service accepted: {}", session, service);
+    logger.debug("{} Service accepted: {}", session, service);
 
     session.acceptService(service);
 
@@ -229,7 +229,7 @@ public class ClientReqHandler extends AbstractReqHandler {
      */
     byte[] id = session.getRawId();
 
-    logger.debug("[{}] Session ID: {}", session, Bytes.md5(id));
+    logger.debug("{} Session ID: {}", session, Bytes.md5(id));
 
     Kex kex = kexGroup.getKex();
     BigInteger k = kex.getSecretKey();
@@ -289,7 +289,7 @@ public class ClientReqHandler extends AbstractReqHandler {
     session.setInCipher(s2cCip);
     session.setInCipherBlkSize(s2cCf.getIvSize());
 
-    logger.debug("[{}] Session Cipher(outgoing): {}, Session Cipher(incoming): {}", session, c2sCf,
+    logger.debug("{} Session Cipher(outgoing): {}, Session Cipher(incoming): {}", session, c2sCf,
         s2cCf);
 
     // MAC
@@ -317,7 +317,7 @@ public class ClientReqHandler extends AbstractReqHandler {
     session.setInMacSize(s2cMf.getBlkSize());
     session.setInDefMacSize(s2cMf.getDefBlkSize());
 
-    logger.debug("[{}] Session MAC(outgoing): {}, Session MAC(incoming): {}",session, c2sMf, s2cMf);
+    logger.debug("{} Session MAC(outgoing): {}, Session MAC(incoming): {}",session, c2sMf, s2cMf);
 
     // Compression
     // client to server compression
@@ -332,7 +332,7 @@ public class ClientReqHandler extends AbstractReqHandler {
     Compression s2cCompression = s2cCmf.create();
     session.setInCompression(s2cCompression);
 
-    logger.debug("[{}] Session Compression(outgoing): {}, Session Compression(incoming): {}",
+    logger.debug("{} Session Compression(outgoing): {}, Session Compression(incoming): {}",
         session, c2sCmf, s2cCmf);
   }
 }

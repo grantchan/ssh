@@ -28,7 +28,7 @@ public interface ReqHandler extends SessionHolder, Service {
   default void handle(int cmd, ByteBuf req) throws Exception {
     AbstractSession session = getSession();
 
-    logger.debug("[{}] Handling message - {} ...", session, SshMessage.from(cmd));
+    logger.debug("{} Handling message - {} ...", session, SshMessage.from(cmd));
 
     switch (cmd) {
       case SshMessage.SSH_MSG_DISCONNECT:

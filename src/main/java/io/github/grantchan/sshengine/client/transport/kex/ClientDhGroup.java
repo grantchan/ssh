@@ -52,7 +52,7 @@ public class ClientDhGroup extends AbstractLogger implements KexGroup {
 
   @Override
   public void handle(int cmd, ByteBuf msg) throws SshException {
-    logger.debug("[{}] Handling key exchange message - {} ...", session, SshMessage.from(cmd));
+    logger.debug("{} Handling key exchange message - {} ...", session, SshMessage.from(cmd));
 
     if (cmd == SshMessage.SSH_MSG_KEXDH_INIT && expect == SshMessage.SSH_MSG_KEXDH_INIT) {
       handleDhInit(msg);
@@ -116,7 +116,7 @@ public class ClientDhGroup extends AbstractLogger implements KexGroup {
      *  with SHA-1 as part of the signing operation.
      */
     byte[] k_s = ByteBufIo.readBytes(msg);
-    logger.debug("[{}] Host RSA public key fingerprint MD5: {}, SHA256: {}",
+    logger.debug("{} Host RSA public key fingerprint MD5: {}, SHA256: {}",
         session, md5(k_s), sha256(k_s));
     // Client user needs to verify the hash value of k_s(public key) of the server here
 
@@ -165,6 +165,6 @@ public class ClientDhGroup extends AbstractLogger implements KexGroup {
       e1.printStackTrace();
     }
 
-    logger.debug("[{}] KEX process completed after SSH_MSG_KEXDH_REPLY", session);
+    logger.debug("{} KEX process completed after SSH_MSG_KEXDH_REPLY", session);
   }
 }

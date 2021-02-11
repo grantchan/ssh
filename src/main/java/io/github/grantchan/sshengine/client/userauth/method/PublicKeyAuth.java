@@ -35,7 +35,7 @@ public class PublicKeyAuth extends AbstractLogger
   @Override
   public boolean submit() {
     if (!keyPairs.hasNext()) {
-      logger.debug("[{}] No more available key to submit for authentication", session);
+      logger.debug("{} No more available key to submit for authentication", session);
 
       return false;
     }
@@ -47,7 +47,7 @@ public class PublicKeyAuth extends AbstractLogger
     current = keyPairs.next();
     PublicKey key = current.getPublic();
 
-    logger.debug("[{}] Sending key to authenticate...", session);
+    logger.debug("{} Sending key to authenticate...", session);
 
     String algo = PublicKeyUtil.typeOf(key);
 

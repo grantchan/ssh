@@ -147,7 +147,7 @@ public class ServerSession extends AbstractSession {
 
     ByteBufIo.writeUtf8(buf, svcName);
 
-    logger.debug("[{}] Replying SSH_MSG_SERVICE_ACCEPT...", this);
+    logger.debug("{} Replying SSH_MSG_SERVICE_ACCEPT...", this);
 
     channel.writeAndFlush(buf);
   }
@@ -159,7 +159,7 @@ public class ServerSession extends AbstractSession {
     ByteBufIo.writeMpInt(reply, f);
     ByteBufIo.writeBytes(reply, sigH);
 
-    logger.debug("[{}] Replying SSH_MSG_KEXDH_REPLY...", this);
+    logger.debug("{} Replying SSH_MSG_KEXDH_REPLY...", this);
 
     channel.writeAndFlush(reply);
   }
@@ -181,7 +181,7 @@ public class ServerSession extends AbstractSession {
     ByteBufIo.writeMpInt(reply, f);
     ByteBufIo.writeBytes(reply, sigH);
 
-    logger.debug("[{}] Replying SSH_MSG_KEX_DH_GEX_REPLY...", this);
+    logger.debug("{} Replying SSH_MSG_KEX_DH_GEX_REPLY...", this);
 
     channel.writeAndFlush(reply);
   }
@@ -222,7 +222,7 @@ public class ServerSession extends AbstractSession {
   public void replyUserAuthSuccess() {
     ByteBuf uas = createMessage(SshMessage.SSH_MSG_USERAUTH_SUCCESS);
 
-    logger.debug("[{}] Replying SSH_MSG_USERAUTH_SUCCESS...", this);
+    logger.debug("{} Replying SSH_MSG_USERAUTH_SUCCESS...", this);
 
     channel.writeAndFlush(uas);
   }
@@ -250,7 +250,7 @@ public class ServerSession extends AbstractSession {
     ByteBufIo.writeUtf8(uaf, remainMethods);
     uaf.writeBoolean(partialSuccess);
 
-    logger.debug("[{}] Replying SSH_MSG_USERAUTH_FAILURE...", this);
+    logger.debug("{} Replying SSH_MSG_USERAUTH_FAILURE...", this);
 
     channel.writeAndFlush(uaf);
   }
@@ -269,7 +269,7 @@ public class ServerSession extends AbstractSession {
     ByteBufIo.writeUtf8(uapo, algorithm);
     ByteBufIo.writeBytes(uapo, blob);
 
-    logger.debug("[{}] Replying SSH_MSG_USERAUTH_PK_OK...", this);
+    logger.debug("{} Replying SSH_MSG_USERAUTH_PK_OK...", this);
 
     channel.writeAndFlush(uapo);
   }
@@ -282,7 +282,7 @@ public class ServerSession extends AbstractSession {
     conf.writeInt(wndSize);
     conf.writeInt(wndPacketSize);
 
-    logger.debug("[{}] Replying SSH_MSG_CHANNEL_OPEN_CONFIRMATION... remote id:{}, local id:{}," +
+    logger.debug("{} Replying SSH_MSG_CHANNEL_OPEN_CONFIRMATION... remote id:{}, local id:{}," +
         " window size:{}, packet size:{}", this, rChId, lChId, wndSize, wndPacketSize);
 
     channel.writeAndFlush(conf);
@@ -296,7 +296,7 @@ public class ServerSession extends AbstractSession {
     ByteBufIo.writeUtf8(cof, message);
     ByteBufIo.writeUtf8(cof, lang);
 
-    logger.debug("[{}] Replying SSH_MSG_CHANNEL_OPEN_FAILURE... remote channel id:{}, reason code:{}," +
+    logger.debug("{} Replying SSH_MSG_CHANNEL_OPEN_FAILURE... remote channel id:{}, reason code:{}," +
         " message:{}, lang:{}", this, peerId, reason, message, lang);
 
     channel.writeAndFlush(cof);

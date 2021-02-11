@@ -33,7 +33,7 @@ public class SessionChannel extends AbstractServerChannel {
     AbstractSession session = getSession();
 
     if (shell != null && shell.isAlive()) {
-      logger.debug("[{}] Shutting down shell process - {}", session, shell.getCmds());
+      logger.debug("{} Shutting down shell process - {}", this, shell.getCmds());
 
       shell.shutdown();
     }
@@ -90,7 +90,7 @@ public class SessionChannel extends AbstractServerChannel {
      */
     String type = ByteBufIo.readUtf8(req);
 
-    logger.debug("[{}] Received SSH_MSG_CHANNEL_REQUEST. request type:{}", getSession(), type);
+    logger.debug("{} Received SSH_MSG_CHANNEL_REQUEST. request type:{}", this, type);
 
     boolean wantReply = req.getBoolean(req.readerIndex());
 
@@ -149,7 +149,7 @@ public class SessionChannel extends AbstractServerChannel {
      */
 
     if (!isOpen()) {
-      logger.debug("[{}] The channel is not open, request(pytreq) ignored", this);
+      logger.debug("{} The channel is not open, request(pytreq) ignored", this);
 
       return false;
     }
@@ -166,7 +166,7 @@ public class SessionChannel extends AbstractServerChannel {
     while (i < modes.length && modes[i] != TtyMode.TTY_OP_END.value()) {
       int opcode = modes[i++] & 0xff;
       if (opcode > 159) {
-        logger.warn("[{}] Unknown opcode: {}", this, opcode);
+        logger.warn("{} Unknown opcode: {}", this, opcode);
         continue;
       }
 
@@ -174,15 +174,15 @@ public class SessionChannel extends AbstractServerChannel {
       if (mode != null) {
         ttyModes.put(mode, Bytes.toInt(modes, i));
       } else {
-        logger.warn("[{}] Unsupported tty mode - opcode: {}", this, opcode);
+        logger.warn("{} Unsupported tty mode - opcode: {}", this, opcode);
       }
 
       i += Integer.BYTES;
     }
 
-    logger.debug("[{}] Received pty-req request. want reply:{}, terminal:{}, " +
+    logger.debug("{} Received pty-req request. want reply:{}, terminal:{}, " +
             "terminal columns:{}, terminal rows:{}, terminal width:{}, terminal height:{}, modes:{}",
-        getSession(), wantReply, term, termCols, termRows, termWidth, termHeight, ttyModes);
+        this, wantReply, term, termCols, termRows, termWidth, termHeight, ttyModes);
 
     return true;
   }
@@ -209,14 +209,14 @@ public class SessionChannel extends AbstractServerChannel {
      */
 
     if (!isOpen()) {
-      logger.debug("[{}] The channel is not open, request(shell) ignored", this);
+      logger.debug("{} The channel is not open, request(shell) ignored", this);
 
       return false;
     }
 
     boolean wantReply = req.readBoolean();
 
-    logger.debug("[{}] Received shell request. want reply:{}", this, wantReply);
+    logger.debug("{} Received shell request. want reply:{}", this, wantReply);
 
     shell = new TtyProcessShell(chIn, chOut, chErr, "/bin/sh", "-i", "-l");
 
@@ -288,14 +288,14 @@ public class SessionChannel extends AbstractServerChannel {
      * @see <a href="https://tools.ietf.org/html/rfc4254#section-5.2">Data Transfer</a>
      */
     byte[] data = ByteBufIo.readBytes(req);
-    logger.debug("[{}] SSH_MSG_CHANNEL_DATA len = {}", this, data.length);
+    logger.debug("{} SSH_MSG_CHANNEL_DATA len = {}", this, data.length);
 
     if (isOpen()) {
       chIn.write(data);
       return;
     }
 
-    logger.debug("[{}] The channel is not open, handleData ignored", this);
+    logger.debug("{} The channel is not open, handleData ignored", this);
   }
 
   @Override

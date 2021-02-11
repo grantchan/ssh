@@ -122,7 +122,7 @@ public class Window extends AbstractLogger implements Closeable {
   private void setSize(int newSize) {
     int oldSize = size.getAndSet(newSize);
 
-    logger.debug("[{}] {}, size updated: {} => {}", channel.getSession(), this, oldSize, size.get());
+    logger.debug("{} {}, size updated: {} => {}", channel, this, oldSize, size.get());
   }
 
   /**
@@ -136,7 +136,7 @@ public class Window extends AbstractLogger implements Closeable {
     }
 
     synchronized (lock) {
-      logger.debug("[{}] {}, trying to expand {} bytes", channel.getSession(), this, len);
+      logger.debug("{} {}, trying to expand {} bytes", channel, this, len);
 
       if (size.get() + len > maxSize) {
         throw new IllegalStateException("Too big to expand, the maximum window size is:" + maxSize +
@@ -156,7 +156,7 @@ public class Window extends AbstractLogger implements Closeable {
    */
   public void consume(int len) {
     synchronized (lock) {
-      logger.debug("[{}] {}, trying to consume {} bytes", channel.getSession(), this, len);
+      logger.debug("{} trying to consume {} bytes", this, len);
 
       if (size.get() < len) {
         throw new IllegalStateException("Not enough space to consume, current size: " + size +
@@ -184,7 +184,7 @@ public class Window extends AbstractLogger implements Closeable {
   @Override
   public void close() {
     if (isOpen.getAndSet(false)) {
-      logger.debug("[{}] {} is closed", channel.getSession(), this);
+      logger.debug("{} is closed", this);
     }
 
     synchronized (lock) {
@@ -194,7 +194,6 @@ public class Window extends AbstractLogger implements Closeable {
 
   @Override
   public String toString() {
-    return getClass().getSimpleName() + '(' + name + ") {channel=" + channel + ", size=" + size +
-        ", open=" + isOpen.get() + '}';
+    return "[(" + name + ") {channel=" + channel + ", size=" + size + ", open=" + isOpen.get() + "}]";
   }
 }

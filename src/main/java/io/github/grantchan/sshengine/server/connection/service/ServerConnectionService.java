@@ -29,7 +29,7 @@ public class ServerConnectionService extends AbstractLogger implements Service, 
 
   @Override
   public void handle(int cmd, ByteBuf req) throws Exception {
-    logger.debug("[{}] Handling message - {} ...", session, SshMessage.from(cmd));
+    logger.debug("{} Handling message - {} ...", session, SshMessage.from(cmd));
 
     switch (cmd) {
       case SshMessage.SSH_MSG_CHANNEL_OPEN:
@@ -106,7 +106,7 @@ public class ServerConnectionService extends AbstractLogger implements Service, 
     long rwndsize = req.readUnsignedInt();
     long rpksize = req.readUnsignedInt();
 
-    logger.debug("[{}] Received SSH_MSG_CHANNEL_OPEN. channel type:{}, sender channel id:{}, " +
+    logger.debug("{} Received SSH_MSG_CHANNEL_OPEN. channel type:{}, sender channel id:{}, " +
         "initial window size:{}, maximum packet size:{}", session, type, peerId, rwndsize, rpksize);
 
     ServerChannel channel =
@@ -143,7 +143,7 @@ public class ServerConnectionService extends AbstractLogger implements Service, 
 
     Channel channel = Channel.get(id);
     if (channel == null) {
-      logger.debug("[{}] Channel (id={}) not found, ignored", session, id);
+      logger.debug("{} Channel (id={}) not found, ignored", session, id);
       return;
     }
 
@@ -155,7 +155,7 @@ public class ServerConnectionService extends AbstractLogger implements Service, 
 
     Channel channel = Channel.get(id);
     if (channel == null) {
-      logger.debug("[{}] Channel (id={}) not found, ignored", session, id);
+      logger.debug("{} Channel (id={}) not found, ignored", session, id);
       return;
     }
 

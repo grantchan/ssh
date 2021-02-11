@@ -79,12 +79,12 @@ public abstract class AbstractServerChannel extends AbstractLogger implements Se
   @Override
   public void open() throws SshChannelException {
     if (isOpen()) {
-      logger.debug("[{} - {}] This channel is already opened - status:{}", session, this, getState());
+      logger.debug("{} This channel is already opened - status:{}", this, getState());
 
       return;
     }
 
-    logger.debug("[{} - {}] Channel is being opened...", session, this);
+    logger.debug("{} Channel is being opened...", this);
 
     /*
      * The remote side then decides whether it can open the channel, and responds with either
@@ -95,15 +95,17 @@ public abstract class AbstractServerChannel extends AbstractLogger implements Se
     try {
       this.id = register(this);
 
-      logger.debug("[{} - {}] channel is registered.", session, this);
+      logger.debug("{} Channel is registered.", this);
 
       setState(State.OPENED);
 
-      logger.debug("[{} - {}] Channel is opened - status:{}", session, this, getState());
+      logger.debug("{} Channel is opened - status:{}", this, getState());
 
-      session.replyChannelOpenConfirmation(peerId, getId(), localWnd.getMaxSize(), localWnd.getPacketSize());
+      int wndSize = localWnd.getMaxSize();
+      int pkgSize = localWnd.getPacketSize();
+      session.replyChannelOpenConfirmation(peerId, id, wndSize, pkgSize);
     } catch (Exception ex) {
-      logger.debug("[{} - {}] Failed to open channel - status:{}", session, this, getState());
+      logger.debug("{} Failed to open channel - status:{}", this, getState());
 
       unRegister(getId());
 
@@ -140,11 +142,11 @@ public abstract class AbstractServerChannel extends AbstractLogger implements Se
 
     unRegister(id); // In a session, once the channel is closed, its id will never be used again
 
-    logger.debug("[{} - {}] channel is unregistered.", session, this);
+    logger.debug("{} Channel is unregistered.", this);
 
     setState(State.CLOSED);
 
-    logger.debug("[{} - {}] channel is closed", getSession(), this);
+    logger.debug("{} Channel is closed", this);
   }
 
   @Override
@@ -165,5 +167,10 @@ public abstract class AbstractServerChannel extends AbstractLogger implements Se
   @Override
   public void setState(State state) {
     this.state.set(state);
+  }
+
+  @Override
+  public String toString() {
+    return "[id=" + getId() + ", peer id=" + getPeerId() + ", session=" + session + "]";
   }
 }

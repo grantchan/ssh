@@ -484,7 +484,7 @@ public abstract class AbstractSession extends AbstractLogger
     authFuture.complete(authed);
 
     if (!isAuthed && authed) {
-      logger.debug("[{}] Authentication process completed in {} ms", this,
+      logger.debug("{} Authentication process completed in {} ms", this,
           System.currentTimeMillis() - authStartTime);
     }
   }
@@ -492,13 +492,13 @@ public abstract class AbstractSession extends AbstractLogger
   public void setAuthed(Throwable exception) {
     authFuture.completeExceptionally(exception);
 
-    logger.debug("[{}] Authentication process failed in {} ms", this,
+    logger.debug("{} Authentication process failed in {} ms", this,
         System.currentTimeMillis() - authStartTime);
   }
 
   private void checkActive(String funcName) {
     if (getState() != State.OPENED) {
-      logger.debug("[{}] {}, session is inactive, operation skipped", funcName, this);
+      logger.debug("{} {}, session is inactive, operation skipped", funcName, this);
     }
   }
 
@@ -558,7 +558,7 @@ public abstract class AbstractSession extends AbstractLogger
 /*
     long authElapsed = System.currentTimeMillis() - authStartTime;
     if (isActive && !isAuthed && authElapsed > 5000) {
-      logger.debug("[{}] Timeout - reason: Authentication process timeout since it's taken {} ms",
+      logger.debug("{} Timeout - reason: Authentication process timeout since it's taken {} ms",
           this, authElapsed);
 
       notifyDisconnect(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR, "Authentication timeout");
@@ -586,7 +586,7 @@ public abstract class AbstractSession extends AbstractLogger
     ByteBufIo.writeMpInt(pg, p);
     ByteBufIo.writeMpInt(pg, g);
 
-    logger.debug("[{}] Replying SSH_MSG_KEX_DH_GEX_GROUP...", this);
+    logger.debug("{} Replying SSH_MSG_KEX_DH_GEX_GROUP...", this);
 
     channel.writeAndFlush(pg);
   }
@@ -611,7 +611,7 @@ public abstract class AbstractSession extends AbstractLogger
 
     ByteBuf newKeys = createMessage(SshMessage.SSH_MSG_NEWKEYS);
 
-    logger.debug("[{}] Requesting SSH_MSG_NEWKEYS...", this);
+    logger.debug("{} Requesting SSH_MSG_NEWKEYS...", this);
 
     channel.writeAndFlush(newKeys);
   }
@@ -623,7 +623,7 @@ public abstract class AbstractSession extends AbstractLogger
 
     cs.writeInt(channelId);
 
-    logger.debug("[{}] Replying SSH_MSG_CHANNEL_SUCCESS... channel rawId:{}", this, channelId);
+    logger.debug("{} Replying SSH_MSG_CHANNEL_SUCCESS... channel rawId:{}", this, channelId);
 
     channel.writeAndFlush(cs);
   }
@@ -635,7 +635,7 @@ public abstract class AbstractSession extends AbstractLogger
 
     cs.writeInt(channelId);
 
-    logger.debug("[{}] Replying SSH_MSG_CHANNEL_FAILURE... channel rawId:{}", this, channelId);
+    logger.debug("{} Replying SSH_MSG_CHANNEL_FAILURE... channel rawId:{}", this, channelId);
 
     channel.writeAndFlush(cs);
   }
@@ -829,7 +829,7 @@ public abstract class AbstractSession extends AbstractLogger
     ByteBuf eof = createMessage(SshMessage.SSH_MSG_CHANNEL_EOF);
     eof.writeInt(recipient);
 
-    logger.debug("[{}] Sending SSH_MSG_CHANNEL_EOF... recipient:{}", this, recipient);
+    logger.debug("{} Sending SSH_MSG_CHANNEL_EOF... recipient:{}", this, recipient);
 
     channel.writeAndFlush(eof);
   }
@@ -863,7 +863,7 @@ public abstract class AbstractSession extends AbstractLogger
     exitStatus.writeBoolean(false);
     exitStatus.writeInt(exitVal);
 
-    logger.debug("[{}] Sending SSH_MSG_CHANNEL_REQUEST... recipient:{}, want-reply: {}, exit value: {}", this, recipient, "false", exitVal);
+    logger.debug("{} Sending SSH_MSG_CHANNEL_REQUEST... recipient:{}, want-reply: {}, exit value: {}", this, recipient, "false", exitVal);
 
     channel.writeAndFlush(exitStatus);
   }
@@ -896,7 +896,7 @@ public abstract class AbstractSession extends AbstractLogger
 
     close.writeInt(recipient);
 
-    logger.debug("[{}] Sending SSH_MSG_CHANNEL_CLOSE... recipient:{}", this, recipient);
+    logger.debug("{} Sending SSH_MSG_CHANNEL_CLOSE... recipient:{}", this, recipient);
 
     channel.writeAndFlush(close);
   }
@@ -933,7 +933,7 @@ public abstract class AbstractSession extends AbstractLogger
     wa.writeInt(recipient);
     wa.writeInt(size);
 
-    logger.debug("[{}] Sending SSH_MSG_CHANNEL_WINDOW_ADJUST... recipient:{}, size:{}", this,
+    logger.debug("{} Sending SSH_MSG_CHANNEL_WINDOW_ADJUST... recipient:{}, size:{}", this,
         recipient, size);
 
     channel.writeAndFlush(wa);
@@ -941,6 +941,6 @@ public abstract class AbstractSession extends AbstractLogger
 
   @Override
   public String toString() {
-    return getUsername() + "@" + getRemoteAddress();
+    return "[" + getUsername() + "@" + getRemoteAddress() + "]";
   }
 }

@@ -60,7 +60,7 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
     for (String type : types) {
       Path p = keysFolder.resolve(FILE_NAME_PREFIX + type.toLowerCase());
       if (!Files.exists(p)) {
-        logger.debug("[{}] {} doesn't exist, skipped", session, p);
+        logger.debug("{} {} doesn't exist, skipped", session, p);
         continue;
       }
 
@@ -75,7 +75,7 @@ public class DirBasedPublicKeyAuth extends PublicKeyAuth {
         if (keyPairs == null) {
           keyPairs = new LinkedList<>();
         }
-        logger.debug("[{}] {} is loaded", session, p);
+        logger.debug("{} {} is loaded", session, p);
 
         keyPairs.add(kp);
       }

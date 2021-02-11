@@ -53,7 +53,7 @@ public class PublicKeyAuth extends AbstractLogger implements Method {
     }
 
     if (!match) {
-      logger.debug("[{}] Public key not found in server - '{}'", session, publicKey);
+      logger.debug("{} Public key not found in server - '{}'", session, publicKey);
 
       return false;
     }

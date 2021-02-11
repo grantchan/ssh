@@ -70,7 +70,7 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter
       msg.writerIndex(SshConstant.SSH_PACKET_HEADER_LENGTH);
 
       byte[] zipped = comp.compress(plain);
-      logger.debug("[{}] Compressed packet: ({} -> {} bytes)", session, plain.length,
+      logger.debug("{} Compressed packet: ({} -> {} bytes)", session, plain.length,
           zipped.length);
 
       msg.writeBytes(zipped);
@@ -124,7 +124,7 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter
       if (logger.isTraceEnabled()) {
         StringBuilder sb = new StringBuilder();
         ByteBufUtil.appendPrettyHexDump(sb, msg);
-        logger.trace("[{}] Packet before encryption: \n{}", session, sb.toString());
+        logger.trace("{} Packet before encryption: \n{}", session, sb.toString());
       }
 
       byte[] tmp = new byte[len + 4 - off];

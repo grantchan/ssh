@@ -47,7 +47,7 @@ public class ServerDhGroup extends AbstractLogger implements KexGroup {
 
   @Override
   public void handle(int cmd, ByteBuf req) throws SignatureException, SshException {
-    logger.debug("[{}] Handling key exchange message - {} ...", session, SshMessage.from(cmd));
+    logger.debug("{} Handling key exchange message - {} ...", session, SshMessage.from(cmd));
 
     if (cmd != SshMessage.SSH_MSG_KEXDH_INIT) {
       throw new SshException(SshMessage.SSH_DISCONNECT_KEY_EXCHANGE_FAILED,
@@ -111,7 +111,7 @@ public class ServerDhGroup extends AbstractLogger implements KexGroup {
 
     byte[] k_s = PublicKeyUtil.bytesOf(pubKey);
 
-    logger.debug("[{}] Host RSA public key fingerprint MD5: {}, SHA256: {}",
+    logger.debug("{} Host RSA public key fingerprint MD5: {}, SHA256: {}",
         session, md5(k_s), sha256(k_s));
 
     byte[] h_s = Bytes.concat(
@@ -140,7 +140,7 @@ public class ServerDhGroup extends AbstractLogger implements KexGroup {
         );
 
     session.replyKexDhReply(k_s, kex.getPubKey(), sigH);
-    logger.debug("[{}] KEX process completed after SSH_MSG_KEXDH_INIT", session);
+    logger.debug("{} KEX process completed after SSH_MSG_KEXDH_INIT", session);
 
     session.requestKexNewKeys();
   }

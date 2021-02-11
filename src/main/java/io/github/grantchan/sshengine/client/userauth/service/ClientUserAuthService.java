@@ -35,7 +35,7 @@ public class ClientUserAuthService implements Service {
       throw new RuntimeException("No authentication method available");
     }
 
-    logger.debug("[{}] Authentication methods for client - {}", session, String.join(",", methods));
+    logger.debug("{} Authentication methods for client - {}", session, String.join(",", methods));
   }
 
   @Override
@@ -62,7 +62,7 @@ public class ClientUserAuthService implements Service {
       default:
         String rsp = SshMessage.from(cmd);
 
-        logger.debug("[{}] Illegal authentication response - {}", session, rsp);
+        logger.debug("{} Illegal authentication response - {}", session, rsp);
 
         throw new IllegalStateException("Illegal authentication response: " + rsp);
     }

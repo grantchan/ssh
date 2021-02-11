@@ -149,7 +149,7 @@ public class ClientSession extends AbstractSession {
 
     ByteBufIo.writeMpInt(req, e);
 
-    logger.debug("[{}] Requesting SSH_MSG_KEXDH_INIT...", this);
+    logger.debug("{} Requesting SSH_MSG_KEXDH_INIT...", this);
 
     channel.writeAndFlush(req);
   }
@@ -165,7 +165,7 @@ public class ClientSession extends AbstractSession {
     ByteBuf req = createMessage(SshMessage.SSH_MSG_SERVICE_REQUEST);
     ByteBufIo.writeUtf8(req, "ssh-userauth");
 
-    logger.debug("[{}] Requesting SSH_MSG_SERVICE_REQUEST...", this);
+    logger.debug("{} Requesting SSH_MSG_SERVICE_REQUEST...", this);
 
     channel.writeAndFlush(req).addListener(f -> {
       Throwable e = f.cause();
@@ -186,7 +186,7 @@ public class ClientSession extends AbstractSession {
     ByteBufIo.writeUtf8(req, service);
     ByteBufIo.writeUtf8(req, method);
 
-    logger.debug("[{}] Requesting SSH_MSG_USERAUTH_REQUEST... username:{}, service:{}, method:{}",
+    logger.debug("{} Requesting SSH_MSG_USERAUTH_REQUEST... username:{}, service:{}, method:{}",
         this, user, service, method);
 
     channel.writeAndFlush(req);
@@ -203,7 +203,7 @@ public class ClientSession extends AbstractSession {
     ByteBufIo.writeUtf8(req, algo);
     ByteBufIo.writePublicKey(req, pubKey);
 
-    logger.debug("[{}] Requesting SSH_MSG_USERAUTH_REQUEST... " +
+    logger.debug("{} Requesting SSH_MSG_USERAUTH_REQUEST... " +
         "username:{}, service:{}, method:{}, algo:{}", this, user, service, method, algo);
 
     channel.writeAndFlush(req);
@@ -221,7 +221,7 @@ public class ClientSession extends AbstractSession {
     ByteBufIo.writePublicKey(req, pubKey);
     ByteBufIo.writeBytes(req, sig);
 
-    logger.debug("[{}] Requesting SSH_MSG_USERAUTH_REQUEST... " +
+    logger.debug("{} Requesting SSH_MSG_USERAUTH_REQUEST... " +
         "username:{}, service:{}, method:{}, algo:{}, sigature: {}", this, user, service,
         method, algo, Bytes.md5(sig));
 
@@ -266,7 +266,7 @@ public class ClientSession extends AbstractSession {
     co.writeInt(wndSize);
     co.writeInt(pkgSize);
 
-    logger.debug("[{}] Requesting SSH_MSG_CHANNEL_OPEN..." +
+    logger.debug("{} Requesting SSH_MSG_CHANNEL_OPEN..." +
         "type:{}, id:{}, window size:{}, package size:{}", this, type, id, wndSize, pkgSize);
 
     return channel.writeAndFlush(co);

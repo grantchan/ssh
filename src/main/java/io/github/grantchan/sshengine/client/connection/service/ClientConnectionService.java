@@ -27,7 +27,7 @@ public class ClientConnectionService extends AbstractLogger implements Service, 
 
   @Override
   public void handle(int cmd, ByteBuf req) throws Exception {
-    logger.debug("[{}] Handling message - {} ...", session, SshMessage.from(cmd));
+    logger.debug("{} Handling message - {} ...", session, SshMessage.from(cmd));
 
     switch (cmd) {
       case SshMessage.SSH_MSG_CHANNEL_OPEN_CONFIRMATION:

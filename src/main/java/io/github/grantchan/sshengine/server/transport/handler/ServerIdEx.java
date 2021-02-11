@@ -83,7 +83,7 @@ public class ServerIdEx extends ChannelInboundHandlerAdapter implements SessionH
         return;
       }
 
-      logger.debug("[{}] Received identification: {}", session, id);
+      logger.debug("{} Received identification: {}", session, id);
       session.setClientId(id);
 
       ChannelPipeline cp = ctx.pipeline();

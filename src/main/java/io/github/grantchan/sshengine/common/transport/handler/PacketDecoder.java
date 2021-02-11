@@ -126,7 +126,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter
       if (logger.isTraceEnabled()) {
         StringBuilder sb = new StringBuilder();
         ByteBufUtil.appendPrettyHexDump(sb, msg);
-        logger.trace("[{}] Encrypted packet received: \n{}", session, sb.toString());
+        logger.trace("{} Encrypted packet received: \n{}", session, sb.toString());
       }
 
       // Decrypt the first block of the packet
@@ -144,7 +144,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter
 
     // It's an invalid packet if it's less than 5 bytes or bigger than 256k bytes
     if (len < SshConstant.SSH_PACKET_HEADER_LENGTH || len > SshConstant.SSH_PACKET_MAX_LENGTH) {
-      logger.error("[{}] Illegal packet to decode - invalid packet length: {}", session, len);
+      logger.error("{} Illegal packet to decode - invalid packet length: {}", session, len);
 
       throw new SshException(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
           "Invalid packet length: " + len);
@@ -190,7 +190,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter
       // Go through the MAC segment, which is at the end of the packet, to verify
       while (i-- > 0) {
         if (macBlk[j++] != buf[k++]) {
-          logger.error("[{}] Failed to verify the packet at position: {}", session, k - 1);
+          logger.error("{} Failed to verify the packet at position: {}", session, k - 1);
 
           throw new SshException(SshMessage.SSH_DISCONNECT_MAC_ERROR, "MAC Error");
         }
@@ -219,7 +219,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter
       if (logger.isTraceEnabled()) {
         StringBuilder sb = new StringBuilder();
         ByteBufUtil.appendPrettyHexDump(sb, data);
-        logger.trace("[{}] Decompressed packet ({} -> {} bytes): \n{}", session, zipped.length,
+        logger.trace("{} Decompressed packet ({} -> {} bytes): \n{}", session, zipped.length,
             unzipped.length, sb.toString());
       }
     } else {

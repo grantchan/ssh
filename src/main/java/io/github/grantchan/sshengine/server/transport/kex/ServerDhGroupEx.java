@@ -55,7 +55,7 @@ public class ServerDhGroupEx extends AbstractLogger
 
   @Override
   public void handle(int cmd, ByteBuf msg) throws SignatureException, SshException {
-    logger.debug("[{}] Handling key exchange message - {} ...", session, SshMessage.from(cmd));
+    logger.debug("{} Handling key exchange message - {} ...", session, SshMessage.from(cmd));
 
     if (cmd == SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST_OLD &&
         expect == SshMessage.SSH_MSG_KEX_DH_GEX_REQUEST) {
@@ -297,7 +297,7 @@ public class ServerDhGroupEx extends AbstractLogger
 
     session.replyKexDhGexReply(k_s, kex.getPubKey(), sigH);
 
-    logger.debug("[{}] KEX process completed after SSH_MSG_KEX_DH_GEX_INIT", session);
+    logger.debug("{} KEX process completed after SSH_MSG_KEX_DH_GEX_INIT", session);
 
     session.requestKexNewKeys();
   }

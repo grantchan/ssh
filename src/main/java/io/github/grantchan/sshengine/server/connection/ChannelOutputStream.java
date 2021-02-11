@@ -47,7 +47,7 @@ public class ChannelOutputStream extends OutputStream {
     AbstractSession session = channel.getSession();
 
     if (!channel.isOpen()) {
-      logger.debug("[{}] Failed to write data to a closed channel ({})", session, channel);
+      logger.debug("{} Failed to write data to a closed channel", channel);
 
       throw new SshChannelException("Unable to write data via channel: " + channel.getId() +
           ", channel is closed.");
@@ -102,7 +102,7 @@ public class ChannelOutputStream extends OutputStream {
     AbstractSession session = channel.getSession();
 
     if (!channel.isOpen()) {
-      logger.debug("[{}] Failed to write data to a closed channel ({})", session, channel);
+      logger.debug("{} Failed to write data to a closed channel", channel);
 
       throw new SshChannelException("Unable to write data via channel: " + channel.getId() +
           ", channel is closed");
@@ -122,7 +122,7 @@ public class ChannelOutputStream extends OutputStream {
   public synchronized void close() throws IOException {
     if (channel.isOpen()) {
       try {
-        logger.debug("[{}] Flush data before channel({}) is closed", channel.getSession(), channel);
+        logger.debug("{} Flush data before channel is closed", channel);
 
         flush();
       } finally {

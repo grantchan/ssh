@@ -46,7 +46,7 @@ public class ServerUserAuthService extends AbstractLogger implements Service {
       String service = ByteBufIo.readUtf8(req);
       String method = ByteBufIo.readUtf8(req);
 
-      logger.debug("[{}] Received SSH_MSG_USERAUTH_REQUEST service={}, method={}",
+      logger.debug("{} Received SSH_MSG_USERAUTH_REQUEST service={}, method={}",
                    session, service, method);
 
       /*
@@ -62,7 +62,7 @@ public class ServerUserAuthService extends AbstractLogger implements Service {
        */
       ServiceFactory factory = ServiceFactories.from(service);
       if (factory == null){
-        logger.debug("[{}] Unsupported service - '{}'", session, service);
+        logger.debug("{} Unsupported service - '{}'", session, service);
 
         throw new SshException(SshMessage.SSH_DISCONNECT_SERVICE_NOT_AVAILABLE,
             "Unknown service - '" + service + "'");
@@ -75,7 +75,7 @@ public class ServerUserAuthService extends AbstractLogger implements Service {
         retryCnt++;
 
         if (retryCnt >= maxRetryCnt) {
-          logger.debug("[{}] Too many login attemps", session);
+          logger.debug("{} Too many login attemps", session);
 
           throw new SshException(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
               "Too many login attempts.");
@@ -87,7 +87,7 @@ public class ServerUserAuthService extends AbstractLogger implements Service {
         // accumulated authentication states if they change.  If it is unable to
         // flush an authentication state, it MUST disconnect if the 'user name'
         // or 'service name' changes.
-        logger.debug("[{}] User name or service name differs in one authentication session",
+        logger.debug("{} User name or service name differs in one authentication session",
                      session);
 
         throw new SshException(SshMessage.SSH_DISCONNECT_PROTOCOL_ERROR,
@@ -98,19 +98,19 @@ public class ServerUserAuthService extends AbstractLogger implements Service {
 
       boolean result = false;
       if (auth == null) {
-        logger.debug("[{}] Unsupported authentication method - '{}'", session, method);
+        logger.debug("{} Unsupported authentication method - '{}'", session, method);
       } else {
-        logger.debug("[{}] Authenticating to start service '{}' by method '{}' (attempt {} / {})",
+        logger.debug("{} Authenticating to start service '{}' by method '{}' (attempt {} / {})",
                      session, service, method, retryCnt, maxRetryCnt);
 
         try {
           result = auth.authorize(user, service, req, session);
         } catch (SshAuthInProgressException e) {
-          logger.debug("[{}] Authentication in progress...", session);
+          logger.debug("{} Authentication in progress...", session);
 
           return;
         } catch (Exception e) {
-          logger.debug("[{}] Failed to authenticate. method={}", session, method);
+          logger.debug("{} Failed to authenticate. method={}", session, method);
         }
       }
 

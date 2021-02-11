@@ -49,7 +49,7 @@ public class ServerReqHandler extends AbstractReqHandler {
       // handshake failure
       ctx.channel().close();
 
-      logger.warn("[{}] Handshake failure - reason: {}", session, ex.getMessage());
+      logger.warn("{} Handshake failure - reason: {}", session, ex.getMessage());
     }
   }
 
@@ -60,8 +60,8 @@ public class ServerReqHandler extends AbstractReqHandler {
     KexProposal.ALL.forEach(p -> {
       String they = ByteBufIo.readUtf8(buf);
       String we = p.getProposals().get();
-      logger.debug("[{}] {}(Server): {}", session, p.getName(), we);
-      logger.debug("[{}] {}(Client): {}", session, p.getName(), they);
+      logger.debug("{} {}(Server): {}", session, p.getName(), we);
+      logger.debug("{} {}(Client): {}", session, p.getName(), they);
 
       String val = negotiate(they, we);
       if (val == null) {
@@ -69,7 +69,7 @@ public class ServerReqHandler extends AbstractReqHandler {
             + "- our proposals: " + we + ", their proposals: " + they);
       }
       result.add(p.getId(), val);
-      logger.debug("[{}] negotiated: {}", session, val);
+      logger.debug("{} negotiated: {}", session, val);
     });
 
     return result;
@@ -114,7 +114,7 @@ public class ServerReqHandler extends AbstractReqHandler {
     logger.debug(svcName);
 
     if (!svcName.equals("ssh-userauth")) {
-      logger.debug("[{}] Illegal service request received - Authentication is not completed", session);
+      logger.debug("{} Illegal service request received - Authentication is not completed", session);
 
       throw new IllegalStateException("Authentication is not completed");
     }
@@ -150,7 +150,7 @@ public class ServerReqHandler extends AbstractReqHandler {
      */
     byte[] id = session.getRawId();
 
-    logger.debug("[{}] Session ID: {}", session, Bytes.md5(id));
+    logger.debug("{} Session ID: {}", session, Bytes.md5(id));
 
     Kex kex = kexGroup.getKex();
     BigInteger k = kex.getSecretKey();
@@ -210,7 +210,7 @@ public class ServerReqHandler extends AbstractReqHandler {
     session.setInCipher(c2sCip);
     session.setInCipherBlkSize(c2sCf.getIvSize());
 
-    logger.debug("[{}] Session Cipher(outgoing): {}, Session Cipher(incoming): {}", session, s2cCf,
+    logger.debug("{} Session Cipher(outgoing): {}, Session Cipher(incoming): {}", session, s2cCf,
         c2sCf);
 
     // MAC
@@ -238,7 +238,7 @@ public class ServerReqHandler extends AbstractReqHandler {
     session.setInMacSize(c2sMf.getBlkSize());
     session.setInDefMacSize(c2sMf.getDefBlkSize());
 
-    logger.debug("[{}] Session MAC(outgoing): {}, Session MAC(incoming): {}",session, s2cMf, c2sMf);
+    logger.debug("{} Session MAC(outgoing): {}, Session MAC(incoming): {}",session, s2cMf, c2sMf);
 
     // Compression
     // server to client compression
@@ -253,7 +253,7 @@ public class ServerReqHandler extends AbstractReqHandler {
     Compression c2sCompression = c2sCmf.create();
     session.setInCompression(c2sCompression);
 
-    logger.debug("[{}] Session Compression(outgoing): {}, Session Compression(incoming): {}",
+    logger.debug("{} Session Compression(outgoing): {}, Session Compression(incoming): {}",
         session, s2cCmf, c2sCmf);
   }
 }
