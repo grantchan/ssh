@@ -26,7 +26,7 @@ public class TtyProcessShell extends AbstractLogger {
 
   private ExitCallback callback;
 
-  private final Thread thread = new Thread(this::drain);
+  private final Thread drainer = new Thread(this::drain);
 
   public TtyProcessShell(InputStream in, OutputStream out, OutputStream err, String... cmds) {
     this.in = in;
@@ -47,7 +47,8 @@ public class TtyProcessShell extends AbstractLogger {
       ttyErr = new TtyInputStream(process.getErrorStream(), ttyModes);
       ttyOut = new TtyOutputStream(process.getOutputStream(), ttyIn, ttyModes);
 
-      thread.start();
+      drainer.setDaemon(true);
+      drainer.start();
     } catch (IOException e) {
       e.printStackTrace();
     }
