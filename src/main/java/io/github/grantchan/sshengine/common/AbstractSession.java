@@ -4,6 +4,7 @@ import io.github.grantchan.sshengine.arch.SshConstant;
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.common.transport.compression.Compression;
 import io.github.grantchan.sshengine.common.userauth.service.ServiceFactories;
+import io.github.grantchan.sshengine.util.DaemonThreadFactory;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -28,11 +29,9 @@ public abstract class AbstractSession extends AbstractLogger
   private static final Set<AbstractSession> sessions = new CopyOnWriteArraySet<>();
 
   static {
-    new ScheduledThreadPoolExecutor(1, r -> {
-      Thread t = Executors.defaultThreadFactory().newThread(r);
-      t.setDaemon(true);
-      return t;
-    }).scheduleAtFixedRate(() -> sessions.forEach(AbstractSession::checkTimeout), 1, 1, TimeUnit.SECONDS);
+    new ScheduledThreadPoolExecutor(1, new DaemonThreadFactory())
+        .scheduleAtFixedRate(() -> sessions.forEach(AbstractSession::checkTimeout),
+            1, 1, TimeUnit.SECONDS);
   }
 
   /** the network connection between client and server */
