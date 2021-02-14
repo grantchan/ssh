@@ -44,7 +44,7 @@ public class TtyOutputStream extends FilterOutputStream {
   public void write(int b) throws IOException {
     Integer c;
 
-    if (b == '\r' && CR != null) {
+    if (b == '\r') {
       c = CR;
     } else if (b == '\n') {
       c = LF;
