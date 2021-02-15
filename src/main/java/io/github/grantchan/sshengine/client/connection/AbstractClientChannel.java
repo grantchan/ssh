@@ -9,6 +9,7 @@ import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -114,9 +115,8 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
       logger.error("{} Error happened when closing channel. {}", this, e.getMessage());
     } finally {
       localWnd.close();
-      if (remoteWnd != null) {
-        remoteWnd.close();
-      }
+
+      Optional.ofNullable(remoteWnd).ifPresent(Window::close);
 
       unRegister(id);  // In a session, once the channel is closed, its id will never be used again
 
@@ -157,6 +157,11 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
 
     logger.debug("{} Received channel open confirmation. peer id={}, window size={}, " +
         "packet size={}", this, peerId, rWndSize, rPkSize);
+
+    if (rPkSize >= Integer.MAX_VALUE) {
+      throw new IllegalArgumentException("Remote window size (" + rPkSize + ") is beyond the " +
+          "maximum value");
+    }
 
     remoteWnd = new Window(this, "client/remote", rWndSize, rPkSize);
 

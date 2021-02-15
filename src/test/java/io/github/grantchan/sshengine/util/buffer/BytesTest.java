@@ -161,11 +161,8 @@ public class BytesTest {
   public void testJoinBigInteger() {
     byte[] expected = {
         (byte) 0, (byte) 0, (byte) 0, (byte) 1,
-
         (byte) 1,
-
         (byte) 0, (byte) 0, (byte) 0, (byte) 1,
-
         (byte) 0
     };
 

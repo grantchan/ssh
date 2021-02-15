@@ -15,8 +15,10 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.logging.LoggingHandler;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
@@ -35,6 +37,7 @@ import static io.github.grantchan.sshengine.common.transport.mac.MacFactories.hm
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(Parameterized.class)
 public class PacketCodecTest {
   private EmbeddedChannel clientChannel, serverChannel;
@@ -49,7 +52,7 @@ public class PacketCodecTest {
   public CompressionFactories compFactories;
 
   /** Permutation of cipher, MAC, compression */
-  @Parameters(name = "Cipher:{0}, MAC:{1}, Compression:{2}")
+  @Parameters(name = "{index}: Cipher={0}, MAC={1}, Compression={2}")
   public static Collection<Object[]> parameters() {
     return Arrays.asList(new Object[][] {
         {null,      null,     null},

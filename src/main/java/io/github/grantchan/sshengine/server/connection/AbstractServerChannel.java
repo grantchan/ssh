@@ -138,6 +138,7 @@ public abstract class AbstractServerChannel extends AbstractLogger implements Se
   @Override
   public void close() throws IOException {
     localWnd.close();
+
     Optional.ofNullable(remoteWnd).ifPresent(Window::close);
 
     unRegister(id); // In a session, once the channel is closed, its id will never be used again

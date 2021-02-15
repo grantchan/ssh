@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+  <Appenders>
+
+    <!-- Console Appender -->
+    <Console name="Console" target="SYSTEM_OUT">
+      <ThresholdFilter level="trace" onMatch="ACCEPT" onMismatch="DENY"/>
+      <PatternLayout pattern="%d{yy/MM/dd HH:mm:ss.SSS} [%t] %p %c{4}: %m%n"/>
+    </Console>
+
+  </Appenders>
+  <Loggers>
+    <Root level="info">
+      <Appender-ref ref="Console"/>
+    </Root>
+  </Loggers>
+</Configuration>
