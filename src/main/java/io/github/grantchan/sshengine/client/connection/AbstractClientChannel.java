@@ -9,6 +9,8 @@ import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -31,16 +33,18 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
   private final Window localWnd = new Window(this, "client/local");
   private Window remoteWnd;
 
+  protected InputStream in;
+  protected OutputStream out;
+  protected OutputStream err;
+
   /**
    * The future object used by creator of this object, usually the session, to indicate the
    * completeness of the opening process
    */
-  private final CompletableFuture<ClientChannel> openFuture;
+  private CompletableFuture<ClientChannel> openFuture;
 
-  public AbstractClientChannel(ClientSession session,
-                               CompletableFuture<ClientChannel> openFuture) {
+  public AbstractClientChannel(ClientSession session) {
     this.session = session;
-    this.openFuture = openFuture;
   }
 
   /**
@@ -70,7 +74,9 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
   public abstract String getType();
 
   @Override
-  public void open() throws SshChannelException {
+  public CompletableFuture<ClientChannel> open() throws SshChannelException {
+    openFuture = new CompletableFuture<>();
+
     this.id = register(this);
 
     logger.debug("{} Channel is registered.", this);
@@ -89,6 +95,8 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
                openFuture.cancel(true);
              }
            });
+
+    return openFuture;
   }
 
   @Override
@@ -201,6 +209,18 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
 
       logger.debug("{} Channel is unregistered.", this);
     }
+  }
+
+  public void setIn(InputStream in) {
+    this.in = in;
+  }
+
+  public void setOut(OutputStream out) {
+    this.out = out;
+  }
+
+  public void setErr(OutputStream err) {
+    this.err = err;
   }
 
   protected abstract void doOpen() throws IOException;

@@ -272,23 +272,12 @@ public class ClientSession extends AbstractSession {
     return channel.writeAndFlush(co);
   }
 
-  public CompletableFuture<ClientChannel> openChannel(String type) {
-    if (!type.equals("session")) {
-      return CompletableFuture.completedFuture(null);
+  public ClientChannel createChannel(String type) {
+    switch(type) {
+      case "session":
+        return new SessionChannel(this);
     }
 
-    CompletableFuture<ClientChannel> openFuture = new CompletableFuture<>();
-
-    ClientChannel channel = new SessionChannel(this, openFuture);
-
-    try {
-      channel.open();
-    } catch (IOException e) {
-      channel.setState(State.CLOSED);
-
-      openFuture.completeExceptionally(e);
-    }
-
-    return openFuture;
+    return null;
   }
 }

@@ -37,17 +37,16 @@ public class SshTest {
           System.out.println("Authentication succeeded");
 
           // ========== create new channel ===============
-          try (ClientChannel channel = session.openChannel("session").get()) {
-            Optional.ofNullable(channel).ifPresent(c -> {
-              System.out.println("Channel established");
+          try (ClientChannel channel = session.createChannel("session")) {
+            channel.setIn(System.in);
+            channel.setOut(System.out);
+            channel.setErr(System.err);
 
-              channel.waitFor(State.CLOSED, 5, TimeUnit.SECONDS);
-                /*
-                    channel.setIn(in);
-                    channel.setOut(out);
-                    channel.setErr(err);
-                */
-            });
+            channel.open().get();
+
+            System.out.println("Channel established");
+
+            channel.waitFor(State.CLOSED, 5, TimeUnit.SECONDS);
           } catch (Exception e) {
             e.printStackTrace();
           }

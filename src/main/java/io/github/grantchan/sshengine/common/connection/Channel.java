@@ -100,14 +100,6 @@ public interface Channel extends IdHolder, SessionHolder, Closeable {
   }
 
   /**
-   * Open this channel
-   *
-   * @throws SshChannelException when having trouble registering this channel, or unable to response
-   *         client
-   */
-  void open() throws SshChannelException;
-
-  /**
    * Close this channel
    */
   void close() throws IOException;
