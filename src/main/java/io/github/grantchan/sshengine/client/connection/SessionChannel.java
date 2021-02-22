@@ -2,8 +2,6 @@ package io.github.grantchan.sshengine.client.connection;
 
 import io.github.grantchan.sshengine.client.ClientSession;
 import io.github.grantchan.sshengine.common.connection.Window;
-import io.github.grantchan.sshengine.server.connection.ChannelInputStream;
-import io.github.grantchan.sshengine.server.connection.ChannelOutputStream;
 import io.github.grantchan.sshengine.util.DaemonThreadFactory;
 
 import java.io.IOException;
@@ -22,10 +20,6 @@ public class SessionChannel extends AbstractClientChannel {
   protected final Object lock = new Object();
 
   private Future<?> drainer;
-
-  protected final ChannelInputStream chIn = new ChannelInputStream(this);
-  protected final ChannelOutputStream chOut = new ChannelOutputStream(this, false);
-  protected final ChannelOutputStream chErr = new ChannelOutputStream(this, false);
 
   public SessionChannel(ClientSession session) {
     super(session);

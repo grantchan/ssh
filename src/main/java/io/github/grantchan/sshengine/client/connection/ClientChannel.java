@@ -19,17 +19,21 @@ public interface ClientChannel extends Channel, CommonState {
    */
   String getType();
 
-  void handleOpenConfirmation(ByteBuf req);
-
-  void handleOpenFailure(ByteBuf req);
-
-  void waitFor(State state, long timeout, TimeUnit unit);
-
-  CompletableFuture<ClientChannel> open() throws SshChannelException;
-
   void setIn(InputStream in);
 
   void setOut(OutputStream out);
 
   void setErr(OutputStream err);
+
+  void handleOpenConfirmation(ByteBuf req);
+
+  void handleOpenFailure(ByteBuf req);
+
+  void handleData(ByteBuf req);
+
+  void handleExtendedData(ByteBuf req);
+
+  void waitFor(State state, long timeout, TimeUnit unit);
+
+  CompletableFuture<ClientChannel> open() throws SshChannelException;
 }

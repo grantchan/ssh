@@ -1,10 +1,13 @@
 package io.github.grantchan.sshengine.client.connection;
 
+import io.github.grantchan.sshengine.arch.SshConstant;
 import io.github.grantchan.sshengine.client.ClientSession;
 import io.github.grantchan.sshengine.common.AbstractLogger;
 import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.connection.SshChannelException;
 import io.github.grantchan.sshengine.common.connection.Window;
+import io.github.grantchan.sshengine.server.connection.ChannelInputStream;
+import io.github.grantchan.sshengine.server.connection.ChannelOutputStream;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
 import io.netty.buffer.ByteBuf;
 
@@ -33,15 +36,45 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
   private final Window localWnd = new Window(this, "client/local");
   private Window remoteWnd;
 
-  protected InputStream in;
-  protected OutputStream out;
-  protected OutputStream err;
-
   /**
    * The future object used by creator of this object, usually the session, to indicate the
    * completeness of the opening process
    */
   private CompletableFuture<ClientChannel> openFuture;
+
+  /**
+   * The input stream, eg. System.in, where the data inside will be diverted/transmitted to the
+   * output stream of this channel
+   */
+  protected InputStream in;
+  /**
+   * The output stream, eg. System.out, receives data from the input stream of this channel. If
+   * it's not assigned by the user, doOpen(), by default, will set it as a new ChannelOutputStream,
+   * where the other side of which is a ChannelInputStream - chIn, created at the same time, that
+   * binds the local window, can shink the window and pipe the data to the user.
+   */
+  protected OutputStream out;
+  /**
+   * Like the {@code out}, this output stream, eg. System.err, receives data from the error stream
+   * of this channel only when extended data is available. If it's not assigned by the user,
+   * doOpen(), by default, will set it as a new ChannelOutputStream, where the other side of which
+   * is a ChannelInputStream - chErr, created at the same time, that binds the local window, can
+   * shink the window and pipe the extended data to the user.
+   */
+  protected OutputStream err;
+
+  /** Input stream that wraps up the input of this channel */
+  protected ChannelInputStream chIn;
+  /**
+   * Output stream that wraps up the output of this channel, it sends the actual channel data via
+   * the {@link io.github.grantchan.sshengine.arch.SshMessage#SSH_MSG_CHANNEL_DATA message
+   */
+  protected final ChannelOutputStream chOut = new ChannelOutputStream(this, false);
+  /**
+   * Error stream that wraps up the error output of this channel, it only available when extended
+   * data is supported.
+   */
+  protected ChannelInputStream chErr;
 
   public AbstractClientChannel(ClientSession session) {
     this.session = session;
@@ -71,7 +104,23 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
     return session;
   }
 
+  @Override
   public abstract String getType();
+
+  @Override
+  public void setIn(InputStream in) {
+    this.in = in;
+  }
+
+  @Override
+  public void setOut(OutputStream out) {
+    this.out = out;
+  }
+
+  @Override
+  public void setErr(OutputStream err) {
+    this.err = err;
+  }
 
   @Override
   public CompletableFuture<ClientChannel> open() throws SshChannelException {
@@ -211,16 +260,70 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
     }
   }
 
-  public void setIn(InputStream in) {
-    this.in = in;
+  @Override
+  public void handleData(ByteBuf req) {
+    /*
+     * byte      SSH_MSG_CHANNEL_DATA
+     * uint32    recipient channel
+     * string    data
+     *
+     * https://tools.ietf.org/html/rfc4254#section-5.2
+     */
+    byte[] data = ByteBufIo.readBytes(req);
+    logger.debug("{} SSH_MSG_CHANNEL_DATA, len = {}", this, data.length);
+
+    if (isOpen() && out != null) {
+//      out.write(data);
+//      out.flush();
+
+      Optional.ofNullable(chIn).ifPresent(c -> localWnd.consume(data.length));
+      return;
+    }
+
+    logger.debug("{} The channel is not open, handleData ignored", this);
   }
 
-  public void setOut(OutputStream out) {
-    this.out = out;
-  }
+  @Override
+  public void handleExtendedData(ByteBuf req) {
+    /*
+     * Currently, only the following type is defined.  Note that the value
+     * for the 'data_type_code' is given in decimal format for readability,
+     * but the values are actually uint32 values.
+     *
+     *             Symbolic name                  data_type_code
+     *             -------------                  --------------
+     *           SSH_EXTENDED_DATA_STDERR               1
+     *
+     * https://tools.ietf.org/html/rfc4254#section-5.2
+     */
+    int code = req.readInt();
+    if (code != SshConstant.SSH_EXTENDED_DATA_STDERR) {
 
-  public void setErr(OutputStream err) {
-    this.err = err;
+      // respond SSH_MSG_CHANNEL_FAILURE
+      return;
+    }
+
+    /*
+     * byte      SSH_MSG_CHANNEL_EXTENDED_DATA
+     * uint32    recipient channel
+     * uint32    data_type_code
+     * string    data
+     *
+     * https://tools.ietf.org/html/rfc4254#section-5.2
+     */
+    byte[] data = ByteBufIo.readBytes(req);
+    logger.debug("{} SSH_MSG_CHANNEL_EXTENDED_DATA, len = {}", this, data.length);
+
+    if (isOpen() && out != null) {
+//      out.write(data);
+//      out.flush();
+
+      Optional.ofNullable(chIn).ifPresent(c -> localWnd.consume(data.length));
+
+      return;
+    }
+
+    logger.debug("{} The channel is not open, handleExtendedData ignored", this);
   }
 
   protected abstract void doOpen() throws IOException;
