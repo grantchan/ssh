@@ -10,7 +10,8 @@ import io.github.grantchan.sshengine.common.connection.Channel;
 import io.github.grantchan.sshengine.common.transport.handler.SessionHolder;
 import io.netty.buffer.ByteBuf;
 
-public class ClientConnectionService extends AbstractLogger implements Service, SessionHolder {
+public class ClientConnectionService extends AbstractLogger
+                                     implements Service, SessionHolder {
 
   private final ClientSession session;
 

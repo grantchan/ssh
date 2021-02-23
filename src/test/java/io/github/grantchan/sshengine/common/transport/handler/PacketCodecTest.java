@@ -3,6 +3,7 @@ package io.github.grantchan.sshengine.common.transport.handler;
 import io.github.grantchan.sshengine.arch.SshConstant;
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.client.ClientSession;
+import io.github.grantchan.sshengine.common.SshException;
 import io.github.grantchan.sshengine.common.transport.cipher.CipherFactories;
 import io.github.grantchan.sshengine.common.transport.compression.Compression;
 import io.github.grantchan.sshengine.common.transport.compression.CompressionFactories;
@@ -78,7 +79,7 @@ public class PacketCodecTest {
    * in which the cipher, MAC, compression are created by different parameter permutations
    */
   @Before
-  public void setUp() {
+  public void setUp() throws SshException {
     // Client as sender to send encoded message
     clientChannel = new EmbeddedChannel(new LoggingHandler());
     ClientSession clientSession = new ClientSession(clientChannel);

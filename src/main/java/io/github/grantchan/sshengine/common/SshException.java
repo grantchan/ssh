@@ -16,6 +16,10 @@ public class SshException extends IOException {
     this(reason, message, null);
   }
 
+  public SshException(String message, Throwable cause) {
+    this(0, message, cause);
+  }
+
   public SshException(int reason, String message, Throwable cause) {
     super(message, cause);
     this.reason = reason;

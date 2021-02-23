@@ -275,7 +275,7 @@ public class ClientReqHandler extends AbstractReqHandler {
     CipherFactories c2sCf;
     c2sCf = Objects.requireNonNull(CipherFactories.from(kp.get(KexProposal.Param.ENCRYPTION_C2S)));
     e_c2s = hashKey(e_c2s, c2sCf.getBlkSize(), k, id, md);
-    Cipher c2sCip = Objects.requireNonNull(c2sCf.create(e_c2s, iv_c2s, Cipher.ENCRYPT_MODE));
+    Cipher c2sCip = c2sCf.create(e_c2s, iv_c2s, Cipher.ENCRYPT_MODE);
 
     session.setOutCipher(c2sCip);
     session.setOutCipherBlkSize(c2sCf.getIvSize());
@@ -284,7 +284,7 @@ public class ClientReqHandler extends AbstractReqHandler {
     CipherFactories s2cCf;
     s2cCf = Objects.requireNonNull(CipherFactories.from(kp.get(KexProposal.Param.ENCRYPTION_S2C)));
     e_s2c = hashKey(e_s2c, s2cCf.getBlkSize(), k, id, md);
-    Cipher s2cCip = Objects.requireNonNull(s2cCf.create(e_s2c, iv_s2c, Cipher.DECRYPT_MODE));
+    Cipher s2cCip = s2cCf.create(e_s2c, iv_s2c, Cipher.DECRYPT_MODE);
 
     session.setInCipher(s2cCip);
     session.setInCipherBlkSize(s2cCf.getIvSize());

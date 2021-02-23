@@ -1,6 +1,7 @@
 package io.github.grantchan.sshengine.common.transport.cipher;
 
 import io.github.grantchan.sshengine.common.NamedObject;
+import io.github.grantchan.sshengine.common.SshException;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 
 import javax.crypto.Cipher;
@@ -55,21 +56,29 @@ public enum CipherFactories implements NamedObject, CipherFactory {
   }
 
   @Override
-  public Cipher create(byte[] key, byte[] iv, int mode) {
-    Cipher cip = null;
+  public Cipher create(byte[] key, byte[] iv, int mode) throws SshException {
+    Cipher cip;
     try {
       cip = Cipher.getInstance(transformation);
     } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-      e.printStackTrace();
+      String message =
+          String.format("Failed to create cipher instance - name:%s, algorithm:%s, transformation:%s",
+              name, algorithm, transformation);
+
+      throw new SshException(message, e);
     }
 
     key = Bytes.resize(key, getBlkSize());
     iv = Bytes.resize(iv, getIvSize());
+
     try {
-      Objects.requireNonNull(cip)
-             .init(mode, new SecretKeySpec(key, getAlgorithm()), new IvParameterSpec(iv));
+      cip.init(mode, new SecretKeySpec(key, getAlgorithm()), new IvParameterSpec(iv));
     } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
-      e.printStackTrace();
+      String message =
+          String.format("Failed to initialize cipher instance - mode:%d, algorithm:%s",
+              mode, algorithm);
+
+      throw new SshException(message, e);
     }
 
     return cip;
