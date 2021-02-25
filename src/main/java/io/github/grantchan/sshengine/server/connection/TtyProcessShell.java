@@ -35,23 +35,19 @@ public class TtyProcessShell extends AbstractLogger {
     this.cmds = cmds;
   }
 
-  public void start(Map<TtyMode, Integer> ttyModes) {
+  public void start(Map<TtyMode, Integer> ttyModes) throws IOException {
     ProcessBuilder pb = new ProcessBuilder();
 
     pb.command(cmds);
 
-    try {
-      process = pb.start();
+    process = pb.start();
 
-      ttyIn = new TtyInputStream(process.getInputStream(), ttyModes);
-      ttyErr = new TtyInputStream(process.getErrorStream(), ttyModes);
-      ttyOut = new TtyOutputStream(process.getOutputStream(), ttyIn, ttyModes);
+    ttyIn = new TtyInputStream(process.getInputStream(), ttyModes);
+    ttyErr = new TtyInputStream(process.getErrorStream(), ttyModes);
+    ttyOut = new TtyOutputStream(process.getOutputStream(), ttyIn, ttyModes);
 
-      drainer.setDaemon(true);
-      drainer.start();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    drainer.setDaemon(true);
+    drainer.start();
   }
 
   public String[] getCmds() {

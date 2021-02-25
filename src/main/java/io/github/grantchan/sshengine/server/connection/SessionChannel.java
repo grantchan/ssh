@@ -44,7 +44,7 @@ public class SessionChannel extends AbstractServerChannel {
   }
 
   @Override
-  public void handleRequest(ByteBuf req) {
+  public void handleRequest(ByteBuf req) throws IOException {
 
     /*
      * 5.4.  Channel-Specific Requests
@@ -187,7 +187,7 @@ public class SessionChannel extends AbstractServerChannel {
     return true;
   }
 
-  private boolean handleShell(ByteBuf req) {
+  private boolean handleShell(ByteBuf req) throws IOException {
 
     /*
      * 6.5.  Starting a Shell or a Command
