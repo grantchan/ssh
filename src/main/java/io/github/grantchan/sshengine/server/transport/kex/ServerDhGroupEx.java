@@ -78,7 +78,7 @@ public class ServerDhGroupEx extends AbstractLogger
     }
   }
 
-  private void handleDhGexRequestOld(ByteBuf msg) {
+  private void handleDhGexRequestOld(ByteBuf msg) throws SshException {
     /*
      * RFC 4419:
      * The client sends SSH_MSG_KEX_DH_GEX_REQUEST_OLD:
@@ -102,7 +102,7 @@ public class ServerDhGroupEx extends AbstractLogger
     session.replyDhGexGroup(dh.getP(), dh.getG());
   }
 
-  private void handleDhGexRequest(ByteBuf msg) {
+  private void handleDhGexRequest(ByteBuf msg) throws SshException {
     /*
      * RFC 4419:
      * The client sends SSH_MSG_KEX_DH_GEX_REQUEST:
@@ -128,7 +128,7 @@ public class ServerDhGroupEx extends AbstractLogger
     session.replyDhGexGroup(dh.getP(), dh.getG());
   }
 
-  private DH getDH(int min, int n, int max) {
+  private DH getDH(int min, int n, int max) throws SshException {
     BigInteger p;
     if (n == 2048) {
       p = new BigInteger("CF14CEC123C83DF3CF6EA7A5A4C03FB0B1542DCAA09DDFC11B5F8AD4468D28A1" +
@@ -197,7 +197,7 @@ public class ServerDhGroupEx extends AbstractLogger
     return new DH(p, g);
   }
 
-  private void handleDhGexInit(ByteBuf req) throws SignatureException {
+  private void handleDhGexInit(ByteBuf req) throws SignatureException, SshException {
     /*
      * RFC 4419:
      * The client sends SSH_MSG_KEX_DH_GEX_INIT

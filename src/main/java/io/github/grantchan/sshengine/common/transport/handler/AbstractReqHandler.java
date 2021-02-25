@@ -152,9 +152,6 @@ public abstract class AbstractReqHandler extends ChannelInboundHandlerAdapter
     msg.getBytes(startPos, kiBytes, 1, payloadLen);
 
     kexGroup = KexGroupFactories.create(kexInit.get(KexProposal.Param.KEX), session);
-    if (kexGroup == null) {
-      throw new IOException("Unknown key exchange: " + KexProposal.Param.KEX);
-    }
 
     setKexInit(kiBytes);
   }

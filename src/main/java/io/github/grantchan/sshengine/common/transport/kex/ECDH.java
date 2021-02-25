@@ -1,5 +1,7 @@
 package io.github.grantchan.sshengine.common.transport.kex;
 
+import io.github.grantchan.sshengine.common.SshException;
+
 import javax.crypto.KeyAgreement;
 import java.math.BigInteger;
 import java.security.*;
@@ -12,22 +14,23 @@ import java.util.Objects;
 
 public class ECDH extends Kex {
 
-  private ECParameterSpec spec;
+  private final ECParameterSpec spec;
 
-  public ECDH(final ECurve curve) {
+  public ECDH(final ECurve curve) throws SshException {
     this(Objects.requireNonNull(curve).value());
   }
 
-  public ECDH(final ECParameterSpec spec) {
+  public ECDH(final ECParameterSpec spec) throws SshException {
     Objects.requireNonNull(spec);
 
     KeyPairGenerator kpg;
     try {
       kpg = KeyPairGenerator.getInstance("EC");
       kpg.initialize(spec);
-    } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
-      e.printStackTrace();
-      return;
+    } catch (NoSuchAlgorithmException e) {
+      throw new SshException("Failed to create EC key pair generator instance", e);
+    } catch (InvalidAlgorithmParameterException e) {
+      throw new SshException("Failed to initialize EC key pair generator", e);
     }
 
     this.spec = spec;
@@ -39,8 +42,10 @@ public class ECDH extends Kex {
     try {
       this.ka = KeyAgreement.getInstance("ECDH");
       this.ka.init(kp.getPrivate());
-    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-      e.printStackTrace();
+    } catch (NoSuchAlgorithmException e) {
+      throw new SshException("Failed to create EC Diffie-Hellman key agreement instance", e);
+    } catch (InvalidKeyException e) {
+      throw new SshException("Failed to initialize key agreement instance", e);
     }
   }
 

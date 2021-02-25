@@ -1,5 +1,7 @@
 package io.github.grantchan.sshengine.common.transport.kex;
 
+import io.github.grantchan.sshengine.common.SshException;
+
 import javax.crypto.KeyAgreement;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
@@ -11,14 +13,14 @@ import java.util.Objects;
 
 public class DH extends Kex {
 
-  private BigInteger p; // safe prime;
-  private BigInteger g; // generator for subgroup
+  private final BigInteger p; // safe prime;
+  private final BigInteger g; // generator for subgroup
 
-  public DH(final DhGroup dhg) {
+  public DH(final DhGroup dhg) throws SshException {
     this(Objects.requireNonNull(dhg).P(), dhg.G());
   }
 
-  public DH(final BigInteger p, final BigInteger g) {
+  public DH(final BigInteger p, final BigInteger g) throws SshException {
     this.p = Objects.requireNonNull(p);
     this.g = Objects.requireNonNull(g);
 
@@ -27,9 +29,10 @@ public class DH extends Kex {
       kpg = KeyPairGenerator.getInstance("DH");
       DHParameterSpec spec = new DHParameterSpec(p, g);
       kpg.initialize(spec);
-    } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
-      e.printStackTrace();
-      return;
+    } catch (NoSuchAlgorithmException e) {
+      throw new SshException("Failed to create the Diffie-Hellman key pair generator instance", e);
+    } catch (InvalidAlgorithmParameterException e) {
+      throw new SshException("Failed to initialize the key pair generator", e);
     }
 
     KeyPair kp = kpg.generateKeyPair();
@@ -38,8 +41,10 @@ public class DH extends Kex {
     try {
       this.ka = KeyAgreement.getInstance("DH");
       this.ka.init(kp.getPrivate());
-    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-      e.printStackTrace();
+    } catch (NoSuchAlgorithmException e) {
+      throw new SshException("Failed to create the Diffie-Hellman key agreement instance", e);
+    } catch (InvalidKeyException e) {
+      throw new SshException("Failed to initialize the key agreeement", e);
     }
   }
 

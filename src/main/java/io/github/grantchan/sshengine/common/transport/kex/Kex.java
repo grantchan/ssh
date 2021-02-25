@@ -1,6 +1,7 @@
 package io.github.grantchan.sshengine.common.transport.kex;
 
 import io.github.grantchan.sshengine.common.NamedObject;
+import io.github.grantchan.sshengine.common.SshException;
 import io.github.grantchan.sshengine.util.buffer.Bytes;
 
 import javax.crypto.KeyAgreement;
@@ -34,7 +35,7 @@ public abstract class Kex implements NamedObject {
     this.receivedPubKey = key;
   }
 
-  public BigInteger getSecretKey() {
+  public BigInteger getSecretKey() throws SshException {
     if (sharedKey != null) {
       return sharedKey;
     }
@@ -45,9 +46,12 @@ public abstract class Kex implements NamedObject {
       KeySpec ks = Objects.requireNonNull(getKeySpec());
 
       ka.doPhase(kf.generatePublic(ks), true);
-    } catch (NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException e) {
-      e.printStackTrace();
-      return null;
+    } catch (NoSuchAlgorithmException e) {
+      throw new SshException("Failed to create the key factory instance - name:" + getName(), e);
+    } catch (InvalidKeySpecException e) {
+      throw new SshException("Failed to generate public key via the give specification", e);
+    } catch (InvalidKeyException e) {
+      throw new SshException("Failed to get to the next phase during the key agreement process", e);
     }
 
     byte[] k = Objects.requireNonNull(ka.generateSecret());
