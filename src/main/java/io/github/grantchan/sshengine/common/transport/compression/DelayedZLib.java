@@ -10,8 +10,8 @@ public class DelayedZLib implements Compression {
 
   private static final int BUFFER_SIZE = 1024;
 
-  private Deflater deflater = new Deflater();
-  private Inflater inflater = new Inflater();
+  private final Deflater deflater = new Deflater();
+  private final Inflater inflater = new Inflater();
 
   @Override
   public byte[] compress(byte[] data) {

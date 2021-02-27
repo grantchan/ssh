@@ -74,8 +74,10 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
         }
         keys.add(k);
       }
+    } catch (FileNotFoundException e) {
+      logger.error("Unable to find the authorized key file - {}", authorizedKeysFile.getPath());
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.error("Failed to read from the authorized key file - {}", authorizedKeysFile.getPath());
     }
 
     return keys;
