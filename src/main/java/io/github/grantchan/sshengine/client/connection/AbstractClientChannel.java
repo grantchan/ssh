@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 
 public abstract class AbstractClientChannel extends AbstractLogger implements ClientChannel {
 
@@ -76,6 +77,8 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
    */
   protected ChannelInputStream chErr;
 
+  private BiConsumer<State, ? super Throwable> eventListener;
+
   public AbstractClientChannel(ClientSession session) {
     this.session = session;
   }
@@ -130,18 +133,28 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
 
     logger.debug("{} Channel is registered.", this);
 
-    setState(State.OPENED);
-
     int wndSize = localWnd.getMaxSize();
     int pkgSize = localWnd.getPacketSize();
+
+    Optional<BiConsumer<State, ? super Throwable>> listener = Optional.ofNullable(eventListener);
 
     session.sendChannelOpen(getType(), id, wndSize, pkgSize)
            .addListener(l -> {
              Throwable cause = l.cause();
              if (cause != null) {
                openFuture.completeExceptionally(cause);
+
+               listener.ifPresent(el -> el.accept(State.OPENED, cause));
+
+               setState(State.OPENED);
              } else if (l.isCancelled()) {
                openFuture.cancel(true);
+             } else {
+               openFuture.complete(this);
+
+               listener.ifPresent(el -> el.accept(State.OPENED, null));
+
+               setState(State.OPENED);
              }
            });
 
@@ -164,10 +177,12 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
       openFuture.complete(this);
     }
 
-    setState(State.CLOSED);
+    Optional<BiConsumer<State, ? super Throwable>> listener = Optional.ofNullable(eventListener);
 
     try {
       doClose();
+
+      listener.ifPresent(el -> el.accept(State.CLOSED, null));
     } catch (IOException e){
       logger.error("{} Error happened when closing channel. {}", this, e.getMessage());
     } finally {
@@ -179,6 +194,8 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
 
       logger.debug("{} channel is unregistered.", this);
     }
+
+    setState(State.CLOSED);
   }
 
   @Override
@@ -192,7 +209,7 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
   }
 
   @Override
-  public void handleEof(ByteBuf req) throws IOException {
+  public void handleEof(ByteBuf req) {
     if (openFuture != null && !openFuture.isDone()) {
       openFuture.complete(this);
     }
@@ -338,6 +355,11 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
   @Override
   public void setState(State state) {
     this.state.set(state);
+  }
+
+  @Override
+  public void whenStateChanged(BiConsumer<State, ? super Throwable> listener) {
+    this.eventListener = listener;
   }
 
   @Override
