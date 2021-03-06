@@ -64,16 +64,18 @@ public class SessionChannel extends AbstractClientChannel {
       return;
     }
 
-    // the future event to signal once the channel state is changed to
+    // the future event to signal once the channel state is changed to the state in the parameter
     CompletableFuture<State> eventToWait = new CompletableFuture<>();
 
-    // by setting the callback listener, above future event will be notified whenever it's completed
-    // or ended up with exception
+    // by setting the callback listener, the above future event will be notified whenever it's
+    // completed or ended up with exception
     whenStateChanged((current, cause) -> {
-      if (cause != null) {
-        eventToWait.completeExceptionally(cause);
-      } else {
-        eventToWait.complete(current);
+      if (current == state) {
+        if (cause != null) {
+          eventToWait.completeExceptionally(cause);
+        } else {
+          eventToWait.complete(current);
+        }
       }
     });
 
@@ -101,11 +103,11 @@ public class SessionChannel extends AbstractClientChannel {
     });
 
     try {
-      finish.acceptEither(cancel, b -> eventToWait.cancel(!b)).get();
+      finish.acceptEither(cancel, done -> eventToWait.cancel(!done)).get();
     } catch (InterruptedException | ExecutionException e) {
       e.printStackTrace();
     } finally {
-      // to clean up: whenever what happens, it's necessary to fall back the listener
+      // to clean up: whatever happens, it's necessary to fall back the listener
       whenStateChanged(null);
     }
   }
