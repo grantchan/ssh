@@ -80,7 +80,7 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
       logger.error("Failed to read from the authorized key file - {}", authorizedKeysFile.getPath());
     }
 
-    return keys;
+    return keys == null ? Collections.emptyList() : keys;
   }
 
   /**
@@ -93,12 +93,11 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
    * @throws IOException               if error happens while reading the key line
    * @throws GeneralSecurityException  if key type is not supported by system
    */
-  private static PublicKey parsePublicKeyEntry(String line) throws IOException,
-                                                                   GeneralSecurityException,
-                                                                   IllegalAccessException {
-    if (StringUtil.isNullOrEmpty(line)) {
-      return null;
-    }
+  private static PublicKey parsePublicKeyEntry(String line) throws GeneralSecurityException,
+                                                                   IllegalAccessException,
+                                                                   IOException {
+    Objects.requireNonNull(line, "Invalid parameter - line cannot be null");
+
     if (line.charAt(0) == '#') {
       return null;
     }
@@ -110,18 +109,13 @@ public class FileBasedPublicKeyAuth extends PublicKeyAuth {
 
     String type = fields[0];
     Base64.Decoder base64 = Base64.getDecoder();
-    byte[] data;
-    try {
-      data = base64.decode(fields[1]);
-    } catch (IllegalArgumentException e) {
-      logger.debug("Unable to parse key record - {}, ignored", line);
-      return null;
-    }
+    byte[] data = base64.decode(fields[1]);
 
     PublicKeyDecoder<?> decoder = PublicKeyDecoder.ALL;
     if (!decoder.support(type)) {
       throw new InvalidKeySpecException("Decoder is not available for this key type: " + type);
     }
+
     return decoder.decode(data);
   }
 }

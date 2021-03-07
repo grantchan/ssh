@@ -21,7 +21,7 @@ public class PublicKeyAuth extends AbstractLogger implements Method {
   private final Collection<PublicKey> keys;
 
   PublicKeyAuth(Collection<PublicKey> keys) {
-    this.keys = (keys == null) ? Collections.emptyList() : keys;
+    this.keys = keys;
   }
 
   @Override
