@@ -3,7 +3,6 @@ package io.github.grantchan.sshengine.server.userauth.method;
 import io.github.grantchan.sshengine.util.LazySupplier;
 import io.github.grantchan.sshengine.util.System;
 import io.github.grantchan.sshengine.util.publickey.decoder.PublicKeyDecoder;
-import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
