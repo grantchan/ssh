@@ -150,8 +150,6 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
              } else if (l.isCancelled()) {
                openFuture.cancel(true);
              } else {
-               openFuture.complete(this);
-
                listener.ifPresent(el -> el.accept(State.OPENED, null));
 
                setState(State.OPENED);
