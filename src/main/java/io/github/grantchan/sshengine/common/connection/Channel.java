@@ -119,6 +119,12 @@ public interface Channel extends IdHolder, SessionHolder, Closeable {
    */
   Window getRemoteWindow();
 
+  default void handleWindowAdjust(ByteBuf req) {
+    int size = req.readInt();
+
+    getRemoteWindow().expand(size);
+  }
+
   void handleEof(ByteBuf req) throws IOException;
 
   void handleClose(ByteBuf req) throws IOException;

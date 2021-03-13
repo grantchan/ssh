@@ -39,6 +39,10 @@ public class ClientConnectionService extends AbstractLogger
         channelOpenFailure(req);
         break;
 
+      case SshMessage.SSH_MSG_CHANNEL_WINDOW_ADJUST:
+        channelWindowAdjust(req);
+        break;
+
       case SshMessage.SSH_MSG_CHANNEL_DATA:
         channelData(req);
         break;
@@ -72,6 +76,17 @@ public class ClientConnectionService extends AbstractLogger
     }
 
     channel.handleOpenFailure(req);
+  }
+
+  private void channelWindowAdjust(ByteBuf req) {
+    int id = req.readInt();
+
+    ClientChannel channel = (ClientChannel) Channel.get(id);
+    if (channel == null) {
+      throw new IllegalStateException("Channel not found - id:" + id);
+    }
+
+    channel.handleWindowAdjust(req);
   }
 
   private void channelData(ByteBuf req) {

@@ -26,8 +26,6 @@ public interface ServerChannel extends Channel, CommonState {
    */
   void open() throws SshChannelException;
 
-  void handleWindowAdjust(ByteBuf req);
-
   void handleData(ByteBuf req) throws IOException;
 
   void handleRequest(ByteBuf req) throws IOException;
