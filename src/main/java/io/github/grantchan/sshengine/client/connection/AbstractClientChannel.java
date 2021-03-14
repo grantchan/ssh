@@ -171,6 +171,8 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
    */
   @Override
   public void close() throws IOException {
+    setState(State.CLOSING);
+
     if (openFuture != null && !openFuture.isDone()) {
       openFuture.complete(this);
     }
@@ -276,7 +278,7 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
   }
 
   @Override
-  public void handleData(ByteBuf req) {
+  public void handleData(ByteBuf req) throws IOException {
     /*
      * byte      SSH_MSG_CHANNEL_DATA
      * uint32    recipient channel
@@ -288,8 +290,8 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
     logger.debug("{} SSH_MSG_CHANNEL_DATA, len = {}", this, data.length);
 
     if (isOpen() && out != null) {
-//      out.write(data);
-//      out.flush();
+      out.write(data);
+      out.flush();
 
       Optional.ofNullable(chIn).ifPresent(c -> localWnd.consume(data.length));
       return;

@@ -137,6 +137,8 @@ public abstract class AbstractServerChannel extends AbstractLogger implements Se
    */
   @Override
   public void close() throws IOException {
+    setState(State.CLOSING);
+
     localWnd.close();
 
     Optional.ofNullable(remoteWnd).ifPresent(Window::close);
