@@ -79,33 +79,29 @@ public class SessionChannel extends AbstractClientChannel {
       }
     });
 
+    CompletableFuture<Boolean> timeOut = new CompletableFuture<>();
+    delayer.schedule(() -> eventToWait.cancel(true), timeout, unit);
+
     // use another future event to indicate the target event - eventToWait is ended
-    CompletableFuture<Boolean> finish = CompletableFuture.supplyAsync(() -> {
-      try {
-        eventToWait.get();
-      } catch (InterruptedException | ExecutionException e) {
-        e.printStackTrace();
+    CompletableFuture<Boolean> finish =
+      CompletableFuture.supplyAsync(() -> {
+        try {
+          eventToWait.get();
+        } catch (InterruptedException | ExecutionException e) {
+          e.printStackTrace();
 
-        return false;
-      }
+          return false;
+        }
 
-      logger.debug("{} State has changed to {}", this, getState());
+        logger.debug("{} State has changed to {}", this, getState());
 
-      return true;
-    });
-
-    CompletableFuture<Boolean> cancel = CompletableFuture.supplyAsync(() -> {
-      delayer.schedule(() -> eventToWait.cancel(true), timeout, unit);
-
-      logger.debug("{} Time out before state is changed, state remains: {}", this, getState());
-
-      return false;
-    });
+        return true;
+      });
 
     try {
-      finish.acceptEither(cancel, done -> eventToWait.cancel(!done)).get();
+      finish.acceptEither(timeOut, done -> eventToWait.cancel(!done)).get();
     } catch (InterruptedException | ExecutionException e) {
-      e.printStackTrace();
+      // ignore
     } finally {
       // to clean up: whatever happens, it's necessary to fall back the listener
       whenStateChanged(null);
