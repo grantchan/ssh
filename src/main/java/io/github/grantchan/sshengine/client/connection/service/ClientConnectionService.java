@@ -89,7 +89,7 @@ public class ClientConnectionService extends AbstractLogger
     channel.handleWindowAdjust(req);
   }
 
-  private void channelData(ByteBuf req) {
+  private void channelData(ByteBuf req) throws IOException {
     int id = req.readInt();
 
     ClientChannel channel = (ClientChannel) Channel.get(id);

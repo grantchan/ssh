@@ -5,6 +5,7 @@ import io.github.grantchan.sshengine.common.connection.Channel;
 import io.github.grantchan.sshengine.common.connection.SshChannelException;
 import io.netty.buffer.ByteBuf;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CompletableFuture;
@@ -29,7 +30,7 @@ public interface ClientChannel extends Channel, CommonState {
 
   void handleOpenFailure(ByteBuf req);
 
-  void handleData(ByteBuf req);
+  void handleData(ByteBuf req) throws IOException;
 
   void handleExtendedData(ByteBuf req);
 
