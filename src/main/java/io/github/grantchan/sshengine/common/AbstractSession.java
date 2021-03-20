@@ -743,7 +743,7 @@ public abstract class AbstractSession extends AbstractLogger
     ByteBuf cd = createMessage(SshMessage.SSH_MSG_CHANNEL_DATA);
 
     cd.writeInt(recipient);
-    cd.writeInt(data.length);
+    cd.writeInt(len);
     cd.writeBytes(data, off, len);
 
     channel.writeAndFlush(cd);
@@ -801,7 +801,7 @@ public abstract class AbstractSession extends AbstractLogger
 
     ced.writeInt(recipient);
     ced.writeInt(SshConstant.SSH_EXTENDED_DATA_STDERR);
-    ced.writeInt(data.length);
+    ced.writeInt(len);
     ced.writeBytes(data, off, len);
 
     channel.writeAndFlush(ced);

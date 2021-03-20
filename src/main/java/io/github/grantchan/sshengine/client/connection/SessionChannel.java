@@ -45,7 +45,7 @@ public class SessionChannel extends AbstractClientChannel {
             chOut.write(buf, 0, n);
           }
         } catch (IOException e) {
-          logger.warn("Error happends while reading data from input stream - {}", e.getMessage());
+          logger.warn("Error happened while reading data from input stream - {}", e.getMessage());
         }
       }
     });
