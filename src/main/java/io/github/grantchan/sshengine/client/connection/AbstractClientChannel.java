@@ -133,12 +133,12 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
 
     logger.debug("{} Channel is registered.", this);
 
-    int wndSize = localWnd.getMaxSize();
+    long wndSize = localWnd.getMaxSize();
     int pkgSize = localWnd.getPacketSize();
 
     Optional<BiConsumer<State, ? super Throwable>> listener = Optional.ofNullable(eventListener);
 
-    session.sendChannelOpen(getType(), id, wndSize, pkgSize)
+    session.sendChannelOpen(getType(), id, (int)wndSize, pkgSize)
            .addListener(l -> {
              Throwable cause = l.cause();
              if (cause != null) {

@@ -56,7 +56,7 @@ public class ChannelOutputStream extends OutputStream {
     Window rWnd = channel.getRemoteWindow();
 
     while (len > 0) {
-      int avail = Math.min(len, Math.min(rWnd.getSize(), rWnd.getPacketSize()));
+      long avail = Math.min(len, Math.min(rWnd.getSize(), rWnd.getPacketSize()));
       while (avail <= 0) {
         try {
           rWnd.waitForSpace(1, waitTimeout);
@@ -82,7 +82,7 @@ public class ChannelOutputStream extends OutputStream {
 
       buf = b;
       bufOff = off;
-      bufLen = avail;
+      bufLen = (int)avail;
 
       rWnd.consume(bufLen);
 

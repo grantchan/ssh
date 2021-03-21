@@ -5,7 +5,6 @@ import io.github.grantchan.sshengine.common.AbstractSession;
 
 import java.io.Closeable;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The class implements the sizing window with necessary synchronization.
@@ -30,13 +29,13 @@ public class Window extends AbstractLogger implements Closeable {
   private final Channel channel;
 
   /** Current size of this window */
-  private final AtomicInteger size;
+  private long size;
 
   /**
    * Total size of this window, it specifies how many bytes of channel data can be sent without
    * adjusting the window
    */
-  private final int maxSize;
+  private final long maxSize;
 
   /**
    * Maximum packet size, it specifies the maxmum size of an individual data packet that can be sent.
@@ -57,17 +56,16 @@ public class Window extends AbstractLogger implements Closeable {
 
     this.name = name;
 
-    this.size = new AtomicInteger(maxSize);  // Initially, it's same as max size
-
+    this.size = maxSize;  // Initially, it's same as max size
     this.maxSize = maxSize;
     this.packetSize = packetSize;
   }
 
-  public int getSize() {
-    return size.get();
+  public long getSize() {
+    return size;
   }
 
-  public int getMaxSize() {
+  public long getMaxSize() {
     return maxSize;
   }
 
@@ -98,7 +96,7 @@ public class Window extends AbstractLogger implements Closeable {
     synchronized (lock) {
       long waitStart = System.currentTimeMillis();
 
-      while (isOpen.get() && (size.get() < len)) {
+      while (isOpen.get() && (size < len)) {
         lock.wait(timeout);
 
         // consume or expand might cause the window size change, then notify all the waiting threads
@@ -107,7 +105,7 @@ public class Window extends AbstractLogger implements Closeable {
 
         // After wake up, we need to check if the wait time is up, if yes, throw
         // WindowTimeoutException, if no, wait again
-        if (duration <= 0 && size.get() < len) {
+        if (duration <= 0 && size < len) {
           throw new WindowTimeoutException("Timeout after waiting " + timeout + "milliseconds - "
               + this);
         }
@@ -119,10 +117,12 @@ public class Window extends AbstractLogger implements Closeable {
     }
   }
 
-  private void setSize(int newSize) {
-    int oldSize = size.getAndSet(newSize);
+  private void setSize(long newSize) {
+    long oldSize = size;
 
-    logger.debug("{} {}, size updated: {} => {}", channel, this, oldSize, size.get());
+    size = newSize;
+
+    logger.debug("{} {}, size updated: {} => {}", channel, this, oldSize, size);
   }
 
   /**
@@ -138,12 +138,12 @@ public class Window extends AbstractLogger implements Closeable {
     synchronized (lock) {
       logger.debug("{} {}, trying to expand {} bytes", channel, this, len);
 
-      if (size.get() + len > maxSize) {
+      if (size + len > 0xFFFFFFFFL) {
         throw new IllegalStateException("Too big to expand, the maximum window size is:" + maxSize +
             ", but len:" + len);
       }
 
-      setSize(size.get() + len);
+      setSize(size + len);
 
       lock.notifyAll();
     }
@@ -158,12 +158,12 @@ public class Window extends AbstractLogger implements Closeable {
     synchronized (lock) {
       logger.debug("{} trying to consume {} bytes", this, len);
 
-      if (size.get() < len) {
+      if (size < len) {
         throw new IllegalStateException("Not enough space to consume, current size: " + size +
             ", but len: " + len);
       }
 
-      setSize(size.get() - len);
+      setSize(size - len);
 
       lock.notifyAll();
     }
@@ -171,10 +171,10 @@ public class Window extends AbstractLogger implements Closeable {
 
   public void ensureSpace() {
     synchronized (lock) {
-      if (size.get() < maxSize / 2) {
+      if (size < maxSize / 2) {
         AbstractSession session = channel.getSession();
 
-        session.sendWindowAdjust(channel.getPeerId(), maxSize - size.get());
+        session.sendWindowAdjust(channel.getPeerId(), (int)(maxSize - size));
 
         setSize(maxSize);
       }

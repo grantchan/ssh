@@ -26,7 +26,7 @@ public class WindowTest {
     final long secondsToWait = 2;
 
     try (Window wnd = channel.getRemoteWindow()) {
-      wnd.consume(wnd.getSize());
+      wnd.consume((int)wnd.getSize());
       Assert.assertEquals("Window size is not empty", 0, wnd.getSize());
 
       long waitStart = System.currentTimeMillis();
@@ -63,7 +63,7 @@ public class WindowTest {
     final int bytesToExpand = 3;
 
     try (Window wnd = channel.getRemoteWindow()) {
-      wnd.consume(wnd.getSize());
+      wnd.consume((int)wnd.getSize());
       Assert.assertEquals("Window size is not empty", 0, wnd.getSize());
 
       // A thread waiting for some space

@@ -101,9 +101,9 @@ public abstract class AbstractServerChannel extends AbstractLogger implements Se
 
       logger.debug("{} Channel is opened - status:{}", this, getState());
 
-      int wndSize = localWnd.getMaxSize();
+      long wndSize = localWnd.getMaxSize();
       int pkgSize = localWnd.getPacketSize();
-      session.replyChannelOpenConfirmation(peerId, id, wndSize, pkgSize);
+      session.replyChannelOpenConfirmation(peerId, id, (int)wndSize, pkgSize);
     } catch (Exception ex) {
       logger.debug("{} Failed to open channel - status:{}", this, getState());
 
