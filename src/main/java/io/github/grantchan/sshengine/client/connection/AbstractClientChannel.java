@@ -179,23 +179,28 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
 
     Optional<BiConsumer<State, ? super Throwable>> listener = Optional.ofNullable(eventListener);
 
+    setState(State.CLOSING);
+
     try {
       doClose();
 
-      listener.ifPresent(el -> el.accept(State.CLOSED, null));
+      setState(State.CLOSED);
+
+      listener.ifPresent(el -> el.accept(getState(), null));
     } catch (IOException e){
       logger.error("{} Error happened when closing channel. {}", this, e.getMessage());
+
+      setState(State.CLOSED);
+
+      listener.ifPresent(el -> el.accept(getState(), e));
     } finally {
       localWnd.close();
-
       Optional.ofNullable(remoteWnd).ifPresent(Window::close);
 
       unRegister(id);  // In a session, once the channel is closed, its id will never be used again
 
       logger.debug("{} channel is unregistered.", this);
     }
-
-    setState(State.CLOSED);
   }
 
   @Override
@@ -301,7 +306,7 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
   }
 
   @Override
-  public void handleExtendedData(ByteBuf req) {
+  public void handleExtendedData(ByteBuf req) throws IOException {
     /*
      * Currently, only the following type is defined.  Note that the value
      * for the 'data_type_code' is given in decimal format for readability,
@@ -332,8 +337,8 @@ public abstract class AbstractClientChannel extends AbstractLogger implements Cl
     logger.debug("{} SSH_MSG_CHANNEL_EXTENDED_DATA, len = {}", this, data.length);
 
     if (isOpen() && out != null) {
-//      out.write(data);
-//      out.flush();
+      out.write(data);
+      out.flush();
 
       Optional.ofNullable(chIn).ifPresent(c -> localWnd.consume(data.length));
 

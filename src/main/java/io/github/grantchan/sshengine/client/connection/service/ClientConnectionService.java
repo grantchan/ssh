@@ -100,7 +100,7 @@ public class ClientConnectionService extends AbstractLogger
     channel.handleData(req);
   }
 
-  private void channelExtendedData(ByteBuf req) {
+  private void channelExtendedData(ByteBuf req) throws IOException {
     int id = req.readInt();
 
     ClientChannel channel = (ClientChannel) Channel.get(id);

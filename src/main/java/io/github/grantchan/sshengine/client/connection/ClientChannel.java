@@ -32,7 +32,7 @@ public interface ClientChannel extends Channel, CommonState {
 
   void handleData(ByteBuf req) throws IOException;
 
-  void handleExtendedData(ByteBuf req);
+  void handleExtendedData(ByteBuf req) throws IOException;
 
   void waitFor(State state, long timeout, TimeUnit unit);
 
