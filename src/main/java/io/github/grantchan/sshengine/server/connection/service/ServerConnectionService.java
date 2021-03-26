@@ -120,7 +120,7 @@ public class ServerConnectionService extends AbstractLogger implements Service, 
     int id = req.readInt();
 
     ServerChannel channel = (ServerChannel) Channel.get(id);
-    if (channel == null) {
+    if (Objects.isNull(channel)) {
       throw new IllegalStateException("Channel not found - id:" + id);
     }
 
@@ -131,7 +131,7 @@ public class ServerConnectionService extends AbstractLogger implements Service, 
     int id = req.readInt();
 
     ServerChannel channel = (ServerChannel) Channel.get(id);
-    if (channel == null) {
+    if (Objects.isNull(channel)) {
       throw new IllegalStateException("Channel not found - id:" + id);
     }
 
@@ -142,7 +142,7 @@ public class ServerConnectionService extends AbstractLogger implements Service, 
     int id = req.readInt();
 
     Channel channel = Channel.get(id);
-    if (channel == null) {
+    if (Objects.isNull(channel)) {
       logger.debug("{} Channel (id={}) not found, ignored", session, id);
       return;
     }
@@ -154,7 +154,7 @@ public class ServerConnectionService extends AbstractLogger implements Service, 
     int id = req.readInt();
 
     Channel channel = Channel.get(id);
-    if (channel == null) {
+    if (Objects.isNull(channel)) {
       logger.debug("{} Channel (id={}) not found, ignored", session, id);
       return;
     }
@@ -166,7 +166,7 @@ public class ServerConnectionService extends AbstractLogger implements Service, 
     int id = req.readInt();
 
     ServerChannel channel = (ServerChannel) Channel.get(id);
-    if (channel == null) {
+    if (Objects.isNull(channel)) {
       throw new IllegalStateException("Channel not found - id:" + id);
     }
 
