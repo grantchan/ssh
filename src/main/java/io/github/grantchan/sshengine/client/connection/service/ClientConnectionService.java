@@ -11,6 +11,7 @@ import io.github.grantchan.sshengine.common.transport.handler.SessionHolder;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public class ClientConnectionService extends AbstractLogger
                                      implements Service, SessionHolder {
@@ -51,7 +52,8 @@ public class ClientConnectionService extends AbstractLogger
         channelExtendedData(req);
         break;
 
-      default:
+      case SshMessage.SSH_MSG_CHANNEL_CLOSE:
+        channelClose(req);
         break;
     }
   }
@@ -60,7 +62,7 @@ public class ClientConnectionService extends AbstractLogger
     int id = req.readInt();
 
     ClientChannel channel = (ClientChannel) Channel.get(id);
-    if (channel == null) {
+    if (Objects.isNull(channel)) {
       throw new IllegalStateException("Channel not found - id:" + id);
     }
 
@@ -71,7 +73,7 @@ public class ClientConnectionService extends AbstractLogger
     int id = req.readInt();
 
     ClientChannel channel = (ClientChannel) Channel.get(id);
-    if (channel == null) {
+    if (Objects.isNull(channel)) {
       throw new IllegalStateException("Channel not found - id:" + id);
     }
 
@@ -82,7 +84,7 @@ public class ClientConnectionService extends AbstractLogger
     int id = req.readInt();
 
     ClientChannel channel = (ClientChannel) Channel.get(id);
-    if (channel == null) {
+    if (Objects.isNull(channel)) {
       throw new IllegalStateException("Channel not found - id:" + id);
     }
 
@@ -93,7 +95,7 @@ public class ClientConnectionService extends AbstractLogger
     int id = req.readInt();
 
     ClientChannel channel = (ClientChannel) Channel.get(id);
-    if (channel == null) {
+    if (Objects.isNull(channel)) {
       throw new IllegalStateException("Channel not found - id:" + id);
     }
 
@@ -104,12 +106,21 @@ public class ClientConnectionService extends AbstractLogger
     int id = req.readInt();
 
     ClientChannel channel = (ClientChannel) Channel.get(id);
-    if (channel == null) {
+    if (Objects.isNull(channel)) {
       throw new IllegalStateException("Channel not found - id:" + id);
     }
 
     channel.handleExtendedData(req);
   }
 
+  private void channelClose(ByteBuf req) throws IOException {
+    int id = req.readInt();
 
+    ClientChannel channel = (ClientChannel) Channel.get(id);
+    if (Objects.isNull(channel)) {
+      throw new IllegalStateException("Channel not found - id:" + id);
+    }
+
+    channel.handleClose(req);
+  }
 }
