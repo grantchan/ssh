@@ -105,7 +105,7 @@ public interface ReqHandler extends SessionHolder, Service {
 
     for (String ci : c) {
       for (String si : s) {
-        if (ci.equals(si)) {
+        if (Objects.equals(ci, si)) {
           return ci;
         }
       }

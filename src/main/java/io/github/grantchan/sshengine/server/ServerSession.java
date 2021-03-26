@@ -12,6 +12,7 @@ import io.netty.channel.Channel;
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.math.BigInteger;
+import java.util.Objects;
 
 public class ServerSession extends AbstractSession {
 
@@ -303,7 +304,7 @@ public class ServerSession extends AbstractSession {
   }
 
   public AbstractServerChannel createChannel(String type) {
-    if (type != null && type.equals("session")) {
+    if (Objects.equals(type, "session")) {
       return new SessionChannel(this);
     }
 

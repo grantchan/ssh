@@ -49,10 +49,10 @@ public class TtyOutputStreamTest {
     int dblNumberOfLines = LINES.size() << 1;
 
     return Arrays.asList(new Object[][] {
-        { TtyMode.ECHO , numberOfLines   , numberOfLines    },
-        { TtyMode.INLCR, dblNumberOfLines, 0                },
-        { TtyMode.ICRNL, 0               , dblNumberOfLines },
-        { TtyMode.IGNCR, 0               , numberOfLines    }
+        { TtyMode.ECHO ,    numberOfLines,    numberOfLines },
+        { TtyMode.INLCR, dblNumberOfLines,                0 },
+        { TtyMode.ICRNL,                0, dblNumberOfLines },
+        { TtyMode.IGNCR,                0,    numberOfLines }
     });
   }
 

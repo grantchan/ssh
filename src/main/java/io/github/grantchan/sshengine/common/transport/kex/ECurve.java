@@ -259,7 +259,7 @@ public enum ECurve {
 
     for (ECurve c : ALL) {
       ECParameterSpec s = c.value();
-      if (s.getCurve().equals(spec.getCurve())) {
+      if (Objects.equals(s.getCurve(), spec.getCurve())) {
         return c;
       }
     }
