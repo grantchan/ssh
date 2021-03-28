@@ -2,7 +2,8 @@ package io.github.grantchan.sshengine.client;
 
 import io.github.grantchan.sshengine.arch.SshMessage;
 import io.github.grantchan.sshengine.client.connection.ClientChannel;
-import io.github.grantchan.sshengine.client.connection.SessionChannel;
+import io.github.grantchan.sshengine.client.connection.ExecChannel;
+import io.github.grantchan.sshengine.client.connection.ShellChannel;
 import io.github.grantchan.sshengine.common.AbstractSession;
 import io.github.grantchan.sshengine.common.transport.compression.Compression;
 import io.github.grantchan.sshengine.util.buffer.ByteBufIo;
@@ -272,10 +273,43 @@ public class ClientSession extends AbstractSession {
     return channel.writeAndFlush(co);
   }
 
-  public ClientChannel createChannel(String type) {
+  public void sendChannelShell(int recipient) {
+    checkActive("sendChannelShell");
+
+    ByteBuf cs = createMessage(SshMessage.SSH_MSG_CHANNEL_REQUEST);
+
+    cs.writeInt(recipient);
+    ByteBufIo.writeUtf8(cs, "shell");
+    cs.writeBoolean(false); // want reply
+
+    logger.debug("{} Sending SSH_MSG_CHANNEL_REQUEST... recipient: {}, type: shell," +
+        " want-reply: false", this, recipient);
+
+    channel.writeAndFlush(cs);
+  }
+
+  public void sendChannelExec(int recipient, String command) {
+    checkActive("sendChannelExec");
+
+    ByteBuf ce = createMessage(SshMessage.SSH_MSG_CHANNEL_REQUEST);
+
+    ce.writeInt(recipient);
+    ByteBufIo.writeUtf8(ce, "exec");
+    ce.writeBoolean(false); // want reply
+
+    logger.debug("{} Sending SSH_MSG_CHANNEL_REQUEST... recipient: {}, type: exec," +
+        " want-reply: false", this, recipient);
+
+    channel.writeAndFlush(ce);
+  }
+
+  public ClientChannel createChannel(String type, String... args) {
     switch(type) {
-      case "session":
-        return new SessionChannel(this);
+      case "shell":
+        return new ShellChannel(this);
+
+      case "exec":
+        return new ExecChannel(this, String.join(" ", args));
     }
 
     return null;

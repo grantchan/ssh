@@ -498,7 +498,7 @@ public abstract class AbstractSession extends AbstractLogger
         System.currentTimeMillis() - authStartTime);
   }
 
-  private void checkActive(String funcName) {
+  protected void checkActive(String funcName) {
     if (getState() != State.OPENED) {
       logger.debug("{} {}, session is inactive, operation skipped", funcName, this);
     }
@@ -862,10 +862,11 @@ public abstract class AbstractSession extends AbstractLogger
 
     exitStatus.writeInt(recipient);
     ByteBufIo.writeUtf8(exitStatus, "exit-status");
-    exitStatus.writeBoolean(false);
+    exitStatus.writeBoolean(false); // want reply
     exitStatus.writeInt(exitVal);
 
-    logger.debug("{} Sending SSH_MSG_CHANNEL_REQUEST... recipient:{}, want-reply: {}, exit value: {}", this, recipient, "false", exitVal);
+    logger.debug("{} Sending SSH_MSG_CHANNEL_REQUEST... recipient:{}, want-reply: false, " +
+        "exit value: {}", this, recipient, exitVal);
 
     channel.writeAndFlush(exitStatus);
   }
